@@ -30,7 +30,7 @@ abstract class DefaultMaintenance extends ControllerBase {
 
 	protected $hasTimer;
 
-	protected $viewname = '@admin/maintenance/default.html';
+	protected $viewname = '@framework/maintenance/default.html';
 
 	/**
 	 *

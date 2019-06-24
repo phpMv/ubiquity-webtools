@@ -148,7 +148,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function __construct() {
 		parent::__construct();
-		Startup::$templateEngine->addPath(implode ( \DS, [ \dirname ( __FILE__ ),"views" ] ) . \DS, "admin")
+		Startup::$templateEngine->addPath(implode(\DS, [
+			\dirname(__FILE__),
+			"views"
+		]) . \DS, "admin");
 		DAO::$transformerOp = 'toView';
 		$this->insertJquerySemantic();
 		$this->config = self::getConfigFile();
