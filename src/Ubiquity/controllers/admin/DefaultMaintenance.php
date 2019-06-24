@@ -2,7 +2,6 @@
 namespace Ubiquity\controllers\admin;
 
 use Ubiquity\controllers\ControllerBase;
-use controllers\Admin;
 use Ubiquity\controllers\admin\popo\MaintenanceMode;
 use Ajax\semantic\html\modules\HtmlDimmer;
 use Ajax\semantic\html\collections\form\HtmlForm;
@@ -98,7 +97,7 @@ abstract class DefaultMaintenance extends ControllerBase {
 	public function __construct() {
 		parent::__construct();
 		$this->insertJquerySemantic();
-		$config = Admin::getConfigFile()['maintenance'];
+		$config = \controllers\Admin::getConfigFile()['maintenance'];
 		$this->activeMaintenance = MaintenanceMode::getActiveMaintenance($config);
 	}
 

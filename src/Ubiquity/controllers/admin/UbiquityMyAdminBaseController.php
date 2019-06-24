@@ -105,6 +105,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
+	public const version = '2.1.5';
+
 	public static function getConfigFile() {
 		$defaultConfig = [
 			'devtools-path' => 'Ubiquity',
