@@ -2,7 +2,6 @@
 namespace Ubiquity\scaffolding;
 
 use Ajax\semantic\html\elements\HtmlButton;
-use Ubiquity\controllers\Startup;
 use Ubiquity\utils\http\USession;
 use Ubiquity\controllers\admin\UbiquityMyAdminBaseController;
 

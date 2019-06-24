@@ -30,6 +30,8 @@ trait ConfigTrait {
 
 	abstract public function models($hasHeader = true);
 
+	abstract protected function reloadConfig();
+
 	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	abstract protected function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null): HtmlMessage;
@@ -78,18 +80,17 @@ trait ConfigTrait {
 				$result[$k1][$k2] = $value;
 			}
 		}
-		$content = "<?php\nreturn " . UArray::asPhpArray($result, "array", 1, true) . ";";
-		if (CodeUtils::isValidCode($content)) {
-			if (Startup::saveConfig($content)) {
+		try {
+			if (Startup::saveConfig($result)) {
 				$this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "check square", null, "msgConfig");
 			} else {
 				$this->showSimpleMessage("Impossible to write the configuration file.", "negative", "warning circle", null, "msgConfig");
 			}
-		} else {
-			$this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.", "negative", "warning circle", null, "msgConfig");
+		} catch (\Exception $e) {
+			$this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
 		}
 
-		$config = Startup::reloadConfig();
+		$config = $this->reloadConfig();
 		if ($partial == "check") {
 			if (isset($config["database"]["dbName"])) {
 				Startup::reloadServices();

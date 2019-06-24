@@ -76,6 +76,9 @@ trait MaintenanceTrait {
 			$this->config['maintenance']['on'] = $maintenanceId;
 			$this->_initCache('controllers');
 			$maintenance->activate();
+			Startup::updateConfig([
+				'debug' => true
+			]);
 		} else {
 			$this->config['maintenance']['on'] = false;
 			$this->_initCache('controllers');

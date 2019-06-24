@@ -75,8 +75,7 @@ trait LogsTrait {
 	private function startStopLogging($start = true) {
 		$config = Startup::getConfig();
 		$config["debug"] = $start;
-		$content = "<?php\nreturn " . UArray::asPhpArray($config, "array", 1, true) . ";";
-		Startup::saveConfig($content);
+		Startup::saveConfig($config);
 		$this->reloadConfig();
 		Logger::init($config);
 		$this->logs();
