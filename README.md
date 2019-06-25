@@ -21,12 +21,24 @@ update devtools:
 ```bash
 composer global update
 ```
-In your Ubiquity project:
+In your Ubiquity project folder:
 
 ```bash
 Ubiquity admin
 ```
 
+To confirm **Ubiquity webtools** was successfully installed,
 
+type ``Ubiquity version``:
 
-To confirm **Ubiquity webtools** was successfully installed, type ``Ubiquity version``:
+![img](https://github.com/phpmv/ubiquity-webtools/blob/master/.github/images/webtools-version.png)
+
+## II - Running
+
+Start the embedded web server:
+
+``Ubiquity serve``
+
+Go to the address: ``http://127.0.0.1:8090/Admin``
+
+![img](https://github.com/phpmv/ubiquity-webtools/blob/master/.github/images/webtools-interface.png)
