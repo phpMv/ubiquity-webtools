@@ -16,9 +16,17 @@ With the `-a`option:
 Ubiquity new projectName -a
 ```
 ### With an existing project
+if the project is older than Ubiquity version 2.1.5,
+update devtools:
+```bash
+composer global update
+```
 In your Ubiquity project:
 
 ```bash
 Ubiquity admin
 ```
+
+
+
 To confirm **Ubiquity webtools** was successfully installed, type ``Ubiquity version``:
