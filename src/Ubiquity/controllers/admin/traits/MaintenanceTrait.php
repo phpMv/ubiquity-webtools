@@ -222,7 +222,6 @@ trait MaintenanceTrait {
 
 	public function _addNewMaintenanceType() {
 		$maintenance = new MaintenanceMode();
-		$maintenance->setId('newMaintenance');
 		$maintenance->setIcon('time loading');
 		$maintenance->setAction('index');
 		$maintenance->setExcluded([
