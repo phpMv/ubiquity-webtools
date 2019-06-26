@@ -71,8 +71,8 @@ trait ControllersTrait {
 	private function _createViewOp($controller, $action) {
 		$viewName = $controller . "/" . $action . ".html";
 		UFileSystem::safeMkdir(\ROOT . \DS . "views" . \DS . $controller);
-		$frameworkDir = Startup::getFrameworkDir();
-		UFileSystem::openReplaceWriteFromTemplateFile($frameworkDir . "/admin/templates/view.tpl", \ROOT . \DS . "views" . \DS . $viewName, [
+		$templateDir = $this->scaffold->getTemplateDir();
+		UFileSystem::openReplaceWriteFromTemplateFile($templateDir . "/view.tpl", \ROOT . \DS . "views" . \DS . $viewName, [
 			"%controllerName%" => $controller,
 			"%actionName%" => $action
 		]);
