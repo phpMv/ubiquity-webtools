@@ -222,7 +222,15 @@ trait MaintenanceTrait {
 
 	public function _addNewMaintenanceType() {
 		$maintenance = new MaintenanceMode();
+		$maintenance->setId('newMaintenance');
+		$maintenance->setIcon('time loading');
 		$maintenance->setAction('index');
+		$maintenance->setExcluded([
+			'urls' => [
+				'admin',
+				'Admin'
+			]
+		]);
 		$maintenance->setUntil(((new \DateTime())->add(new \DateInterval('PT1H')))->format('Y-m-d\TH:i:s'));
 		$this->_createFrmMaintenance($maintenance);
 	}
