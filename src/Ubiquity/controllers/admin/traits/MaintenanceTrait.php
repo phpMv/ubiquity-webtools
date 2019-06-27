@@ -34,7 +34,7 @@ trait MaintenanceTrait {
 
 	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	abstract protected function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null): HtmlMessage;
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
 
 	protected function _displayActiveMaintenance(MaintenanceMode $maintenance) {
 		$semantic = $this->jquery->semantic();

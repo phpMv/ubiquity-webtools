@@ -36,7 +36,7 @@ trait ControllersTrait {
 
 	abstract protected function _addMessageForRouteCreation($path);
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null): HtmlMessage;
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
 
 	public function createController($force = null) {
 		if (URequest::isPost()) {

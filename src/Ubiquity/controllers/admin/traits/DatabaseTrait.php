@@ -13,63 +13,72 @@ use Ubiquity\db\export\DbExport;
 use Ajax\semantic\html\collections\HtmlMessage;
 
 /**
+ *
  * @author jc
  * @property \Ajax\JsUtils $jquery
  */
-trait DatabaseTrait{
-	abstract public function _getAdminData();
-	abstract public function _getAdminViewer();
-	abstract public function _getFiles();
-	abstract public function loadView($viewName, $pData=NULL, $asString=false);
-	abstract protected function showSimpleMessage($content, $type, $title=null,$icon="info", $timeout=NULL, $staticName=null):HtmlMessage;
+trait DatabaseTrait {
 
-	protected function getModels(){
-		$config=Startup::getConfig();
-		$models=CacheManager::getModels($config,true);
-		$result=[];
-		foreach ($models as $model){
-			$table=OrmUtils::getTableName($model);
-			$simpleM=ClassUtils::getClassSimpleName($model);
-			if($simpleM!==$table)
-				$result[$table]=$simpleM."[".$table."]";
+	abstract public function _getAdminData();
+
+	abstract public function _getAdminViewer();
+
+	abstract public function _getFiles();
+
+	abstract public function loadView($viewName, $pData = NULL, $asString = false);
+
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
+
+	protected function getModels() {
+		$config = Startup::getConfig();
+		$models = CacheManager::getModels($config, true);
+		$result = [];
+		foreach ($models as $model) {
+			$table = OrmUtils::getTableName($model);
+			$simpleM = ClassUtils::getClassSimpleName($model);
+			if ($simpleM !== $table)
+				$result[$table] = $simpleM . "[" . $table . "]";
 			else
-				$result[$table]=$simpleM;
+				$result[$table] = $simpleM;
 		}
 		return $result;
 	}
 
-	public function createSQLScript(){
-		if(URequest::isPost()){
-			$db=$_POST["dbName"];
-			if(DAO::isConnected()){
-				$actualDb=DAO::$db->getDbName();
+	public function createSQLScript() {
+		if (URequest::isPost()) {
+			$db = $_POST["dbName"];
+			if (DAO::isConnected()) {
+				$actualDb = DAO::$db->getDbName();
 			}
-			$generator=new DatabaseReversor(new DbGenerator());
+			$generator = new DatabaseReversor(new DbGenerator());
 			$generator->createDatabase($db);
-			$frm=$this->jquery->semantic()->htmlForm("form-sql");
-			$text=$frm->addElement("sql", $generator->__toString(),"SQL script","div","ui segment editor");
+			$frm = $this->jquery->semantic()->htmlForm("form-sql");
+			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");
 			$text->getField()->setProperty("style", "background-color: #002B36;");
-			$bts=$this->jquery->semantic()->htmlButtonGroups("buttons");
+			$bts = $this->jquery->semantic()->htmlButtonGroups("buttons");
 			$bts->addElement("Generate database")->addClass("green");
-			if(isset($actualDb) && $actualDb!==$db){
-				$btExport=$bts->addElement("Export datas script : ".$actualDb." => ".$db);
+			if (isset($actualDb) && $actualDb !== $db) {
+				$btExport = $bts->addElement("Export datas script : " . $actualDb . " => " . $db);
 				$btExport->addIcon("exchange");
-				$btExport->postOnClick($this->_getFiles()->getAdminBaseRoute()."/exportDatasScript","{}","#div-datas");
+				$btExport->postOnClick($this->_getFiles()
+					->getAdminBaseRoute() . "/exportDatasScript", "{}", "#div-datas");
 			}
 			$frm->addDivider();
-			$this->jquery->exec("setAceEditor('sql');",true);
+			$this->jquery->exec("setAceEditor('sql');", true);
 			$this->jquery->compile($this->view);
-			$this->loadView($this->_getFiles()->getViewDatabaseCreate());
+			$this->loadView($this->_getFiles()
+				->getViewDatabaseCreate());
 		}
 	}
 
-	public function exportDatasScript(){
-		$dbExport=new DbExport();
-		$frm=$this->jquery->semantic()->htmlForm("form-sql-datas");
-		$text=$frm->addElement("datas-sql", $dbExport->exports(),"Datas export script","div","ui segment editor");
+	public function exportDatasScript() {
+		$dbExport = new DbExport();
+		$frm = $this->jquery->semantic()->htmlForm("form-sql-datas");
+		$text = $frm->addElement("datas-sql", $dbExport->exports(), "Datas export script", "div", "ui segment editor");
 		$text->getField()->setProperty("style", "background-color: #002B36;");
-		$this->jquery->exec("setAceEditor('datas-sql');",true);
+		$this->jquery->exec("setAceEditor('datas-sql');", true);
 		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()->getViewDatasExport());
+		$this->loadView($this->_getFiles()
+			->getViewDatasExport());
 	}
 }
