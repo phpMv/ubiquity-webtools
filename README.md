@@ -8,7 +8,7 @@
 
 Web tools for [Ubiquity framework](https://github.com/phpMv/ubiquity)
 ## I - Installation
-Webtools are installed from the devtools.
+Webtools are installed from the [devtools](https://github.com/phpMv/ubiquity-devtools).
 
 ### At the project creation
 With the `-a`option:
