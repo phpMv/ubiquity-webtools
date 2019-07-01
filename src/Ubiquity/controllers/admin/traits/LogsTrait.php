@@ -4,7 +4,6 @@ namespace Ubiquity\controllers\admin\traits;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\log\Logger;
-use Ubiquity\utils\base\UArray;
 use Ubiquity\controllers\Startup;
 
 /**

@@ -4,6 +4,11 @@
 	{{ q["msgGlobal"] | raw }}
 </div>
 {% endif %}
+{% if q["msgInfo"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgInfo"] | raw }}
+</div>
+{% endif %}
 <button id="add-maintenance-btn" class="ui button teal">
   <i class="icon plus"></i>
   Add maintenance type...

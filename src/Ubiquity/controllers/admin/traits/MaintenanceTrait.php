@@ -82,7 +82,9 @@ trait MaintenanceTrait {
 		} else {
 			$this->config['maintenance']['on'] = false;
 			$this->_initCache('controllers');
+			$this->showSimpleMessage("<b>{$maintenanceId}</b> successfully deactivated!", "success", "Maintenance", "info circle", null, "msgInfo");
 		}
+
 		$this->saveConfig();
 		$this->maintenance();
 	}
@@ -193,7 +195,7 @@ trait MaintenanceTrait {
 			$_POST['excluded']['urls'] = $checkExcluded($_POST['urls']);
 			$_POST['excluded']['ports'] = $checkExcluded($_POST['ports']);
 			$_POST['excluded']['hosts'] = $checkExcluded($_POST['hosts']);
-			$this->config['maintenance']['modes'][$id] = $_POST;
+			$this->config['maintenance']['modes'][(string) $id] = $_POST;
 			if (isset($_POST['ck-active'])) {
 				$this->config['maintenance']['on'] = $id;
 				$this->_initCache('controllers');
