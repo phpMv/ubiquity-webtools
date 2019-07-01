@@ -761,7 +761,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected function _seo() {
 		$ctrls = ControllerSeo::init();
-		$dtCtrl = $this->jquery->semantic()->dataTable("seoCtrls", "Ubiquity\controllers\admin\popo\ControllerSeo", $ctrls);
+		$dtCtrl = $this->jquery->semantic()->dataTable("seoCtrls", "Ubiquity\seo\ControllerSeo", $ctrls);
 		$dtCtrl->setFields([
 			'name',
 			'urlsFile',
