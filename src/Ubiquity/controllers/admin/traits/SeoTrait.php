@@ -1,19 +1,19 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
-use Ajax\semantic\html\elements\HtmlInput;
-use Ubiquity\seo\UrlParser;
-use Ubiquity\controllers\Startup;
-use Ubiquity\utils\http\URequest;
-use Ubiquity\utils\base\UFileSystem;
 use Ajax\semantic\components\validation\Rule;
-use Ubiquity\cache\CacheManager;
-use Ubiquity\utils\http\USession;
-use Ubiquity\controllers\seo\SeoController;
-use Ubiquity\controllers\admin\popo\ControllerSeo;
-use Ubiquity\utils\base\UString;
-use Ubiquity\utils\http\UResponse;
 use Ajax\semantic\html\collections\HtmlMessage;
+use Ajax\semantic\html\elements\HtmlInput;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\controllers\Startup;
+use Ubiquity\controllers\seo\SeoController;
+use Ubiquity\seo\ControllerSeo;
+use Ubiquity\seo\UrlParser;
+use Ubiquity\utils\base\UFileSystem;
+use Ubiquity\utils\base\UString;
+use Ubiquity\utils\http\URequest;
+use Ubiquity\utils\http\UResponse;
+use Ubiquity\utils\http\USession;
 
 /**
  *

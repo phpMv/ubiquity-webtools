@@ -1,7 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin;
 
-use Ubiquity\controllers\admin\traits\UrlsTrait;
+use Ubiquity\controllers\crud\traits\UrlsTrait;
 
 class UbiquityMyAdminFiles {
 	use UrlsTrait;
