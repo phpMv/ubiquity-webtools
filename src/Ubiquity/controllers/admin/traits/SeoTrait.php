@@ -115,7 +115,11 @@ trait SeoTrait {
 				"urlsFile" => $controllerSeo->_getUrlsFilename()
 			]);
 		} else {
-			echo $this->showSimpleMessage("The controller <b>`{$controllerClass}`</b> does not exists!", "warning", "warning circle");
+			if ($controllerClass == null) {
+				echo $this->showSimpleMessage("No controller selected!", "info", "SEO controller", "info circle");
+			} else {
+				echo $this->showSimpleMessage("The controller <b>`{$controllerClass}`</b> does not exists!", "warning", "SEO controller", "warning circle");
+			}
 			echo $this->jquery->compile($this->view);
 		}
 	}
@@ -296,7 +300,7 @@ trait SeoTrait {
 		if (sizeof($_POST) > 0) {
 			$controllerName = \urldecode($_POST["data"]);
 			if ($this->_deleteController($controllerName)) {
-				$message = $this->showSimpleMessage("Deletion of SEO controller `<b>" . $controllerName . "</b>`", "info", "info", 4000);
+				$message = $this->showSimpleMessage("Deletion of SEO controller `<b>" . $controllerName . "</b>`", "success", "SEO controller deletion", "remove", 4000);
 				$this->jquery->get($this->_getFiles()
 					->getAdminBaseRoute() . "/seoRefresh", "#seoCtrls", [
 					'hasLoader' => false,
@@ -307,7 +311,7 @@ trait SeoTrait {
 				$message = $this->showSimpleMessage("Can not delete SEO controller `" . $controllerName . "`", "warning", "warning");
 			}
 		} else {
-			$message = $this->showConfMessage("Do you confirm the deletion of SEO controller `<b>" . $controllerName . "</b>`?", "error", $this->_getFiles()
+			$message = $this->showConfMessage("Do you confirm the deletion of SEO controller `<b>" . $controllerName . "</b>`?", "error", "SEO controller deletion", "remove circle", $this->_getFiles()
 				->getAdminBaseRoute() . "/deleteSeoController/{$params[0]}/{$params[1]}", "#messages", \urlencode($controllerName));
 		}
 		echo $message;

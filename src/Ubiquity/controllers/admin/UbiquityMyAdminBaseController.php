@@ -105,7 +105,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.1.5';
+	public const version = '2.2.0';
 
 	public static function getConfigFile() {
 		$defaultConfig = [
@@ -833,8 +833,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->getAdminBaseRoute() . "/seeSeoUrl", "#messages", [
 			"attr" => "data-ajax"
 		]);
+		$dtCtrl->setEmptyMessage($this->showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "info", "SEO Controllers", "info circle"));
 		$this->jquery->execOn('click', '#generateRobots', '$("#frm-seoCtrls").form("submit");');
-		$this->jquery->getOnClick('#addNewSeo', $this->_getFiles()
+		$this->jquery->getOnClick('.addNewSeo', $this->_getFiles()
 			->getAdminBaseRoute() . '/_newSeoController', '#seo-details');
 		return $dtCtrl;
 	}
