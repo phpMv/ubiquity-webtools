@@ -194,7 +194,10 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getControllersDataTable($controllers) {
-		$filteredCtrls = USession::init("filtered-controllers", UArray::remove(ControllerAction::$controllers, "controllers\Admin"));
+		$filteredCtrls = USession::init("filtered-controllers", UArray::remove(ControllerAction::$controllers, [
+			"controllers\\Admin",
+			"controllers\\MaintenanceController"
+		]));
 		$controllers = array_filter($controllers, function ($item) use ($filteredCtrls) {
 			return array_search($item->getController(), $filteredCtrls) !== false;
 		});
