@@ -252,7 +252,7 @@ trait ControllersTrait {
 		\ob_start();
 		CacheManager::initCache($config, "controllers");
 		$message = \ob_get_clean();
-		echo $this->showSimpleMessage(\nl2br($message), "info", "info", 4000);
+		echo $this->showSimpleMessage(\nl2br($message), "info", "Cache re-initialization", "info circle", 4000);
 		$this->jquery->get($this->_getFiles()
 			->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
 			"jqueryDone" => "replaceWith",
