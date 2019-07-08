@@ -1440,7 +1440,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					"inline" => true
 				]);
 				$frm->setSubmitParams($this->_getFiles()
-					->getAdminBaseRoute() . "/_runAction", "#modal", [
+					->getAdminBaseRoute() . "/_runAction/frmGetParams", "#modal", [
 					"params" => \json_encode($toPost)
 				]);
 				$modal->setContent($frm);
