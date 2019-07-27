@@ -8,6 +8,7 @@ use Ubiquity\contents\validation\ValidatorsManager;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\popo\MaintenanceMode;
 use Ubiquity\utils\http\URequest;
+use Ubiquity\orm\DAO;
 
 /**
  *
@@ -83,7 +84,7 @@ trait CacheTrait {
 			$type = \strtolower($_POST["type"]);
 			$filename = $_POST["filename"];
 			$key = $_POST["key"];
-			if ($type == 'models' || $type == 'controllers') {
+			if ($type == 'controllers') {
 				$content = CacheManager::$cache->file_get_contents($key);
 			} else {
 				if (\file_exists($filename)) {
@@ -139,6 +140,9 @@ trait CacheTrait {
 		}
 		\ob_end_clean();
 		if (isset($redirect)) {
+			if($type=='models'){
+				DAO::start();
+			}
 			$this->$redirect();
 		}
 	}

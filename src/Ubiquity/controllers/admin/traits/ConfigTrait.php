@@ -9,6 +9,7 @@ use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\base\UString;
 use Ubiquity\db\Database;
 use Ubiquity\utils\base\CodeUtils;
+use Ubiquity\orm\DAO;
 
 /**
  *
@@ -52,18 +53,33 @@ trait ConfigTrait {
 		echo $this->_getAdminViewer()->getConfigDataElement($config);
 		echo $this->jquery->compile($this->view);
 	}
+	
+	private function checkConfigDatabaseCache(&$postValues,$co=null){
+		$n="-";
+		if(isset($co)){
+			$n="-".$co."-";
+		}
+		if (isset($postValues["ck".$n."cache"])) {
+			unset($postValues["ck".$n."cache"]);
+			if (! (isset($postValues["database".$n."cache"]) && UString::isNotNull($postValues["database".$n."cache"]))) {
+				$postValues["database".$n."cache"] = false;
+			}
+		} else {
+			$postValues["database".$n."cache"] = false;
+		}
+	}
 
 	public function submitConfig($partial = true) {
 		$result = Startup::getConfig();
 		$postValues = $_POST;
 		if ($partial !== true) {
-			if (isset($postValues["lbl-ck-div-de-database-input-cache"])) {
-				unset($postValues["lbl-ck-div-de-database-input-cache"]);
-				if (! (isset($postValues["database-cache"]) && UString::isNotNull($postValues["database-cache"]))) {
-					$postValues["database-cache"] = false;
+			if(isset($result['database']['dbName'])){
+				$this->checkConfigDatabaseCache($postValues);
+			}else{
+				$dbs=DAO::getDatabases();
+				foreach ($dbs as $db){
+					$this->checkConfigDatabaseCache($postValues,$db);
 				}
-			} else {
-				$postValues["database-cache"] = false;
 			}
 			$postValues["debug"] = isset($postValues["debug"]);
 			$postValues["test"] = isset($postValues["test"]);
@@ -73,11 +89,15 @@ trait ConfigTrait {
 			if (strpos($key, "-") === false) {
 				$result[$key] = $value;
 			} else {
-				list ($k1, $k2) = explode("-", $key);
-				if (! isset($result[$k1])) {
-					$result[$k1] = [];
+				$keys=explode('-', $key);
+				$v=&$result;
+				foreach ($keys as $k){
+					if (! isset($v[$k])) {
+						$v[$k] = [];
+					}
+					$v=&$v[$k];
 				}
-				$result[$k1][$k2] = $value;
+				$v=$value;
 			}
 		}
 		try {
@@ -161,11 +181,24 @@ trait ConfigTrait {
 
 		return str_replace($search, $replace, $string);
 	}
+	
+	private function getDbValue($post,$key){
+		foreach ($post as $k=>$v){
+			if(UString::endswith($k, $key)){
+				return $v;
+			}
+		}
+		return '';
+	}
 
-	public function _checkDbStatus() {
+	public function _checkDbStatus($co='') {
+		$n='';
+		if($co!=null){
+			$n=$co.'-';
+		}
 		$postValues = $_POST;
 		$connected = false;
-		$db = new Database($postValues["database-type"], $postValues["database-dbName"], $postValues["database-serverName"], $postValues["database-port"], $postValues["database-user"], $postValues["database-password"]);
+		$db = new Database($postValues["database-".$n."type"], $postValues["database-".$n."dbName"], $postValues["database-".$n."serverName"], $postValues["database-".$n."port"], $postValues["database-".$n."user"], $postValues["database-".$n."password"]);
 		try {
 			$db->_connect();
 			$connected = $db->isConnected();
@@ -178,13 +211,13 @@ trait ConfigTrait {
 		if ($connected) {
 			$icon = "check square green";
 		}
-		$icon = $this->jquery->semantic()->htmlIcon("db-status", $icon);
+		$icon = $this->jquery->semantic()->htmlIcon("db-".$n."status", $icon);
 		if (isset($msg)) {
 			$icon->addPopup("Error", $msg);
 		} else {
 			$icon->addPopup("Success", "Connexion is ok!");
 		}
-		$this->jquery->execAtLast('$("#db-status").popup("show");');
+		$this->jquery->execAtLast('$("#db-'.$n.'status").popup("show");');
 		echo $icon;
 		echo $this->jquery->compile($this->view);
 	}

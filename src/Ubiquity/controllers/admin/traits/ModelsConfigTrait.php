@@ -9,6 +9,8 @@ use Ajax\semantic\html\modules\HtmlDropdown;
 use Ubiquity\orm\creator\yuml\YumlModelsCreator;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\UbiquityMyAdminFiles;
+use Ajax\semantic\components\validation\Rule;
+use Ubiquity\orm\DAO;
 
 /**
  *
@@ -153,6 +155,57 @@ trait ModelsConfigTrait{
 			echo $this->_getYumlImage($type . $size, $yumlContent);
 			echo $this->jquery->compile();
 		}
+	}
+	
+	public function _frmAddNewDbConnection(){
+		$v=(object)['type'=>'mysql','dbName'=>'','serverName'=>'127.0.0.1','port'=>3306,'options'=>[],'user'=>'root','password'=>'','cache'=>false];
+		$dbForm=$this->_getAdminViewer()->getDatabaseDataForm($v);
+		$frm = $this->jquery->semantic ()->htmlForm ( "frm-frmDeConfig" );
+		$frm->addExtraFieldRule ( "database-dbName", "empty" );
+		$frm->addExtraFieldRules ( "connection-name", [ "empty",[ "checkConnectionName","This connection {value} already exists!" ] ] );
+		$this->jquery->exec ( Rule::ajax ( $this->jquery, "checkConnectionName", $this->_getFiles ()->getAdminBaseRoute () . "/_checkConnectionName", "{}", "result=data.result;", "postForm", [ "form" => "frm-frmDeConfig" ] ), true );
+		
+		$frm->setValidationParams ( [ "on" => "blur","inline" => true ] );
+		$frm->setSubmitParams ( $this->_getFiles ()->getAdminBaseRoute () . "/_addDbConnection", "#main-content" );
+		
+		$this->jquery->click ( "#validate-btn", '$("#frm-frmDeConfig").form("submit");' );
+		$this->jquery->execOn ( "click", "#cancel-btn", '$("#temp-form").html("");$("#models-main").show();' );
+		
+		$dbForm->compile($this->jquery);
+		$this->jquery->execAtLast('$("#models-main").hide();');
+		$this->jquery->renderView ( $this->_getFiles ()->getViewFrmNewDbConnection (),['dbForm'=>$dbForm] );
+	}
+	
+	public function _checkConnectionName(){
+		if (URequest::isPost()) {
+			$result = [];
+			\header('Content-type: application/json');
+			$name = $_POST['connection-name'];
+			$dbs = DAO::getDatabases();
+			$dbs[]='default';
+			$result["result"] = ! \in_array($name,$dbs);
+			echo \json_encode($result);
+		}
+	}
+	
+	public function _addDbConnection(){
+		if (URequest::isPost()) {
+			$result = Startup::getConfig();
+			$postValues = $_POST;
+			$this->checkConfigDatabaseCache($postValues);
+			if(isset($result['database']['dbName'])){
+				$result['database']=['default'=>$result['database']];
+			}
+			$result['database'][$postValues['connection-name']]=['type'=>$postValues['database-type'],'dbName'=>$postValues['database-dbName'],'serverName'=>$postValues['database-serverName'],'port'=>$postValues['database-port'],'options'=>$postValues['database-options'],'user'=>$postValues['database-user'],'password'=>$postValues['database-password'],'cache'=>$postValues['database-cache']];
+			if (Startup::saveConfig($result)) {
+				$this->showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "msgModels");
+			} else {
+				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "msgModels");
+			}
+			$this->reloadConfig();
+		}
+		
+		$this->models();
 	}
 	
 	private function _yumlRefresh($url="/_updateDiagram", $params="{}", $responseElement="#diag-class"){

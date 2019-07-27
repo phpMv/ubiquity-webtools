@@ -30,8 +30,9 @@ trait DatabaseTrait {
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
 
 	protected function getModels() {
+		$db=$this->getActiveDb();
 		$config = Startup::getConfig();
-		$models = CacheManager::getModels($config, true);
+		$models = CacheManager::getModels($config, true,$db);
 		$result = [];
 		foreach ($models as $model) {
 			$table = OrmUtils::getTableName($model);
@@ -47,10 +48,11 @@ trait DatabaseTrait {
 	public function createSQLScript() {
 		if (URequest::isPost()) {
 			$db = $_POST["dbName"];
-			if (DAO::isConnected()) {
-				$actualDb = DAO::$db->getDbName();
+			$activeDb=$this->getActiveDb();
+			if (DAO::isConnected($activeDb)) {
+				$actualDb = DAO::$db[$activeDb]->getDbName();
 			}
-			$generator = new DatabaseReversor(new DbGenerator());
+			$generator = new DatabaseReversor(new DbGenerator(),$activeDb);
 			$generator->createDatabase($db);
 			$frm = $this->jquery->semantic()->htmlForm("form-sql");
 			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");

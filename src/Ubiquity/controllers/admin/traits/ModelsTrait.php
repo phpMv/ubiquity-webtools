@@ -17,6 +17,8 @@ use Ubiquity\utils\base\UString;
 use Ajax\common\html\HtmlContentOnly;
 use Ubiquity\contents\validation\ValidatorsManager;
 use Ubiquity\contents\transformation\TransformersManager;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\cache\ClassUtils;
 
 /**
  *
@@ -295,6 +297,52 @@ trait ModelsTrait {
 			}
 		}
 		return $result;
+	}
+	
+	public function _modelDatabase($hasHeader = true,$update=false,$databaseOffset='default'){
+		$semantic = $this->jquery->semantic();
+		if($update!==false){
+			$this->config['activeDb']=$databaseOffset;
+			$this->saveConfig();
+		}
+		if (($hasHeader=UString::isBooleanTrue($hasHeader))) {
+			$stepper = $this->_getModelsStepper();
+		}
+		if ($this->_isModelsCompleted() || $hasHeader !== true) {
+			$config = Startup::getConfig();
+			try {
+				$models = CacheManager::getModels($config, true,$databaseOffset);
+				$menu = $semantic->htmlMenu("menuDbs");
+				$menu->setVertical()->setInverted();
+				foreach ($models as $model) {
+					$count = DAO::count($model);
+					$item = $menu->addItem(ClassUtils::getClassSimpleName($model));
+					$item->addLabel($count);
+					$tbl = OrmUtils::getTableName($model);
+					$item->setProperty("data-ajax", $tbl);
+					$item->setProperty("data-model", str_replace("\\", ".", $model));
+				}
+				$menu->getOnClick($this->_getFiles()
+					->getAdminBaseRoute() . "/showModel", "#divTable", [
+						"attr" => "data-model",
+						"historize" => true
+					]);
+				$menu->onClick("$('.ui.label.left.pointing.teal').removeClass('left pointing teal');$(this).find('.ui.label').addClass('left pointing teal');");
+			} catch (\Exception $e) {
+				throw $e;
+				$this->showSimpleMessage("Models cache is not created!&nbsp;", "error", "Exception", "warning circle", null, "errorMsg");
+			}
+			$this->_checkModelsUpdates($config, false);
+			
+			$this->jquery->compile($this->view);
+			$this->loadView($this->_getFiles()
+				->getViewDataIndex(),['activeDb'=>$databaseOffset]);
+		} else {
+			echo $stepper;
+			echo "<div id='models-main'>";
+			$this->_loadModelStep();
+			echo "</div>";
+		}
 	}
 
 	public function showDetail($ids) {

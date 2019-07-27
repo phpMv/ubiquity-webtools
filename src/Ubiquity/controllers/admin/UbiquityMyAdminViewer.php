@@ -674,28 +674,38 @@ class UbiquityMyAdminViewer {
 		$fields = \array_keys($config);
 		$de->setFields($fields);
 		$de->setCaptions($fields);
-		$de->setValueFunction("database", function ($v, $instance, $index) {
+		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
 			$dbDe = new DataElement("", $v);
-			$dbDe->setFields([
-				"type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
-			$dbDe->setCaptions([
-				"Type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
+			if(isset($config['database']['dbName'])){
+				$dbDe->setFields([
+					"type",
+					"dbName",
+					"serverName",
+					"port",
+					"user",
+					"password",
+					"options",
+					"cache"
+				]);
+				$dbDe->setCaptions([
+					"Type",
+					"dbName",
+					"serverName",
+					"port",
+					"user",
+					"password",
+					"options",
+					"cache"
+				]);
+			}else{
+				$cos=\array_keys($config['database']);
+				$dbDe->setFields($cos);
+				foreach ($cos as $co){
+					$dbDe->setValueFunction($co, function($v,$instance){
+						return $this->_getDSNFromStdClass($v);
+					});
+				}
+			}
 			return $dbDe;
 		});
 		$de->setValueFunction("cache", function ($v, $instance, $index) {
@@ -794,6 +804,92 @@ class UbiquityMyAdminViewer {
 		$value = str_replace('"', "'", $value);
 		return $value;
 	}
+	
+	private function _getDSNFromStdClass($v){
+		return  $v->type. "://" . $v->user . ":" . $v->password . "@" . $v->serverName . ":" . $v->port . "/" . $v->dbName;
+	}
+	
+	public function getDatabaseDataForm($v,$dbOffset=''){
+		$n=($dbOffset!=null)?$dbOffset.'-':'';
+		$drivers = Database::getAvailableDrivers();
+		$dbDe = new DataElement("de-database".$dbOffset, $v);
+		$dbDe->setDefaultValueFunction(function ($name, $value) use($n){
+			$value = $this->_cleanStdClassValue($value);
+			$input = new HtmlFormInput("database-" .$n. $name, null, "text", $value);
+			return $this->labeledInput($input, $value);
+		});
+			$dbDe->setFields([
+				"type",
+				"dbName",
+				"serverName",
+				"port",
+				"user",
+				"password",
+				"options",
+				"cache"
+			]);
+			$dbDe->setCaptions([
+				"Type",
+				"dbName",
+				"serverName",
+				"port",
+				"user",
+				"password",
+				"options",
+				"cache"
+			]);
+			$dbDe->fieldAsInput("password", [
+				"inputType" => "password",
+				"name" => "database-".$n."password"
+			]);
+			$dbDe->fieldAsInput("port", [
+				"name" => "database-".$n."port",
+				"inputType" => "number",
+				"jsCallback" => function ($elm) {
+				$elm->getDataField()
+				->setProperty("min", 0);
+				$elm->getDataField()
+				->setProperty("max", 3306);
+				}
+				]);
+			$dbDe->fieldAsDropDown("type", \array_combine($drivers, $drivers), false, [
+				"name" => "database-".$n."type"
+			]);
+			$dbDe->fieldAsInput("cache", [
+				"name" => "database-".$n."cache",
+				"jsCallback" => function ($elm, $object) use($n) {
+				$ck = $elm->labeledCheckbox();
+				$ck->getField()->setIdentifier("ck-".$n."cache");
+				$ck->on("click", '$("[name=database-'.$n.'cache]").prop("disabled",$(this).checkbox("is unchecked"));');
+				if ($object->cache !== false) {
+					$ck->setChecked(true);
+				}
+				}
+				]);
+			$dbDe->setValueFunction("dbName", function ($value) use($n,$dbOffset){
+				$input = new HtmlFormInput("database-".$n."dbName", null, "text", $value);
+				$bt = $input->addAction("Test");
+				$bt->addClass("black");
+				$bt->postFormOnClick($this->controller->_getFiles()
+					->getAdminBaseRoute() . "/_checkDbStatus/".$dbOffset."/", "frm-frmDeConfig", "#db-".$n."status", [
+						"jqueryDone" => "replaceWith",
+						"hasLoader" => "internal"
+					]);
+				return $this->labeledInput($input, '<i id="db-'.$n.'status" class="ui question icon"></i>&nbsp;' . $value);
+			});
+			$dbDe->setEdition();
+			return $dbDe;
+	}
+	
+	private function getDatabaseForm($v, $instance, $index,$dbOffset=''){
+			$dbDe=$this->getDatabaseDataForm($v,$dbOffset);
+			$dbDe->setStyle("display: none;");
+				$caption = "<div class='toggle-caption'>" . $this->_getDSNFromStdClass($v) . "</div>";
+				return [
+					$dbDe,
+					$caption
+				];
+	}
 
 	public function getConfigDataForm($config, $origin = "all") {
 		$de = $this->jquery->semantic()->dataElement("frmDeConfig", $config);
@@ -820,79 +916,17 @@ class UbiquityMyAdminViewer {
 			$captions[array_search("di", $keys)] = $this->getCaptionToggleButton("di-bt", "Dependency injection", "active");
 			$captions[array_search("isRest", $keys)] = $this->getCaptionToggleButton("isrest-bt", "Rest", "active");
 		});
-		$de->setValueFunction("database", function ($v, $instance, $index) {
-			$drivers = Database::getAvailableDrivers();
-			$dbDe = new DataElement("de-database", $v);
-			$dbDe->setDefaultValueFunction(function ($name, $value) {
-				$value = $this->_cleanStdClassValue($value);
-				$input = new HtmlFormInput("database-" . $name, null, "text", $value);
-				return $this->labeledInput($input, $value);
-			});
-			$dbDe->setFields([
-				"type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
-			$dbDe->setCaptions([
-				"Type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
-			$dbDe->fieldAsInput("password", [
-				"inputType" => "password",
-				"name" => "database-password"
-			]);
-			$dbDe->fieldAsInput("port", [
-				"name" => "database-port",
-				"inputType" => "number",
-				"jsCallback" => function ($elm) {
-					$elm->getDataField()
-						->setProperty("min", 0);
-					$elm->getDataField()
-						->setProperty("max", 3306);
+		$de->setValueFunction("database", function ($v, $instance, $index) use ($config){
+			if(isset($config['database']['dbName'])){
+				return $this->getDatabaseForm($v, $instance, $index);
+			}else{
+				$cos=\array_keys($config['database']);
+				$res=[];
+				foreach ($cos as $co){
+					$res[]=$this->getDatabaseForm($v->{$co},$instance,$index,$co);
 				}
-			]);
-			$dbDe->fieldAsDropDown("type", array_combine($drivers, $drivers), false, [
-				"name" => "database-type"
-			]);
-			$dbDe->fieldAsInput("cache", [
-				"name" => "database-cache",
-				"jsCallback" => function ($elm, $object) {
-					$ck = $elm->labeledCheckbox();
-					$ck->on("click", '$("[name=database-cache]").prop("disabled",$(this).checkbox("is unchecked"));');
-					if ($object->cache !== false) {
-						$ck->setChecked(true);
-					}
-				}
-			]);
-			$dbDe->setValueFunction("dbName", function ($value) {
-				$input = new HtmlFormInput("database-dbName", null, "text", $value);
-				$bt = $input->addAction("Test");
-				$bt->addClass("black");
-				$bt->postFormOnClick($this->controller->_getFiles()
-					->getAdminBaseRoute() . "/_checkDbStatus", "frm-frmDeConfig", "#db-status", [
-					"jqueryDone" => "replaceWith",
-					"hasLoader" => "internal"
-				]);
-				return $this->labeledInput($input, '<i id="db-status" class="ui question icon"></i>&nbsp;' . $value);
-			});
-			$dbDe->setEdition();
-			$dbDe->setStyle("display: none;");
-			$caption = "<div class='toggle-caption'>" . $v->type . "://" . $v->user . ":" . $v->password . "@" . $v->serverName . ":" . $v->port . "/" . $v->dbName . "</div>";
-			return [
-				$dbDe,
-				$caption
-			];
+				return $res;
+			}
 		});
 		$de->setValueFunction("cache", function ($v, $instance, $index) {
 			$dbDe = new DataElement("de-cache", $v);
