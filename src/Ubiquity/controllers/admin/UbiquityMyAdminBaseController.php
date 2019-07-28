@@ -17,7 +17,6 @@ use Ajax\semantic\html\elements\HtmlList;
 use Ajax\semantic\html\modules\HtmlDropdown;
 use Ajax\semantic\html\modules\checkbox\HtmlCheckbox;
 use Ubiquity\cache\CacheManager;
-use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\Controller;
 use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
@@ -105,7 +104,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.2.0';
+	public const version = '2.3.0';
 
 	public static function getConfigFile() {
 		$defaultConfig = [
@@ -198,7 +197,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 		$this->scaffold = new AdminScaffoldController($this, $this->jquery);
 		DAO::start();
-		$config=Startup::$config;
+		$config = Startup::$config;
 		CacheManager::start($config);
 	}
 
@@ -425,11 +424,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$_GET["_refresh"] = true;
 		$this->forward(self::class, 'index', [], true, true);
 	}
-	
-	protected function getActiveDb(){
-		$dbs=DAO::getDatabases();
-		$db=$this->config['activeDb']??'default';
-		if(\in_array($db, $dbs)){
+
+	protected function getActiveDb() {
+		$dbs = DAO::getDatabases();
+		$db = $this->config['activeDb'] ?? 'default';
+		if (\in_array($db, $dbs)) {
 			return $db;
 		}
 		return 'default';
@@ -437,31 +436,37 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function models($hasHeader = true) {
 		$header = "";
-		$activeDb=$this->getActiveDb();
-		
+		$activeDb = $this->getActiveDb();
+
 		if ($hasHeader === true) {
+			$config = Startup::$config;
 			$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 			$header = $this->getHeader("models");
 			echo $header;
-			$dbs=DAO::getDatabases();
-			$semantic=$this->jquery->semantic();
-			$menu= $semantic->htmlMenu('menu-db');
+			$dbs = DAO::getDatabases();
+			$semantic = $this->jquery->semantic();
+			$menu = $semantic->htmlMenu('menu-db');
 			$menu->addHeader("Databases");
-			foreach ($dbs as $db){
-				$item=$menu->addItem($db);
+			foreach ($dbs as $db) {
+				$item = $menu->addItem($db);
 				$item->setProperty('data-ajax', $db);
 			}
-			$bt=new HtmlButton('btNewConnection','Add new connection...','teal');
-			$menu->addItem($bt);
-			$bt->getOnClick($this->_getBaseRoute().'/_frmAddNewDbConnection/','#temp-form',['hasLoader'=>'internal']);
+			if (sizeof($dbs) > 1 || ($config['database']['dbName'] ?? '') != null) {
+				$bt = new HtmlButton('btNewConnection', 'Add new connection...', 'teal');
+				$menu->addItem($bt);
+				$bt->getOnClick($this->_getBaseRoute() . '/_frmAddNewDbConnection/', '#temp-form', [
+					'hasLoader' => 'internal'
+				]);
+			}
 			$menu->setSecondary();
-			$menu->setActiveItem(\array_search($activeDb,$dbs));
-			$menu->getOnClick($baseRoute.'/_modelDatabase/true/true/','#database-container',['attr'=>'data-ajax']);
+			$menu->setActiveItem(\array_search($activeDb, $dbs));
+			$menu->getOnClick($baseRoute . '/_modelDatabase/true/true/', '#database-container', [
+				'attr' => 'data-ajax'
+			]);
 			echo $menu;
 		}
-		
-		$this->_modelDatabase($hasHeader,false,$activeDb);
-		
+
+		$this->_modelDatabase($hasHeader, false, $activeDb);
 	}
 
 	public function controllers() {
@@ -1016,12 +1021,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	private function _getClassesToYuml($post) {
-		$db=$this->getActiveDb();
+		$db = $this->getActiveDb();
 		if (isset($post["properties"])) {
 			$props = \array_flip($post["properties"]);
-			$yuml = new ClassesToYuml($db,isset($props["displayProperties"]), isset($props["displayAssociations"]), isset($props["displayMethods"]), isset($props["displayMethodsParams"]), isset($props["displayPropertiesTypes"]));
+			$yuml = new ClassesToYuml($db, isset($props["displayProperties"]), isset($props["displayAssociations"]), isset($props["displayMethods"]), isset($props["displayMethodsParams"]), isset($props["displayPropertiesTypes"]));
 		} else {
-			$yuml = new ClassesToYuml($db,! isset($_POST["refresh"]), ! isset($_POST["refresh"]));
+			$yuml = new ClassesToYuml($db, ! isset($_POST["refresh"]), ! isset($_POST["refresh"]));
 		}
 		return $yuml;
 	}
@@ -1153,7 +1158,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function showDatabaseCreation() {
 		$config = Startup::getConfig();
 		$models = $this->getModels();
-		$dbConfig=DAO::getDbOffset($config,$this->getActiveDb());
+		$dbConfig = DAO::getDbOffset($config, $this->getActiveDb());
 		$segment = $this->jquery->semantic()->htmlSegment("menu");
 		$segment->setTagName("form");
 		$header = new HtmlHeader("", 5, "Database creation");
@@ -1591,7 +1596,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $this->getSingleton($this->adminFiles, "getUbiquityMyAdminFiles");
 	}
 
-	protected function getTableNames($offset='default') {
+	protected function getTableNames($offset = 'default') {
 		return $this->_getAdminData()->getTableNames($offset);
 	}
 
