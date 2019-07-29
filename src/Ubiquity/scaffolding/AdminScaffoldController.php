@@ -28,10 +28,6 @@ class AdminScaffoldController extends ScaffoldController {
 		$this->jquery = $jquery;
 	}
 
-	public function getTemplateDir() {
-		return dirname(__DIR__) . "/scaffolding/templates/";
-	}
-
 	public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null) {
 		return $this->controller->showSimpleMessage($content, $type, $title, $icon, $timeout, $staticName);
 	}
