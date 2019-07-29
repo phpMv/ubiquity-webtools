@@ -241,6 +241,10 @@ trait ModelsConfigTrait {
 		$frm->addExtraFieldRules("connection-name", [
 			"empty",
 			[
+				"regExp[/^[a-z0-9]{2,}$/]",
+				"Please enter a valid name with 2 lower letters minimum and no special characters"
+			],
+			[
 				"checkConnectionName",
 				"This connection {value} already exists!"
 			]
