@@ -168,7 +168,7 @@ trait RestTrait {
 		});
 		$dd->getField()->onClick("\$('#field-resource').toggle('true'==$(event.target).attr('data-resource'));");
 		$fields = $frm->addFields();
-		$resources = CacheManager::getModels($config, true);
+		$resources = CacheManager::getModels($config, true, $this->getActiveDb());
 		$resources = \array_combine($resources, $resources);
 		$fields->addInput("route", "Main route path", "text", "/rest/")->addRule("empty");
 		$fields->addDropdown("resource", $resources, "Resource", end($resources))->addRule([

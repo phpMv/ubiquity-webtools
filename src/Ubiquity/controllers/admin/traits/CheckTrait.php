@@ -44,6 +44,8 @@ trait CheckTrait {
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
 
 	abstract public function _isModelsCompleted();
+	
+	abstract public function getConfig();
 
 	/**
 	 *
@@ -53,8 +55,9 @@ trait CheckTrait {
 
 	public function createModels($singleTable = null) {
 		$config = Startup::getConfig();
+		$offset=$this->getActiveDb();
 		\ob_start();
-		(new DbModelsCreator())->create($config, false, $singleTable);
+		(new DbModelsCreator())->create($config, false, $singleTable,$offset);
 		$result = \ob_get_clean();
 		$message = $this->showSimpleMessage("", "success", "Models creation", "check mark", null, "msg-create-models");
 		$message->addList(\explode("\n", \str_replace("\n\n", "\n", \trim($result))));
@@ -79,24 +82,25 @@ trait CheckTrait {
 	}
 
 	protected function _modelCheckOneNiveau($name) {
+		$activeDb=$this->getActiveDb();
 		$config = Startup::getConfig();
 		switch ($name) {
 			case "Conf":
-				if ($this->missingKeyInConfigMessage("Database is not well configured in <b>app/config/config.php</b>", Startup::checkDbConfig()) === false) {
+				if ($this->missingKeyInConfigMessage("Database is not well configured in <b>app/config/config.php</b>", Startup::checkDbConfig($activeDb)) === false) {
 					$this->_addInfoMessage("settings", "Database is well configured");
 				}
 				break;
 			case "Connexion":
 			case "Database":
-				$this->checkDatabase($config, "database");
+				$this->checkDatabase($config, "database",$activeDb);
 				break;
 			case "Models":
 				CacheManager::start($config);
 				$this->checkModels($config);
 				if ($this->engineering === "forward") {
-					$modelsWithoutFiles = $this->getModelsWithoutTable($config);
-					if (sizeof($modelsWithoutFiles) > 0) {
-						foreach ($modelsWithoutFiles as $model) {
+					$modelsWithoutTable = $this->getModelsWithoutTable($config,$activeDb);
+					if (sizeof($modelsWithoutTable) > 0) {
+						foreach ($modelsWithoutTable as $model) {
 							$table = Reflexion::getTableName($model);
 							$this->_addErrorMessage("warning", "The table <b>" . $table . "</b> does not exists for the model <b>" . $model . "</b>.");
 						}
@@ -109,10 +113,10 @@ trait CheckTrait {
 		}
 	}
 
-	protected function checkDatabase($config, $infoIcon = "database") {
-		$db = $config["database"];
-		if (! DAO::isConnected()) {
-			$this->_addErrorMessage("warning", "connection to the database is not established (probably in <b>app/config/services.php</b> file).");
+	protected function checkDatabase($config, $infoIcon = "database",$offset='default') {
+		$db = DAO::getDbOffset($config,$offset);
+		if (! DAO::isConnected($offset)) {
+			//$this->_addErrorMessage("warning", "connection to the database is not established (probably in <b>app/config/services.php</b> file).");
 			try {
 				if ($db["dbName"] !== "") {
 					$this->_addInfoMessage($infoIcon, "Attempt to connect to the database <b>" . $db["dbName"] . "</b> ...");
@@ -135,20 +139,19 @@ trait CheckTrait {
 			if (\file_exists($dir) === false) {
 				$this->_addErrorMessage("warning", "The directory <b>" . $dir . "</b> does not exists.");
 			} else {
+				$activeDb=$this->getActiveDb();
 				$this->_addInfoMessage($infoIcon, "The directory for models namespace <b>" . $dir . "</b> exists.");
-				$files = CacheManager::getModelsFiles($config, true);
-				if (\sizeof($files) === 0) {
+				$models = CacheManager::getModels($config, true,$activeDb);
+				if (\sizeof($models) === 0) {
 					$this->_addErrorMessage("warning", "No file found in <b>" . $dir . "</b> folder.");
 				} else {
-					foreach ($files as $file) {
-						$completeName = ClassUtils::getClassFullNameFromFile($file);
-						$parts = \explode("\\", $completeName);
-						$classname = \array_pop($parts);
-						$ns = \implode("\\", $parts);
-						if ($ns !== $modelsNS) {
-							$this->_addErrorMessage("warning", "The namespace <b>" . $ns . "</b> would be <b>" . $modelsNS . "</b> for the class <b>" . $classname . "</b>.");
+					foreach ($models as $model) {
+						$r=new \ReflectionClass($model);
+						$ns = $r->getNamespaceName();
+						if (!UString::startswith($ns,$modelsNS)) {
+							$this->_addErrorMessage("warning", "The namespace <b>" . $ns . "</b> would start with <b>" . $modelsNS . "</b> for the class <b>" . $model . "</b>.");
 						} else {
-							$this->_addInfoMessage($infoIcon, "The namespace for the class <b>" . $classname . "</b> is ok.");
+							$this->_addInfoMessage($infoIcon, "The namespace for the class <b>" . $model . "</b> is ok.");
 						}
 					}
 				}
@@ -156,9 +159,9 @@ trait CheckTrait {
 		}
 	}
 
-	protected function getTablesWithoutModel($config) {
-		$models = CacheManager::getModels($config, true);
-		$tables = DAO::$db->getTablesName();
+	protected function getTablesWithoutModel($config,$offset='default') {
+		$models = CacheManager::getModels($config, true,$offset);
+		$tables = DAO::getDatabase($offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
 		$tables = array_diff($tables, $allJoinTables);
 		foreach ($models as $model) {
@@ -170,10 +173,10 @@ trait CheckTrait {
 		return $tables;
 	}
 
-	protected function getModelsWithoutTable($config) {
-		$models = CacheManager::getModels($config, true);
+	protected function getModelsWithoutTable($config,$offset='default') {
+		$models = CacheManager::getModels($config, true,$offset);
 		$result = $models;
-		$tables = DAO::$db->getTablesName();
+		$tables = DAO::getDatabase($offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
 		$tables = array_diff($tables, $allJoinTables);
 		foreach ($models as $model) {
@@ -236,19 +239,20 @@ trait CheckTrait {
 	}
 
 	protected function checkModelsCacheFiles($config, $infoIcon = "lightning") {
+		$activeDb=$this->getActiveDb();
 		CacheManager::startProd($config);
-		$files = CacheManager::getModelsFiles($config, true);
-		foreach ($files as $file) {
-			$classname = ClassUtils::getClassFullNameFromFile($file);
-			if (! CacheManager::modelCacheExists($classname)) {
-				$this->_addErrorMessage("warning", "The models cache entry does not exists for the class <b>" . $classname . "</b>.");
+		$models = CacheManager::getModels($config, true,$activeDb);
+		foreach ($models as $model) {
+			if (! CacheManager::modelCacheExists($model)) {
+				$this->_addErrorMessage("warning", "The models cache entry does not exists for the class <b>" . $model . "</b>.");
 			} else {
-				$this->_addInfoMessage($infoIcon, "The models cache entry for <b>" . $classname . "</b> exists.");
+				$this->_addInfoMessage($infoIcon, "The models cache entry for <b>" . $model . "</b> exists.");
 			}
 		}
 	}
 
 	protected function displayAllMessages() {
+		$activeDb=$this->getActiveDb();
 		if ($this->hasNoError()) {
 			$this->_addInfoMessage("checkmark", "everything is fine here");
 		}
@@ -260,10 +264,10 @@ trait CheckTrait {
 			$messagesElmError = $this->displayModelsMessages("error", $this->messages["error"]);
 			echo $messagesElmError;
 		}
-		$this->showActions();
+		$this->showActions($activeDb);
 	}
 
-	protected function showActions() {
+	protected function showActions($activeDb) {
 		$buttons = $this->jquery->semantic()->htmlButtonGroups("step-actions");
 		$step = $this->getActiveModelStep();
 		switch ($step[1]) {
@@ -288,7 +292,7 @@ trait CheckTrait {
 				break;
 			case "Models":
 				if ($this->engineering === "forward") {
-					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig()))) {
+					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig(),$activeDb))) {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton();
 						$ddBtn->getOnClick($this->_getFiles()
@@ -394,11 +398,15 @@ trait CheckTrait {
 			$messagesElm->setIcon($icon);
 		$messages = [];
 		foreach ($messagesToDisplay as $msg) {
-			$elm = new HtmlSemDoubleElement("", "li", "", $msg->getContent());
-			$elm->addIcon($msg->getType());
-			$messages[] = $elm;
+			$lines=explode("\n", $msg->getContent());
+			foreach ($lines as $line){
+				$elm = new HtmlSemDoubleElement("", "div", "", $line);
+				$elm->addIcon($msg->getType());
+				$messages[] = $elm;
+			}
 		}
-		$messagesElm->addList($messages);
+		$list=$messagesElm->addList($messages);
+		$list->addClass('relaxed divided');
 		$messagesElm->addClass($type);
 		return $messagesElm;
 	}

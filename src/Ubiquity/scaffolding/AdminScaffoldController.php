@@ -10,7 +10,7 @@ use Ubiquity\controllers\admin\UbiquityMyAdminBaseController;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.0
+ * @version 1.0.1
  *         
  */
 class AdminScaffoldController extends ScaffoldController {
@@ -26,10 +26,6 @@ class AdminScaffoldController extends ScaffoldController {
 	public function __construct(UbiquityMyAdminBaseController $controller, $jquery) {
 		$this->controller = $controller;
 		$this->jquery = $jquery;
-	}
-
-	public function getTemplateDir() {
-		return dirname(__DIR__) . "/scaffolding/templates/";
 	}
 
 	public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null) {

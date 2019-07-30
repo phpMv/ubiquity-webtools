@@ -24,7 +24,7 @@ trait CreateControllersTrait {
 
 	public function frmAddCrudController() {
 		$config = Startup::getConfig ();
-		$resources = CacheManager::getModels ( $config, true );
+		$resources = CacheManager::getModels ( $config, true ,$this->getActiveDb());
 		$resources = \array_combine ( $resources, $resources );
 		$resourcesList = $this->jquery->semantic ()->htmlDropdown ( "resources-list", "", $resources );
 		$resourcesList->asSelect ( "crud-model" );

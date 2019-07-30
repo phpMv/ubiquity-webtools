@@ -13,8 +13,8 @@ class UbiquityMyAdminData {
 	/**
 	 * Returns the table names to display in the left admin menu
 	 */
-	public function getTableNames(){
-		return DAO::$db->getTablesName();
+	public function getTableNames($offset='default'){
+		return DAO::$db[$offset]->getTablesName();
 	}
 
 	/**

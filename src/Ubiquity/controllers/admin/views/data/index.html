@@ -1,4 +1,4 @@
-{{ q["header"] | raw }}
+<div id='database-container'>
 {{ q["msgModels"] | raw }}
 {{ q["stepper"] | raw }}
 <div id="models-main">
@@ -7,9 +7,11 @@
 		<div class="twelve wide column">{{ q["errorMsg"] | raw }}<div id="divTable">
 		<h2 class="ui center aligned icon header disabled">
 			<i class="huge circular sticky note icon"></i>
-			Models
+			{{activeDb}} Models
 		</h2>
 		</div></div>
 	</div>
 </div>
+<div id='temp-form'></div>
 {{ script_foot |raw }}
+</div>
