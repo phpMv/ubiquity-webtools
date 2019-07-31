@@ -5,7 +5,6 @@ use Ubiquity\controllers\Startup;
 use Ubiquity\orm\DAO;
 use Ubiquity\utils\base\UString;
 use Ubiquity\cache\CacheManager;
-use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\admin\popo\InfoMessage;
 use Ubiquity\db\Database;
 use Ajax\semantic\html\base\HtmlSemDoubleElement;
@@ -255,7 +254,6 @@ trait CheckTrait {
 		$activeDb = $this->getActiveDb();
 		if ($this->hasNoError()) {
 			$this->_addInfoMessage("checkmark", "everything is fine here");
-			$this->jquery->execAtLast('$("#btNewConnection").show();');
 		}
 		if ($this->hasMessages()) {
 			$messagesElmInfo = $this->displayModelsMessages($this->hasNoError() ? "success" : "info", $this->messages["info"]);
@@ -264,7 +262,6 @@ trait CheckTrait {
 		if ($this->hasError()) {
 			$messagesElmError = $this->displayModelsMessages("error", $this->messages["error"]);
 			echo $messagesElmError;
-			$this->jquery->execAtLast('$("#btNewConnection").hide();');
 		}
 		$this->showActions($activeDb);
 	}
@@ -345,14 +342,17 @@ trait CheckTrait {
 			} else {
 				$bt->addClass("disabled");
 			}
+			$this->jquery->execAtLast('$("#btNewConnection").hide();');
 		} else {
 			$bt = $buttons->addItem("See datas")->addClass("black");
 			$bt->addIcon("unhide");
 			if ($this->hasNoError()) {
 				$bt->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/models/noHeader/", "#models-main");
+				$this->jquery->execAtLast('$("#btNewConnection").show();');
 			} else {
 				$bt->addClass("disabled");
+				$this->jquery->execAtLast('$("#btNewConnection").hide();');
 			}
 		}
 		echo "<div>" . $buttons . "</div><br>";
