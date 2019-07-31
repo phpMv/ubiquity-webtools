@@ -44,7 +44,7 @@ trait CheckTrait {
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
 
 	abstract public function _isModelsCompleted();
-	
+
 	abstract public function getConfig();
 
 	/**
@@ -55,9 +55,9 @@ trait CheckTrait {
 
 	public function createModels($singleTable = null) {
 		$config = Startup::getConfig();
-		$offset=$this->getActiveDb();
+		$offset = $this->getActiveDb();
 		\ob_start();
-		(new DbModelsCreator())->create($config, false, $singleTable,$offset);
+		(new DbModelsCreator())->create($config, false, $singleTable, $offset);
 		$result = \ob_get_clean();
 		$message = $this->showSimpleMessage("", "success", "Models creation", "check mark", null, "msg-create-models");
 		$message->addList(\explode("\n", \str_replace("\n\n", "\n", \trim($result))));
@@ -82,7 +82,7 @@ trait CheckTrait {
 	}
 
 	protected function _modelCheckOneNiveau($name) {
-		$activeDb=$this->getActiveDb();
+		$activeDb = $this->getActiveDb();
 		$config = Startup::getConfig();
 		switch ($name) {
 			case "Conf":
@@ -92,13 +92,13 @@ trait CheckTrait {
 				break;
 			case "Connexion":
 			case "Database":
-				$this->checkDatabase($config, "database",$activeDb);
+				$this->checkDatabase($config, "database", $activeDb);
 				break;
 			case "Models":
 				CacheManager::start($config);
 				$this->checkModels($config);
 				if ($this->engineering === "forward") {
-					$modelsWithoutTable = $this->getModelsWithoutTable($config,$activeDb);
+					$modelsWithoutTable = $this->getModelsWithoutTable($config, $activeDb);
 					if (sizeof($modelsWithoutTable) > 0) {
 						foreach ($modelsWithoutTable as $model) {
 							$table = Reflexion::getTableName($model);
@@ -113,10 +113,10 @@ trait CheckTrait {
 		}
 	}
 
-	protected function checkDatabase($config, $infoIcon = "database",$offset='default') {
-		$db = DAO::getDbOffset($config,$offset);
+	protected function checkDatabase($config, $infoIcon = "database", $offset = 'default') {
+		$db = DAO::getDbOffset($config, $offset);
 		if (! DAO::isConnected($offset)) {
-			//$this->_addErrorMessage("warning", "connection to the database is not established (probably in <b>app/config/services.php</b> file).");
+			// $this->_addErrorMessage("warning", "connection to the database is not established (probably in <b>app/config/services.php</b> file).");
 			try {
 				if ($db["dbName"] !== "") {
 					$this->_addInfoMessage($infoIcon, "Attempt to connect to the database <b>" . $db["dbName"] . "</b> ...");
@@ -139,16 +139,16 @@ trait CheckTrait {
 			if (\file_exists($dir) === false) {
 				$this->_addErrorMessage("warning", "The directory <b>" . $dir . "</b> does not exists.");
 			} else {
-				$activeDb=$this->getActiveDb();
+				$activeDb = $this->getActiveDb();
 				$this->_addInfoMessage($infoIcon, "The directory for models namespace <b>" . $dir . "</b> exists.");
-				$models = CacheManager::getModels($config, true,$activeDb);
+				$models = CacheManager::getModels($config, true, $activeDb);
 				if (\sizeof($models) === 0) {
 					$this->_addErrorMessage("warning", "No file found in <b>" . $dir . "</b> folder.");
 				} else {
 					foreach ($models as $model) {
-						$r=new \ReflectionClass($model);
+						$r = new \ReflectionClass($model);
 						$ns = $r->getNamespaceName();
-						if (!UString::startswith($ns,$modelsNS)) {
+						if (! UString::startswith($ns, $modelsNS)) {
 							$this->_addErrorMessage("warning", "The namespace <b>" . $ns . "</b> would start with <b>" . $modelsNS . "</b> for the class <b>" . $model . "</b>.");
 						} else {
 							$this->_addInfoMessage($infoIcon, "The namespace for the class <b>" . $model . "</b> is ok.");
@@ -159,8 +159,8 @@ trait CheckTrait {
 		}
 	}
 
-	protected function getTablesWithoutModel($config,$offset='default') {
-		$models = CacheManager::getModels($config, true,$offset);
+	protected function getTablesWithoutModel($config, $offset = 'default') {
+		$models = CacheManager::getModels($config, true, $offset);
 		$tables = DAO::getDatabase($offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
 		$tables = array_diff($tables, $allJoinTables);
@@ -173,8 +173,8 @@ trait CheckTrait {
 		return $tables;
 	}
 
-	protected function getModelsWithoutTable($config,$offset='default') {
-		$models = CacheManager::getModels($config, true,$offset);
+	protected function getModelsWithoutTable($config, $offset = 'default') {
+		$models = CacheManager::getModels($config, true, $offset);
 		$result = $models;
 		$tables = DAO::getDatabase($offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
@@ -239,9 +239,9 @@ trait CheckTrait {
 	}
 
 	protected function checkModelsCacheFiles($config, $infoIcon = "lightning") {
-		$activeDb=$this->getActiveDb();
+		$activeDb = $this->getActiveDb();
 		CacheManager::startProd($config);
-		$models = CacheManager::getModels($config, true,$activeDb);
+		$models = CacheManager::getModels($config, true, $activeDb);
 		foreach ($models as $model) {
 			if (! CacheManager::modelCacheExists($model)) {
 				$this->_addErrorMessage("warning", "The models cache entry does not exists for the class <b>" . $model . "</b>.");
@@ -252,9 +252,10 @@ trait CheckTrait {
 	}
 
 	protected function displayAllMessages() {
-		$activeDb=$this->getActiveDb();
+		$activeDb = $this->getActiveDb();
 		if ($this->hasNoError()) {
 			$this->_addInfoMessage("checkmark", "everything is fine here");
+			$this->jquery->execAtLast('$("#btNewConnection").show();');
 		}
 		if ($this->hasMessages()) {
 			$messagesElmInfo = $this->displayModelsMessages($this->hasNoError() ? "success" : "info", $this->messages["info"]);
@@ -263,6 +264,7 @@ trait CheckTrait {
 		if ($this->hasError()) {
 			$messagesElmError = $this->displayModelsMessages("error", $this->messages["error"]);
 			echo $messagesElmError;
+			$this->jquery->execAtLast('$("#btNewConnection").hide();');
 		}
 		$this->showActions($activeDb);
 	}
@@ -292,7 +294,7 @@ trait CheckTrait {
 				break;
 			case "Models":
 				if ($this->engineering === "forward") {
-					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig(),$activeDb))) {
+					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton();
 						$ddBtn->getOnClick($this->_getFiles()
@@ -398,14 +400,14 @@ trait CheckTrait {
 			$messagesElm->setIcon($icon);
 		$messages = [];
 		foreach ($messagesToDisplay as $msg) {
-			$lines=explode("\n", $msg->getContent());
-			foreach ($lines as $line){
+			$lines = explode("\n", $msg->getContent());
+			foreach ($lines as $line) {
 				$elm = new HtmlSemDoubleElement("", "div", "", $line);
 				$elm->addIcon($msg->getType());
 				$messages[] = $elm;
 			}
 		}
-		$list=$messagesElm->addList($messages);
+		$list = $messagesElm->addList($messages);
 		$list->addClass('relaxed divided');
 		$messagesElm->addClass($type);
 		return $messagesElm;
