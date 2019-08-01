@@ -11,7 +11,9 @@
 		"php-framework"
 	],
 	"require" : {
-		"php" : ">7.0"
+		"php" : ">7.0",
+		"phpmv/php-mv-ui": "^2.2.14",
+		"phpmv/ubiquity-dev": "^0.0"
 	},
 	"license" : "Apache-2.0",
 	"authors" : [{
@@ -27,10 +29,7 @@
 	},
 	"extra" : {
 		"branch-alias" : {
-			"dev-master" : "2.3.x-dev"
+			"dev-master" : "2.4.x-dev"
 		}
-	},
-	"require-dev" : {
-		"phpmv/php-mv-ui": "^2.2.14"
 	}
 }
