@@ -1,7 +1,6 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
-use Ajax\JsUtils;
 use Ubiquity\utils\http\URequest;
 use Ajax\semantic\html\collections\menus\HtmlMenu;
 use Ajax\semantic\html\modules\HtmlDropdown;
@@ -10,11 +9,13 @@ use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\UbiquityMyAdminFiles;
 use Ajax\semantic\components\validation\Rule;
 use Ubiquity\orm\DAO;
+use Ajax\JsUtils;
+use Ubiquity\db\Database;
 
 /**
  *
  * @author jc
- * @property JsUtils $jquery
+ * @property \Ajax\php\ubiquity\JsUtils $jquery
  * @property View $view
  */
 trait ModelsConfigTrait {
@@ -307,14 +308,82 @@ trait ModelsConfigTrait {
 			if (Startup::saveConfig($result)) {
 				$this->config['activeDb'] = $postValues['connection-name'];
 				$this->saveConfig();
-				$this->showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "msgModels");
+				$this->showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "opMessage");
 			} else {
-				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "msgModels");
+				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "opMessage");
 			}
 			$this->reloadConfig();
 		}
 
 		$this->models();
+	}
+	
+	public function _importSQL(){
+		try{
+			$db=DAO::getDatabase($this->getActiveDb());
+		}catch (\Exception $e){
+			$db=DAO::$db[$this->getActiveDb()];
+		}
+		$frm = $this->jquery->semantic()->htmlForm("frm-sql-import");
+		$file=$this->jquery->semantic()->htmlInput('sqlFile');
+		$file->asFile('Select file...','right','upload',true);
+		$frm->setSubmitParams($this->_getFiles()
+			->getAdminBaseRoute() . "/_loadSqlFromFile/".$db->getDbName(), "#file-div",['contentType'=>'false','processData'=>'false']);
+		$this->jquery->execOn('change', '#div-sqlFile input:file', 'if(event.target.files.length){$("#frm-sql-import").form("submit");}');
+		$this->jquery->renderView('@admin/config/importSql.html',['dsn'=>$db->getDSN()]);
+	}
+	
+	public function _loadSqlFromFile($db=''){
+		if(URequest::isPost()){
+			$target_dir = \sys_get_temp_dir();
+			$target_file = $target_dir . \basename($_FILES["div-sqlFile-file"]["name"]);
+			if (\move_uploaded_file($_FILES["div-sqlFile-file"]["tmp_name"], $target_file)) {
+				$sql=\file_get_contents($target_file);
+				$this->jquery->exec("setAceEditor('sqlx');",true);
+				\preg_match('/USE\s[`|"|\'](.*?)[`|"|\']/m',$sql,$matches);
+				$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
+					->getAdminBaseRoute() . "/_createDbFromSql","frm-sql-content","#main-content");
+				$this->jquery->renderView('@admin/config/sqlContent.html',['sql'=>$sql,'dbName'=>$matches[1]??$db]);
+			}
+		}
+	}
+	
+	public function _createDbFromSql(){
+		$dbName=URequest::post('dbName');
+		$sql=URequest::post('sql');
+		$isValid=true;
+		if(isset($dbName) && isset($sql)){
+			$sql=preg_replace('/(USE\s[`|"|\'])(.*?)([`|"|\'])/m', '$1'.$dbName.'$3', $sql);
+			$sql=preg_replace('/(CREATE\sDATABASE\s(?:IF NOT EXISTS){0,1}\s[`|"|\'])(.*?)([`|"|\'])/m', '$1'.$dbName.'$3', $sql);
+			try{
+				$activeDbOffset=$this->getActiveDb();
+				try{
+					$db=DAO::getDatabase($activeDbOffset);
+				}catch(\Exception $e){
+					$db=DAO::$db[$this->getActiveDb()];
+					$db->setDbName('');
+					try{
+					$db->connect();
+					}catch(\Exception $e){
+						$isValid=false;
+						$this->showSimpleMessage($e->getMessage(), 'error','Connection to database: SQL file importation','warning',null,'opMessage');
+					}
+				}
+				if($isValid){
+					if($db->getDbName()!==$dbName){
+						$config=Startup::$config;
+						DAO::updateDatabaseParams($config, ['dbName'=>$dbName],$activeDbOffset);
+						Startup::saveConfig($config);
+						$this->showSimpleMessage($dbName.' created with success!', 'success','SQL file importation','success',null,'opMessage');
+					}
+					$db->execute($sql);
+				}
+				
+			}catch (\Exception $e){
+				$this->showSimpleMessage($e->getMessage(), 'error','SQL file importation','warning',null,'opMessage');
+			}
+			$this->models();
+		}
 	}
 
 	private function _yumlRefresh($url = "/_updateDiagram", $params = "{}", $responseElement = "#diag-class") {

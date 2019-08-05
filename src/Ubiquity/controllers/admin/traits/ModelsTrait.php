@@ -340,6 +340,7 @@ trait ModelsTrait {
 		} else {
 			echo $stepper;
 			echo "<div id='models-main'>";
+			echo $this->jquery->semantic()->getHtmlComponent('opMessage');
 			$this->_loadModelStep();
 			echo "</div>";
 		}

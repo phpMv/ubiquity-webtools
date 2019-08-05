@@ -305,6 +305,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				highlightActiveLine: !readOnly,
 				highlightGutterLine: !readOnly
 				});
+			var input = $("#"+elementId +" + input");
+			if(input.length){
+				input.val(editor.getSession().getValue());
+				console.log(input.val());
+				editor.getSession().on("change", function () {
+				input.val(editor.getSession().getValue());
+				});
+			}
 		};';
 		return $this->jquery->inline($js);
 	}

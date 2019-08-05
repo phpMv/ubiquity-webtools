@@ -85,6 +85,7 @@ trait CheckTrait {
 		$config = Startup::getConfig();
 		switch ($name) {
 			case "Conf":
+			case "Database":
 				if ($this->missingKeyInConfigMessage("Database is not well configured in <b>app/config/config.php</b>", Startup::checkDbConfig($activeDb)) === false) {
 					$this->_addInfoMessage("settings", "Database is well configured");
 				}
@@ -270,17 +271,6 @@ trait CheckTrait {
 		$buttons = $this->jquery->semantic()->htmlButtonGroups("step-actions");
 		$step = $this->getActiveModelStep();
 		switch ($step[1]) {
-			case "Conf":
-				$buttons->addItem("Show config file")
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_config", "#action-response")
-					->addIcon("settings");
-				$buttons->addItem("Edit config file")
-					->addClass("orange")
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/formConfig/check", "#action-response")
-					->addIcon("edit");
-				break;
 			case "Connexion":
 			case "Database":
 				if ($this->engineering === "reverse")
@@ -288,6 +278,18 @@ trait CheckTrait {
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/showDatabaseCreation", "#main-content")
 						->addIcon("database");
+			case "Conf":
+				$buttons->addItem("Show config file")
+				->getOnClick($this->_getFiles()
+				->getAdminBaseRoute() . "/_config", "#action-response")
+				->addIcon("settings");
+				$buttons->addItem("Edit config file")
+				->addClass("orange")
+				->getOnClick($this->_getFiles()
+					->getAdminBaseRoute() . "/formConfig/check", "#action-response")
+					->addIcon("edit");
+				$buttons->addItem('Import from SQL file')->getOnClick($this->_getFiles()->getAdminBaseRoute() . "/_importSQL", "#action-response")
+					->addIcon("file code");
 				break;
 			case "Models":
 				if ($this->engineering === "forward") {
