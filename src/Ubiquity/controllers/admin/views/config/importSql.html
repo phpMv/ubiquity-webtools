@@ -1,0 +1,14 @@
+<form class="ui form" id='frm-sql-import' method="post" enctype="multipart/form-data">
+	<div class="field">
+		<div class="ui input">
+			<input id="dsn" 
+				value="{{dsn}}" type="text" disabled="disabled">
+		</div>
+	</div>
+	<div class='ui field'>
+	{{q['sqlFile'] | raw}}
+	</div>
+	<div id='file-div'>
+	</div>
+</form>
+{{script_foot | raw}}
