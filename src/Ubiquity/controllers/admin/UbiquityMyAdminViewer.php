@@ -813,7 +813,7 @@ class UbiquityMyAdminViewer {
 
 	public function getDatabaseDataForm($v, $dbOffset = '') {
 		$n = ($dbOffset != null) ? $dbOffset . '-' : '';
-		$v->wrapper = $v->wrapper ?? \Ubiquity\db\providers\PDOWrapper::class;
+		$v->wrapper = $v->wrapper ?? \Ubiquity\db\providers\pdo\PDOWrapper::class;
 		$drivers = Database::getAvailableDrivers($v->wrapper);
 		$wrappers = Database::$wrappers;
 		$dbDe = new DataElement("de-database" . $dbOffset, $v);

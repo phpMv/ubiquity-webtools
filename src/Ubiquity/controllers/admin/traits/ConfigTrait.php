@@ -197,7 +197,7 @@ trait ConfigTrait {
 		}
 		$postValues = $_POST;
 		$connected = false;
-		$db = new Database($postValues["database-" . $n . "wrapper"] ?? \Ubiquity\db\providers\PDOWrapper::class, $postValues["database-" . $n . "type"], $postValues["database-" . $n . "dbName"], $postValues["database-" . $n . "serverName"], $postValues["database-" . $n . "port"], $postValues["database-" . $n . "user"], $postValues["database-" . $n . "password"]);
+		$db = new Database($postValues["database-" . $n . "wrapper"] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $postValues["database-" . $n . "type"], $postValues["database-" . $n . "dbName"], $postValues["database-" . $n . "serverName"], $postValues["database-" . $n . "port"], $postValues["database-" . $n . "user"], $postValues["database-" . $n . "password"]);
 		try {
 			$db->_connect();
 			$connected = $db->isConnected();

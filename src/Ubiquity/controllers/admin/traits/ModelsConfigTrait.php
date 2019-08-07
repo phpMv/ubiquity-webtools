@@ -244,7 +244,7 @@ trait ModelsConfigTrait {
 
 	public function _frmAddNewDbConnection() {
 		$v = (object) [
-			'wrapper' => \Ubiquity\db\providers\PDOWrapper::class,
+			'wrapper' => \Ubiquity\db\providers\pdo\PDOWrapper::class,
 			'type' => 'mysql',
 			'dbName' => '',
 			'serverName' => '127.0.0.1',
