@@ -1118,8 +1118,8 @@ class UbiquityMyAdminViewer {
 
 		$form->addExtraFieldRule("mvcNS-models", "checkDirectory[app]", "{value} directory does not exists");
 		$form->addExtraFieldRule("mvcNS-controllers", "checkDirectory[app]", "{value} directory does not exists");
-		$controllersNS = Startup::getNS();
-		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", Startup::getNS() . "{value} directory does not exists");
+		$controllersNS = \trim(Startup::getNS(), '\\');
+		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", $controllersNS . "/{value} directory does not exists");
 
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkArray", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_checkArray", "{_value:value}", "result=data.result;", "post"), true);

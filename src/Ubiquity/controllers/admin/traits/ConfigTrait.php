@@ -144,8 +144,11 @@ trait ConfigTrait {
 	public function _checkDirectory() {
 		$folder = URequest::post("_ruleValue");
 		$this->_checkCondition(function ($value) use ($folder) {
-			$base = Startup::getApplicationDir();
-			return file_exists($base . \DS . $folder . \DS . $value);
+			if ($value != null) {
+				$base = Startup::getApplicationDir();
+				return \file_exists($base . \DS . $folder . \DS . $value);
+			}
+			return true;
 		});
 	}
 
