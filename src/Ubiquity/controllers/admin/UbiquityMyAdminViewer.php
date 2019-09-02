@@ -815,7 +815,7 @@ class UbiquityMyAdminViewer {
 		$n = ($dbOffset != null) ? $dbOffset . '-' : '';
 		$v->wrapper = $v->wrapper ?? \Ubiquity\db\providers\pdo\PDOWrapper::class;
 		$drivers = Database::getAvailableDrivers($v->wrapper);
-		$wrappers = Database::$wrappers;
+		$wrappers = Database::getAvailableWrappers();
 		$dbDe = new DataElement("de-database" . $dbOffset, $v);
 		$dbDe->setDefaultValueFunction(function ($name, $value) use ($n) {
 			$value = $this->_cleanStdClassValue($value);
