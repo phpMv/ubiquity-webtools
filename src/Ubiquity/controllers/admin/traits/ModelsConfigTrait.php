@@ -285,7 +285,7 @@ trait ModelsConfigTrait {
 
 		$dbForm->compile($this->jquery);
 		$this->jquery->execAtLast('$("#models-main").hide();');
-		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::$wrappers));
+		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
 		$this->jquery->renderView($this->_getFiles()
 			->getViewFrmNewDbConnection(), [
 			'dbForm' => $dbForm
