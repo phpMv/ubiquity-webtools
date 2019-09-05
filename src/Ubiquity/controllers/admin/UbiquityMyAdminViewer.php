@@ -676,8 +676,9 @@ class UbiquityMyAdminViewer {
 		$de->setCaptions($fields);
 		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
 			$dbDe = new DataElement("", $v);
-			if(isset($config['database']['dbName'])){
+			if (isset($config['database']['dbName'])) {
 				$dbDe->setFields([
+					"wrapper",
 					"type",
 					"dbName",
 					"serverName",
@@ -688,6 +689,7 @@ class UbiquityMyAdminViewer {
 					"cache"
 				]);
 				$dbDe->setCaptions([
+					"DbWrapper",
 					"Type",
 					"dbName",
 					"serverName",
@@ -697,11 +699,11 @@ class UbiquityMyAdminViewer {
 					"options",
 					"cache"
 				]);
-			}else{
-				$cos=\array_keys($config['database']);
+			} else {
+				$cos = \array_keys($config['database']);
 				$dbDe->setFields($cos);
-				foreach ($cos as $co){
-					$dbDe->setValueFunction($co, function($v,$instance){
+				foreach ($cos as $co) {
+					$dbDe->setValueFunction($co, function ($v, $instance) {
 						return $this->_getDSNFromStdClass($v);
 					});
 				}
@@ -804,91 +806,104 @@ class UbiquityMyAdminViewer {
 		$value = str_replace('"', "'", $value);
 		return $value;
 	}
-	
-	private function _getDSNFromStdClass($v){
-		return  $v->type. "://" . $v->user . ":" . $v->password . "@" . $v->serverName . ":" . $v->port . "/" . $v->dbName;
+
+	private function _getDSNFromStdClass($v) {
+		return $v->type . "://" . $v->user . ":" . $v->password . "@" . $v->serverName . ":" . $v->port . "/" . $v->dbName;
 	}
-	
-	public function getDatabaseDataForm($v,$dbOffset=''){
-		$n=($dbOffset!=null)?$dbOffset.'-':'';
-		$drivers = Database::getAvailableDrivers();
-		$dbDe = new DataElement("de-database".$dbOffset, $v);
-		$dbDe->setDefaultValueFunction(function ($name, $value) use($n){
+
+	public function getDatabaseDataForm($v, $dbOffset = '') {
+		$n = ($dbOffset != null) ? $dbOffset . '-' : '';
+		$v->wrapper = $v->wrapper ?? \Ubiquity\db\providers\pdo\PDOWrapper::class;
+		$drivers = Database::getAvailableDrivers($v->wrapper);
+		$wrappers = Database::getAvailableWrappers();
+		$dbDe = new DataElement("de-database" . $dbOffset, $v);
+		$dbDe->setDefaultValueFunction(function ($name, $value) use ($n) {
 			$value = $this->_cleanStdClassValue($value);
-			$input = new HtmlFormInput("database-" .$n. $name, null, "text", $value);
+			$input = new HtmlFormInput("database-" . $n . $name, null, "text", $value);
 			return $this->labeledInput($input, $value);
 		});
-			$dbDe->setFields([
-				"type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
-			$dbDe->setCaptions([
-				"Type",
-				"dbName",
-				"serverName",
-				"port",
-				"user",
-				"password",
-				"options",
-				"cache"
-			]);
-			$dbDe->fieldAsInput("password", [
-				"inputType" => "password",
-				"name" => "database-".$n."password"
-			]);
-			$dbDe->fieldAsInput("port", [
-				"name" => "database-".$n."port",
-				"inputType" => "number",
-				"jsCallback" => function ($elm) {
+		$dbDe->setFields([
+			"wrapper",
+			"type",
+			"dbName",
+			"serverName",
+			"port",
+			"user",
+			"password",
+			"options",
+			"cache"
+		]);
+		$dbDe->setCaptions([
+			"Provider",
+			"Type",
+			"dbName",
+			"serverName",
+			"port",
+			"user",
+			"password",
+			"options",
+			"cache"
+		]);
+		$dbDe->fieldAsInput("password", [
+			"inputType" => "password",
+			"name" => "database-" . $n . "password"
+		]);
+		$dbDe->fieldAsInput("port", [
+			"name" => "database-" . $n . "port",
+			"inputType" => "number",
+			"jsCallback" => function ($elm) {
 				$elm->getDataField()
-				->setProperty("min", 0);
+					->setProperty("min", 0);
 				$elm->getDataField()
-				->setProperty("max", 3306);
-				}
-				]);
-			$dbDe->fieldAsDropDown("type", \array_combine($drivers, $drivers), false, [
-				"name" => "database-".$n."type"
-			]);
-			$dbDe->fieldAsInput("cache", [
-				"name" => "database-".$n."cache",
-				"jsCallback" => function ($elm, $object) use($n) {
+					->setProperty("max", 3306);
+			}
+		]);
+		$dbDe->fieldAsDropDown("wrapper", array_flip($wrappers), false, [
+			"name" => "database-" . $n . "wrapper",
+			"jsCallback" => function ($elm) use ($n) {
+				$nn = ($n == '') ? '-' : $n;
+				$elm->on('change', '$("#dropdown-de-database' . $nn . 'dd-type .menu").html(wrappers[$("[name=\'database-' . $n . 'wrapper\']").val()]);$("#dropdown-de-database' . $nn . 'dd-type").dropdown("refresh").dropdown("set selected", $("#dropdown-de-database' . $nn . 'dd-type .menu .item:first").attr("data-value")||"");');
+			}
+		]);
+		$dbDe->fieldAsDropDown("type", \array_combine($drivers, $drivers), false, [
+			"name" => "database-" . $n . "type"
+		]);
+		$dbDe->fieldAsInput("cache", [
+			"name" => "database-" . $n . "cache",
+			"jsCallback" => function ($elm, $object) use ($n) {
 				$ck = $elm->labeledCheckbox();
-				$ck->getField()->setIdentifier("ck-".$n."cache");
-				$ck->on("click", '$("[name=database-'.$n.'cache]").prop("disabled",$(this).checkbox("is unchecked"));');
+				$ck->getField()
+					->setIdentifier("ck-" . $n . "cache");
+				$ck->on("click", '$("[name=database-' . $n . 'cache]").prop("disabled",$(this).checkbox("is unchecked"));');
 				if ($object->cache !== false) {
 					$ck->setChecked(true);
 				}
-				}
-				]);
-			$dbDe->setValueFunction("dbName", function ($value) use($n,$dbOffset){
-				$input = new HtmlFormInput("database-".$n."dbName", null, "text", $value);
-				$bt = $input->addAction("Test");
-				$bt->addClass("black");
-				$bt->postFormOnClick($this->controller->_getFiles()
-					->getAdminBaseRoute() . "/_checkDbStatus/".$dbOffset."/", "frm-frmDeConfig", "#db-".$n."status", [
-						"jqueryDone" => "replaceWith",
-						"hasLoader" => "internal"
-					]);
-				return $this->labeledInput($input, '<i id="db-'.$n.'status" class="ui question icon"></i>&nbsp;' . $value);
-			});
-			$dbDe->setEdition();
-			return $dbDe;
+			}
+		]);
+		$dbDe->setValueFunction("dbName", function ($value) use ($n, $dbOffset) {
+			$input = new HtmlFormInput("database-" . $n . "dbName", null, "text", $value);
+			$bt = $input->addAction("Test");
+			$bt->addClass("black");
+			$bt->postFormOnClick($this->controller->_getFiles()
+				->getAdminBaseRoute() . "/_checkDbStatus/" . $dbOffset . "/", "frm-frmDeConfig", "#db-" . $n . "status", [
+				"jqueryDone" => "replaceWith",
+				"hasLoader" => "internal"
+			]);
+			return $this->labeledInput($input, '<i id="db-' . $n . 'status" class="ui question icon"></i>&nbsp;' . $value);
+		});
+		$dbDe->setEdition();
+		return $dbDe;
 	}
-	
-	private function getDatabaseForm($v, $instance, $index,$dbOffset=''){
-			$dbDe=$this->getDatabaseDataForm($v,$dbOffset);
-			$dbDe->setStyle("display: none;");
-				$caption = "<div class='toggle-caption'>" . $this->_getDSNFromStdClass($v) . "</div>";
-				return [
-					$dbDe,
-					$caption
-				];
+
+	private function getDatabaseForm($v, $instance, $index, $dbOffset = '') {
+		$dbDe = $this->getDatabaseDataForm($v, $dbOffset);
+		$dbDe->wrap('<div class="ui pointing below black label" style="display:none;">' . $dbOffset . '</div>');
+		$dbDe->setStyle("display: none;");
+		$caption = "<div class='toggle-caption'>" . $this->_getDSNFromStdClass($v) . "</div>";
+		return [
+			$dbDe,
+			$caption
+		];
 	}
 
 	public function getConfigDataForm($config, $origin = "all") {
@@ -916,14 +931,14 @@ class UbiquityMyAdminViewer {
 			$captions[array_search("di", $keys)] = $this->getCaptionToggleButton("di-bt", "Dependency injection", "active");
 			$captions[array_search("isRest", $keys)] = $this->getCaptionToggleButton("isrest-bt", "Rest", "active");
 		});
-		$de->setValueFunction("database", function ($v, $instance, $index) use ($config){
-			if(isset($config['database']['dbName'])){
+		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
+			if (isset($config['database']['dbName'])) {
 				return $this->getDatabaseForm($v, $instance, $index);
-			}else{
-				$cos=\array_keys($config['database']);
-				$res=[];
-				foreach ($cos as $co){
-					$res[]=$this->getDatabaseForm($v->{$co},$instance,$index,$co);
+			} else {
+				$cos = \array_keys($config['database']);
+				$res = [];
+				foreach ($cos as $co) {
+					$res[] = $this->getDatabaseForm($v->{$co}, $instance, $index, $co);
 				}
 				return $res;
 			}
@@ -1103,8 +1118,8 @@ class UbiquityMyAdminViewer {
 
 		$form->addExtraFieldRule("mvcNS-models", "checkDirectory[app]", "{value} directory does not exists");
 		$form->addExtraFieldRule("mvcNS-controllers", "checkDirectory[app]", "{value} directory does not exists");
-		$controllersNS = Startup::getNS();
-		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", Startup::getNS() . "{value} directory does not exists");
+		$controllersNS = \trim(Startup::getNS(), '\\');
+		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", $controllersNS . "/{value} directory does not exists");
 
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkArray", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_checkArray", "{_value:value}", "result=data.result;", "post"), true);

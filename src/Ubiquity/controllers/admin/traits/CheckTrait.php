@@ -120,7 +120,7 @@ trait CheckTrait {
 			try {
 				if ($db["dbName"] !== "") {
 					$this->_addInfoMessage($infoIcon, "Attempt to connect to the database <b>" . $db["dbName"] . "</b> ...");
-					$db = new Database($db["type"], $db["dbName"], @$db["serverName"], @$db["port"], @$db["user"], @$db["password"], @$db["options"], @$db["cache"]);
+					$db = new Database($db['wrapper'] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $db["type"], $db["dbName"], @$db["serverName"], @$db["port"], @$db["user"], @$db["password"], @$db["options"], @$db["cache"]);
 					$db->connect();
 				}
 			} catch (\Exception $e) {
@@ -280,15 +280,17 @@ trait CheckTrait {
 						->addIcon("database");
 			case "Conf":
 				$buttons->addItem("Show config file")
-				->getOnClick($this->_getFiles()
-				->getAdminBaseRoute() . "/_config", "#action-response")
-				->addIcon("settings");
+					->getOnClick($this->_getFiles()
+					->getAdminBaseRoute() . "/_config", "#action-response")
+					->addIcon("settings");
 				$buttons->addItem("Edit config file")
-				->addClass("orange")
-				->getOnClick($this->_getFiles()
+					->addClass("orange")
+					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/formConfig/check", "#action-response")
 					->addIcon("edit");
-				$buttons->addItem('Import from SQL file')->getOnClick($this->_getFiles()->getAdminBaseRoute() . "/_importSQL", "#action-response")
+				$buttons->addItem('Import from SQL file')
+					->getOnClick($this->_getFiles()
+					->getAdminBaseRoute() . "/_importSQL", "#action-response")
 					->addIcon("file code");
 				break;
 			case "Models":
