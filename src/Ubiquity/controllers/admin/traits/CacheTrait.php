@@ -84,21 +84,23 @@ trait CacheTrait {
 			$type = \strtolower($_POST["type"]);
 			$filename = $_POST["filename"];
 			$key = $_POST["key"];
-			if ($type == 'controllers') {
+			if (\array_search($type, ['controllers','models'])!==false) {
 				$content = CacheManager::$cache->file_get_contents($key);
 			} else {
 				if (\file_exists($filename)) {
 					$content = \file_get_contents($filename);
 				}
 			}
-			$modal = $this->jquery->semantic()->htmlModal("file", $type . " : " . \basename($filename));
-			$frm = new HtmlForm("frmShowFileContent");
-			$frm->addTextarea("file-content", null, $content, "", 10);
-			$modal->setContent($frm);
-			$modal->addAction("Close");
-			$this->jquery->exec("$('#file').modal('show');", true);
-			echo $modal;
-			echo $this->jquery->compile($this->view);
+			if(isset($content)){
+				$modal = $this->jquery->semantic()->htmlModal("file", $type . " : " . \basename($filename));
+				$frm = new HtmlForm("frmShowFileContent");
+				$frm->addTextarea("file-content", null, $content, "", 10);
+				$modal->setContent($frm);
+				$modal->addAction("Close");
+				$this->jquery->exec("$('#file').modal('show');", true);
+				echo $modal;
+				echo $this->jquery->compile($this->view);
+			}
 		}
 	}
 
