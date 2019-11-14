@@ -105,6 +105,7 @@ trait TranslateTrait {
 			"inline" => true
 		]);
 		$fields = $frm->addFields();
+		$fields->setInline();
 		$input = $fields->addInput("name-" . $locale, null, "text", "", "Domain name")
 			->addRules([
 			[

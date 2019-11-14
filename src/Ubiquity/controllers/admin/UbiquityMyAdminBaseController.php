@@ -491,6 +491,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			"inline" => true
 		]);
 		$fields = $frm->addFields();
+		$fields->setInline();
 		$input = $fields->addInput("name", null, "text", "", "Controller name")
 			->addRules([
 			[
