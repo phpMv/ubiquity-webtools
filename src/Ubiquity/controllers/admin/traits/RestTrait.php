@@ -43,7 +43,7 @@ trait RestTrait {
 	 * @param string $staticName
 	 * @return HtmlMessage
 	 */
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function initRestCache($refresh = true) {
 		$config = Startup::getConfig();

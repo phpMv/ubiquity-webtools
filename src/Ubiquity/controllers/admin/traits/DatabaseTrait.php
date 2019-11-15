@@ -27,12 +27,12 @@ trait DatabaseTrait {
 
 	abstract public function loadView($viewName, $pData = NULL, $asString = false);
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected function getModels() {
-		$db=$this->getActiveDb();
+		$db = $this->getActiveDb();
 		$config = Startup::getConfig();
-		$models = CacheManager::getModels($config, true,$db);
+		$models = CacheManager::getModels($config, true, $db);
 		$result = [];
 		foreach ($models as $model) {
 			$table = OrmUtils::getTableName($model);
@@ -48,11 +48,11 @@ trait DatabaseTrait {
 	public function createSQLScript() {
 		if (URequest::isPost()) {
 			$db = $_POST["dbName"];
-			$activeDb=$this->getActiveDb();
+			$activeDb = $this->getActiveDb();
 			if (DAO::isConnected($activeDb)) {
 				$actualDb = DAO::$db[$activeDb]->getDbName();
 			}
-			$generator = new DatabaseReversor(new DbGenerator(),$activeDb);
+			$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
 			$generator->createDatabase($db);
 			$frm = $this->jquery->semantic()->htmlForm("form-sql");
 			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");

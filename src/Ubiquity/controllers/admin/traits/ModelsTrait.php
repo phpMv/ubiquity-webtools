@@ -43,7 +43,7 @@ trait ModelsTrait {
 
 	abstract public function _getFiles();
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null): HtmlMessage;
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
@@ -246,7 +246,7 @@ trait ModelsTrait {
 				->setType("error")
 				->setIcon("warning circle");
 		}
-		echo $this->_showSimpleMessage($message, "updateMsg");
+		echo $this->_showSimpleMessage($message, "updateMsg", true);
 		echo $this->jquery->compile($this->view);
 	}
 
