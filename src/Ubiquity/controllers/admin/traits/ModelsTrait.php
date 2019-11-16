@@ -19,6 +19,7 @@ use Ubiquity\contents\validation\ValidatorsManager;
 use Ubiquity\contents\transformation\TransformersManager;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
+use Ajax\semantic\components\Toast;
 
 /**
  *
@@ -271,7 +272,7 @@ trait ModelsTrait {
 			$instanceString = get_class($instance);
 		if (sizeof($_POST) > 0) {
 			if (DAO::remove($instance)) {
-				$message = $this->showSimpleMessage("Deletion of `<b>" . $instanceString . "</b>`", "info", "Deletion", "info", 4000);
+				$message = $this->showSimpleMessage("Deletion of `<b>" . $instanceString . "</b>`", "info", "Deletion", "info", null, null, null, true);
 				$this->jquery->exec("$('tr[data-ajax={$ids}]').remove();", true);
 			} else {
 				$message = $this->showSimpleMessage("Can not delete `" . $instanceString . "`", "warning", "Error", "warning");
@@ -425,6 +426,9 @@ trait ModelsTrait {
 					$value = TransformersManager::applyTransformer($instance, $member, $value, 'toView');
 				}
 				echo new HtmlContentOnly($value);
+				$toast = new Toast();
+				$toast->setMessage('Data updated');
+				echo '<script>' . $toast->getScript() . '</script>';
 			} else {
 				if (method_exists($this, $callback)) {
 					$this->$callback($member, $instance);
