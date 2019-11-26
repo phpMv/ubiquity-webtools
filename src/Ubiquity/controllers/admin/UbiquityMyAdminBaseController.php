@@ -1694,6 +1694,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/49'>github issue</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
 		\var_dump(MailerManager::getMailClasses());
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMaintenanceIndex(), []);
+			->getViewMailerIndex(), []);
 	}
 }
