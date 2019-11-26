@@ -126,6 +126,11 @@ class UbiquityMyAdminViewer {
 				"Maintenance",
 				"recycle",
 				"Manages maintenance modes"
+			],
+			"mailer" => [
+				"Mailer",
+				"mail",
+				"Mailer module"
 			]
 		];
 	}
@@ -1357,11 +1362,6 @@ class UbiquityMyAdminViewer {
 				return $result;
 			});
 			echo $dt;
-			/*
-			 * foreach ($instancesViolations as $instanceViolations){
-			 *
-			 * }
-			 */
 		}
 	}
 }

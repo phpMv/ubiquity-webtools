@@ -58,6 +58,7 @@ use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
+use Ubiquity\mailer\MailerManager;
 
 /**
  *
@@ -752,7 +753,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("translate");
 		$loc = TranslatorManager::fixLocale(URequest::getDefaultLanguage());
-		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in case of problems.", "info", "Translate", "info circle", null, "msgGlobal");
 		$this->jquery->execAtLast("\$.create_UUID=function(){
 				var dt = new Date().getTime();
 				var uuid = 'xxxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -1686,5 +1686,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->getViewMaintenanceIndex(), [
 			'active' => $display
 		]);
+	}
+
+	public function mailer() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->getHeader("mailer");
+		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/49'>github issue</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
+		\var_dump(MailerManager::getMailClasses());
 	}
 }
