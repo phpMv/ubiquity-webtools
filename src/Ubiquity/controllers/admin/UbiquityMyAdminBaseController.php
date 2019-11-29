@@ -59,6 +59,8 @@ use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\mailer\MailerManager;
+use Ubiquity\controllers\admin\popo\MailerClass;
+use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 
 /**
  *
@@ -1692,8 +1694,76 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("mailer");
 		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/49'>github issue</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
-		\var_dump(MailerManager::getMailClasses());
+		$this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
+		$this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
+		$this->jquery->execAtLast("$('.menu .item').tab();");
+
+		$this->addMailerBehavior($baseRoute);
+		$this->addQueueBehavior($baseRoute);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewMailerIndex(), []);
+	}
+
+	public function _addToQueue($class) {
+		MailerManager::start();
+		if (MailerManager::addToQueue($class)) {
+			MailerManager::saveQueue();
+			$this->jquery->semantic()->toast('body', [
+				'message' => "$class added to queue",
+				'showIcon' => 'mail',
+				'title' => 'Queue'
+			]);
+			$this->_refreshQueue();
+			return;
+		}
+		UResponse::setResponseCode(404);
+	}
+
+	public function refreshMailer() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$dt = $this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
+		$dt->setLibraryId("_compo_");
+		$this->addMailerBehavior($baseRoute);
+		$this->jquery->renderView("@framework/main/component.html");
+	}
+
+	public function _refreshQueue() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$dt = $this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
+		$dt->setLibraryId("_compo_");
+		$this->addQueueBehavior($baseRoute);
+		$this->jquery->get($baseRoute . '/refreshMailer', '#dtMailer', [
+			'hasLoader' => false
+		]);
+		$this->jquery->renderView("@framework/main/component.html");
+	}
+
+	private function addMailerBehavior($baseRoute) {
+		$this->jquery->getOnClick('._add_to_queue', $baseRoute . '/_addToQueue', '#dtQueue', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-class',
+			'jqueryDone' => 'replaceWith'
+		]);
+	}
+
+	private function addQueueBehavior($baseRoute) {
+		$this->jquery->getOnClick('#delete-queue-btn', $baseRoute . '/_removeAllMessages', '#dtQueue', [
+			'hasLoader' => 'internal',
+			'jqueryDone' => 'replaceWith'
+		]);
+		$this->jquery->getOnClick('#send-queue-btn', $baseRoute . '/_sendQueue', '#response', [
+			'hasLoader' => 'internal'
+		]);
+	}
+
+	public function _removeAllMessages() {
+		MailerManager::start();
+		MailerManager::clearAllMessages();
+		MailerManager::saveQueue();
+		$this->_refreshQueue();
+	}
+
+	public function _sendQueue() {
+		echo 'send!';
 	}
 }

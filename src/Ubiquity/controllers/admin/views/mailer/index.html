@@ -13,7 +13,26 @@
   <i class="icon plus"></i>
   Add mailer class...
 </button>
-{{ q["dtMaintenance"] | raw }}
-<div id="mailer"></div>
+{{ q["dtMailer"] | raw }}
+<div id="response">
 
+</div>
+<div class="ui top attached tabular menu">
+  <a class="item" data-tab="queue"><i class="stream icon"></i> Queue (to send)</a>
+  <a class="item" data-tab="dequeue"><i class="tasks icon"></i> Dequeue (Sent)</a>
+</div>
+<div class="ui bottom attached active tab segment" data-tab="queue">
+<button id="send-queue-btn" class="ui button green disabled">
+  <i class="icon play"></i>
+  Send mails ready...
+</button>
+<button id="delete-queue-btn" class="ui button red">
+  <i class="icon close"></i>
+  Remove all messages
+</button>
+{{ q["dtQueue"] | raw }}
+</div>
+<div class="ui bottom attached tab segment" data-tab="dequeue">
+{{ q["dtDequeue"] | raw }}
+</div>
 {{ script_foot | raw }}

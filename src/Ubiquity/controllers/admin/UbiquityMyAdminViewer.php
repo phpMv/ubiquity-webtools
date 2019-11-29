@@ -40,11 +40,14 @@ use Ubiquity\utils\base\UIntrospection;
 use Ubiquity\utils\base\UString;
 use Ubiquity\utils\git\GitFileStatus;
 use Ubiquity\utils\http\USession;
+use Ubiquity\controllers\admin\popo\MailerClass;
+use Ubiquity\controllers\admin\popo\MailerQueuedClass;
+use Ubiquity\mailer\MailerManager;
 
 /**
  *
  * @author jc
- *        
+ *
  */
 class UbiquityMyAdminViewer {
 
@@ -206,7 +209,7 @@ class UbiquityMyAdminViewer {
 		$controllers = array_filter($controllers, function ($item) use ($filteredCtrls) {
 			return array_search($item->getController(), $filteredCtrls) !== false;
 		});
-		$dt = $this->jquery->semantic()->dataTable("dtControllers", "Ubiquity\controllers\admin\popo\ControllerAction", $controllers);
+		$dt = $this->jquery->semantic()->dataTable("dtControllers", ControllerAction::class, $controllers);
 		$dt->setFields([
 			"controller",
 			"action",
@@ -275,6 +278,127 @@ class UbiquityMyAdminViewer {
 			$dt->getHtmlComponent()
 				->mergeIdentiqualValues(0);
 		});
+		$dt->setEdition(true);
+		$dt->addClass("compact");
+		return $dt;
+	}
+
+	public function getMailerDataTable($mailClasses) {
+		MailerManager::start();
+		$dt = $this->jquery->semantic()->dataTable("dtMailer", MailerClass::class, $mailClasses);
+		$dt->setFields([
+			"shortname",
+			"from",
+			"to"
+		]);
+		$this->initMailerFields($dt);
+		$dt->setIdentifierFunction(function ($i, $instance) {
+			return \urlencode($instance->getName());
+		});
+		$dt->setCaptions([
+			"Mailer class",
+			"From",
+			"To"
+		]);
+		$dt->addFieldButtons([
+			"Add to queue",
+			"Send now"
+		], true, function (HtmlButtonGroups $bts, $instance, $index) {
+			$class = $instance->getName();
+			$disabled = MailerManager::inQueue($class) || \count($instance->getTo()) === 0;
+			$name = \urlencode($class);
+			$bts->setIdentifier("bts-" . $name . "-" . $index);
+			$bts->getItem(0)
+				->addClass("_add_to_queue" . ($disabled ? ' disabled' : ''))
+				->setProperty("data-class", $name);
+			$bts->getItem(1)
+				->addClass("positive" . ($disabled ? ' disabled' : ''))
+				->setProperty("data-class", $name);
+		});
+		$dt->onPreCompile(function ($dt) {
+			$dt->setColAlignment(3, TextAlignment::RIGHT);
+		});
+
+		$dt->setEdition(true);
+		$dt->addClass("compact");
+		return $dt;
+	}
+
+	private function initMailerFields($dt) {
+		$dt->fieldAsLabel("shortname", "envelope outline", [
+			"class" => 'ui large basic label',
+			'jsCallback' => function ($item, $instance) {
+				$item->addPopupHtml($instance->getSubject());
+			}
+		]);
+		$dt->setValueFunction('from', function ($value, $instance) {
+			$value = \current($value);
+			$v = (isset($value['name']) ? "<{$value['name']}>" : "") . ($value['address'] ?? $value);
+			$lbl = new HtmlLabel('', \htmlentities($v), 'user');
+			return $lbl;
+		});
+		$dt->setValueFunction('to', function ($value, $instance, $i) use ($dt) {
+			if (\is_array($value)) {
+				$v = \count($value);
+			}
+			$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . $i, \htmlentities($v), 'users');
+			$lbl->setCircular();
+			$lst = new HtmlList('');
+			$lst->fromDatabaseObjects($value, function ($item) {
+				return $item . '';
+			});
+			$lst->setBulleted();
+			$lbl->addPopupHtml($lst);
+			return $lbl;
+		});
+	}
+
+	public function getMailerQueueDataTable($mailClasses) {
+		$dt = $this->jquery->semantic()->dataTable("dtQueue", MailerQueuedClass::class, $mailClasses);
+		$dt->setFields([
+			"shortname",
+			"from",
+			"to",
+			"delay"
+		]);
+		$this->initMailerFields($dt);
+		$dt->setCaptions([
+			"Mailer class",
+			"From",
+			"To",
+			"Delay"
+		]);
+		$dt->setValueFunction('delay', function ($value, $instance) {
+			if ($instance->getAt() == null && $instance->getBetween() == null) {
+				return 'now';
+			} else {
+				$d = $instance->getAt();
+				if ($d instanceof \DateTime) {
+					return $instance->startIn();
+				}
+			}
+		});
+		$dt->addFieldButtons([
+			"remove"
+		], true, function (HtmlButtonGroups $bts, $instance, $index) {
+			$class = $instance->getName();
+			$name = \urlencode($class);
+			$bts->setIdentifier("bts-queue-" . $name . "-" . $index);
+			$bts->getItem(0)
+				->addClass("positive _send")
+				->setProperty("data-class", $name)
+				->setProperty("data-index", $index)
+				->asIcon('play');
+			$bts->getItem(1)
+				->addClass("red _remove_from_queue")
+				->setProperty("data-class", $name)
+				->setProperty("data-index", $index)
+				->asIcon('delete');
+		});
+		$dt->onPreCompile(function ($dt) {
+			$dt->setColAlignment(4, TextAlignment::RIGHT);
+		});
+
 		$dt->setEdition(true);
 		$dt->addClass("compact");
 		return $dt;
