@@ -13,6 +13,10 @@
   <i class="icon plus"></i>
   Add mailer class...
 </button>
+<button id="mailer-config-btn" class="ui button orange">
+  <i class="icon cogs"></i>
+  Mailer configuration...
+</button>
 {{ q["dtMailer"] | raw }}
 <div id="response">
 
@@ -22,7 +26,7 @@
   <a class="item" data-tab="dequeue"><i class="tasks icon"></i> Dequeue (Sent)</a>
 </div>
 <div class="ui bottom attached active tab segment" data-tab="queue">
-<button id="send-queue-btn" class="ui button green disabled">
+<button id="send-queue-btn" class="ui button green">
   <i class="icon play"></i>
   Send mails ready...
 </button>

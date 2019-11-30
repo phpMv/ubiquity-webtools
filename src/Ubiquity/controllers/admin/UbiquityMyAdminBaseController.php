@@ -1690,18 +1690,24 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 	}
 
+	private function toast($message, $title, $class = 'info', $showIcon = false) {
+		$this->jquery->semantic()->toast('body', \compact('message', 'title', 'class', 'showIcon'));
+	}
+
 	public function mailer() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("mailer");
-		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/49'>github issue</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
+		$this->showSimpleMessage("This part is very recent, feel free to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/56'>github issue [RFC] E-mail module</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
 		$this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
 		$this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
+		$this->_getAdminViewer()->getMailerDequeueDataTable(MailerQueuedClass::initQueue(true));
 		$this->jquery->execAtLast("$('.menu .item').tab();");
 
 		$this->addMailerBehavior($baseRoute);
-		$this->addQueueBehavior($baseRoute);
+		$this->addQueueBehavior($baseRoute, true);
+		$this->addDequeueBehavior($baseRoute);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerIndex(), []);
+			->getViewMailerIndex());
 	}
 
 	public function _addToQueue($class) {
@@ -1719,7 +1725,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		UResponse::setResponseCode(404);
 	}
 
-	public function refreshMailer() {
+	public function _refreshMailer() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$dt = $this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
 		$dt->setLibraryId("_compo_");
@@ -1727,14 +1733,37 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->renderView("@framework/main/component.html");
 	}
 
-	public function _refreshQueue() {
+	public function _refreshQueue($withMailer = true, $withDec = false) {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$dt = $this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
 		$dt->setLibraryId("_compo_");
 		$this->addQueueBehavior($baseRoute);
-		$this->jquery->get($baseRoute . '/refreshMailer', '#dtMailer', [
-			'hasLoader' => false
-		]);
+		if ($withMailer) {
+			$this->jquery->get($baseRoute . '/_refreshMailer', '#dtMailer', [
+				'hasLoader' => false,
+				'jqueryDone' => 'replaceWith'
+			]);
+		}
+		if ($withDec) {
+			$this->jquery->get($baseRoute . '/_refreshDequeue', '#dtDequeue', [
+				'hasLoader' => false,
+				'jqueryDone' => 'replaceWith'
+			]);
+		}
+		$this->jquery->renderView("@framework/main/component.html");
+	}
+
+	public function _refreshDequeue() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$dt = $this->_getAdminViewer()->getMailerDequeueDataTable(MailerQueuedClass::initQueue(true));
+		$dt->setLibraryId("_compo_");
+		$this->addDequeueBehavior($baseRoute);
+		// $this->addQueueBehavior($baseRoute);
+		/*
+		 * $this->jquery->get($baseRoute . '/_refreshQueue', '#dtQueue', [
+		 * 'hasLoader' => false
+		 * ]);
+		 */
 		$this->jquery->renderView("@framework/main/component.html");
 	}
 
@@ -1746,13 +1775,34 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 	}
 
-	private function addQueueBehavior($baseRoute) {
-		$this->jquery->getOnClick('#delete-queue-btn', $baseRoute . '/_removeAllMessages', '#dtQueue', [
+	private function addQueueBehavior($baseRoute, $all = false) {
+		if ($all) {
+			$this->jquery->getOnClick('#delete-queue-btn', $baseRoute . '/_removeAllMessages', '#dtQueue', [
+				'hasLoader' => 'internal',
+				'jqueryDone' => 'replaceWith'
+			]);
+			$this->jquery->getOnClick('#send-queue-btn', $baseRoute . '/_sendQueue', '#dtQueue', [
+				'hasLoader' => 'internal',
+				'jqueryDone' => 'replaceWith'
+			]);
+		}
+		$this->jquery->getOnClick('._remove_from_queue', $baseRoute . '/_remove_from_queue', '#dtQueue', [
 			'hasLoader' => 'internal',
+			'attr' => 'data-index',
 			'jqueryDone' => 'replaceWith'
 		]);
-		$this->jquery->getOnClick('#send-queue-btn', $baseRoute . '/_sendQueue', '#response', [
-			'hasLoader' => 'internal'
+		$this->jquery->getOnClick('._send', $baseRoute . '/_sendMailQueue', '#dtQueue', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-index',
+			'jqueryDone' => 'replaceWith'
+		]);
+	}
+
+	private function addDequeueBehavior($baseRoute) {
+		$this->jquery->getOnClick('._remove_from_dequeue', $baseRoute . '/_remove_from_dequeue', '#dtDequeue', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-index',
+			'jqueryDone' => 'replaceWith'
 		]);
 	}
 
@@ -1760,10 +1810,49 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		MailerManager::start();
 		MailerManager::clearAllMessages();
 		MailerManager::saveQueue();
-		$this->_refreshQueue();
+		$this->_refreshQueue(true);
+	}
+
+	public function _remove_from_queue($index) {
+		MailerManager::start();
+		if (MailerManager::removeFromQueue(-- $index)) {
+			MailerManager::saveQueue();
+			$this->toast('Email removed from queue!', 'Queue', 'info', 'close');
+		}
+		$this->_refreshQueue(true);
+	}
+
+	public function _remove_from_dequeue($index) {
+		MailerManager::start();
+		if (MailerManager::removeFromDequeue(-- $index)) {
+			MailerManager::saveQueue(false, true);
+			$this->toast('Email removed from dequeue!', 'Dequeue', 'info', 'close');
+		}
+		$this->_refreshDequeue();
 	}
 
 	public function _sendQueue() {
-		echo 'send!';
+		MailerManager::start();
+		$count = MailerManager::sendQueue();
+		if ($count > 0) {
+			MailerManager::saveQueue();
+			$this->toast($count . ' email(s) sent with success!', 'Send mails from Queue', 'success', 'mail');
+			$this->_refreshQueue(true, true);
+		} else {
+			$this->toast('No mail sent!', 'Send mails from Queue', 'info', 'mail');
+			$this->_refreshQueue(false);
+		}
+	}
+
+	public function _sendMailQueue($index) {
+		MailerManager::start();
+		if (MailerManager::sendQueuedMail(-- $index)) {
+			MailerManager::saveQueue();
+			$this->toast('Email sent with success!', 'Send mail from Queue', 'success', 'mail');
+			$this->_refreshQueue(true, true);
+		} else {
+			$this->toast(MailerManager::getErrorInfo(), 'Send mail from Queue', 'error', 'mail');
+			$this->_refreshQueue(false);
+		}
 	}
 }

@@ -43,6 +43,7 @@ use Ubiquity\utils\http\USession;
 use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\mailer\MailerManager;
+use Ajax\semantic\widgets\base\InstanceViewer;
 
 /**
  *
@@ -337,15 +338,15 @@ class UbiquityMyAdminViewer {
 			$lbl = new HtmlLabel('', \htmlentities($v), 'user');
 			return $lbl;
 		});
-		$dt->setValueFunction('to', function ($value, $instance, $i) use ($dt) {
+		$dt->setValueFunction('to', function ($value, $instance) use ($dt) {
 			if (\is_array($value)) {
 				$v = \count($value);
 			}
-			$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . $i, \htmlentities($v), 'users');
+			$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . InstanceViewer::$index, \htmlentities($v), 'users');
 			$lbl->setCircular();
 			$lst = new HtmlList('');
 			$lst->fromDatabaseObjects($value, function ($item) {
-				return $item . '';
+				return $item['address'];
 			});
 			$lst->setBulleted();
 			$lbl->addPopupHtml($lst);
@@ -354,6 +355,7 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getMailerQueueDataTable($mailClasses) {
+		InstanceViewer::$index = 0;
 		$dt = $this->jquery->semantic()->dataTable("dtQueue", MailerQueuedClass::class, $mailClasses);
 		$dt->setFields([
 			"shortname",
@@ -379,8 +381,10 @@ class UbiquityMyAdminViewer {
 			}
 		});
 		$dt->addFieldButtons([
+			"send",
 			"remove"
-		], true, function (HtmlButtonGroups $bts, $instance, $index) {
+		], true, function (HtmlButtonGroups $bts, $instance) {
+			$index = InstanceViewer::$index;
 			$class = $instance->getName();
 			$name = \urlencode($class);
 			$bts->setIdentifier("bts-queue-" . $name . "-" . $index);
@@ -391,6 +395,49 @@ class UbiquityMyAdminViewer {
 				->asIcon('play');
 			$bts->getItem(1)
 				->addClass("red _remove_from_queue")
+				->setProperty("data-class", $name)
+				->setProperty("data-index", $index)
+				->asIcon('delete');
+		});
+		$dt->onPreCompile(function ($dt) {
+			$dt->setColAlignment(4, TextAlignment::RIGHT);
+		});
+
+		$dt->setEdition(true);
+		$dt->addClass("compact");
+		return $dt;
+	}
+
+	public function getMailerDequeueDataTable($mailClasses) {
+		InstanceViewer::$index = 0;
+		$dt = $this->jquery->semantic()->dataTable("dtDequeue", MailerQueuedClass::class, $mailClasses);
+		$dt->setFields([
+			"shortname",
+			"from",
+			"to",
+			"sentAt"
+		]);
+		$this->initMailerFields($dt);
+		$dt->setCaptions([
+			"Mailer class",
+			"From",
+			"To",
+			"Sent at"
+		]);
+		$dt->setValueFunction('sentAt', function ($value, $instance) {
+			if ($instance->getSentAt() != null) {
+				return UDateTime::elapsed($instance->getSentAt());
+			}
+		});
+		$dt->addFieldButtons([
+			"remove"
+		], true, function (HtmlButtonGroups $bts, $instance) {
+			$index = InstanceViewer::$index;
+			$class = $instance->getName();
+			$name = \urlencode($class);
+			$bts->setIdentifier("bts-queue-" . $name . "-" . $index);
+			$bts->getItem(0)
+				->addClass("red _remove_from_dequeue")
 				->setProperty("data-class", $name)
 				->setProperty("data-index", $index)
 				->asIcon('delete');
