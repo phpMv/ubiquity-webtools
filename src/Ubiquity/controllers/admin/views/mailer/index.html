@@ -9,14 +9,27 @@
 	{{ q["msgInfo"] | raw }}
 </div>
 {% endif %}
-<button id="add-mailer-btn" class="ui button teal">
-  <i class="icon plus"></i>
-  Add mailer class...
-</button>
-<button id="mailer-config-btn" class="ui button orange">
-  <i class="icon cogs"></i>
-  Mailer configuration...
-</button>
+<div class="ui secondary menu">
+	<button id="add-mailer-btn" class="ui button teal">
+	  <i class="icon plus"></i>
+	  Add mailer class...
+	</button>
+	<button id="mailer-config-btn" class="ui button orange">
+	  <i class="icon cogs"></i>
+	  Mailer configuration...
+	</button>
+	<div class="ui left labeled button">
+	  <a id="queue-period" class="ui basic right pointing label">
+		{{period}}
+	  </a>
+	  <button class="ui button" id="define-period-btn">
+	    <i class="calendar alternate icon"></i> Define send period...
+	  </button>
+	</div>
+</div>
+<div id="frm">
+
+</div>
 {{ q["dtMailer"] | raw }}
 <div id="response">
 
@@ -26,14 +39,26 @@
   <a class="item" data-tab="dequeue"><i class="tasks icon"></i> Dequeue (Sent)</a>
 </div>
 <div class="ui bottom attached active tab segment" data-tab="queue">
-<button id="send-queue-btn" class="ui button green">
-  <i class="icon play"></i>
-  Send mails ready...
-</button>
-<button id="delete-queue-btn" class="ui button red">
-  <i class="icon close"></i>
-  Remove all messages
-</button>
+<div class="ui secondary menu">
+	<button id="send-queue-btn" class="ui button green _queue">
+	  <i class="icon play"></i>
+	  Send mails ready...
+	</button>
+	<button id="delete-queue-btn" class="ui button red _queue">
+	  <i class="icon close"></i>
+	  Remove all messages
+	</button>
+	<div class="ui right labeled input _queue">
+		<div class="ui label">
+			<div class="ui checkbox">
+				<input type="checkbox" name="auto-refresh" id="auto-refresh">
+				<label for="auto-refresh">Auto-refresh</label>
+			</div>
+		</div>
+		<input type="number" id="interval" min='5' value='5'>
+		<div class="ui basic label">seconds</div>
+	</div>
+</div>
 {{ q["dtQueue"] | raw }}
 </div>
 <div class="ui bottom attached tab segment" data-tab="dequeue">

@@ -1,0 +1,38 @@
+<form class="ui form" id="new-mailer-frm" novalidate>
+	<div class="ui top attached secondary segment">Adding a new mailer class</div>
+	<div class="ui attached segment">
+		<div class="two fields">
+			<div class="field">
+				<label for="auth-name">Name</label>
+				<div class="ui labeled input">
+					<div class="ui label">
+					    {{mailerNS}}
+					</div>
+					<input id="mailer-name" name="mailer-name" placeholder="Mailer name">
+				</div>
+			</div>
+			<div class="field">
+				<label for="auth-name">Base class</label>
+				{{ q["mailer-list"] | raw }}
+			</div>
+		</div>
+		<div class="field">
+				<div class="ui checkbox">
+				  <input type="checkbox" name="ck-add-view" id="ck-add-view">
+				  <label for="ck-add-view">Add associated view</label>
+				</div>
+		</div>
+	</div>
+</form>
+<div class="ui segment">
+  <button id="validate-btn" class="ui button positive">
+  	<i id="icon-bt-okay" class="icon check circle"></i>
+  	 Validate
+  </button>
+  &nbsp;
+  <button id="cancel-btn" class="ui button">
+  	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
+  	 Cancel
+  </button>
+</div>
+{{ script_foot | raw }}
