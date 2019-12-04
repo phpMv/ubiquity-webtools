@@ -303,7 +303,8 @@ class UbiquityMyAdminViewer {
 		]);
 		$dt->addFieldButtons([
 			"Add to queue",
-			"Send now"
+			"Send now",
+			"see"
 		], true, function (HtmlButtonGroups $bts, $instance, $index) {
 			$class = $instance->getName();
 			$disabled = MailerManager::inQueue($class) || \count($instance->getTo()) === 0;
@@ -311,10 +312,14 @@ class UbiquityMyAdminViewer {
 			$bts->setIdentifier("bts-" . $name . "-" . $index);
 			$bts->getItem(0)
 				->addClass("_add_to_queue" . ($disabled ? ' disabled' : ''))
-				->setProperty("data-class", $name);
+				->setProperty("data-class", $name)
+				->addIcon("plus");
 			$bts->getItem(1)
-				->addClass("positive" . ($disabled ? ' disabled' : ''))
-				->setProperty("data-class", $name);
+				->addClass("positive _send_now" . ($disabled ? ' disabled' : ''))
+				->setProperty("data-class", $name)
+				->addIcon('play');
+			$bts->getItem(2)
+				->asIcon("eye");
 		});
 		$dt->onPreCompile(function ($dt) {
 			$dt->setColAlignment(3, TextAlignment::RIGHT);
@@ -1092,9 +1097,8 @@ class UbiquityMyAdminViewer {
 			$input = new HtmlFormInput($name, null, "text", $value);
 			return $this->labeledInput($input, $value);
 		});
-		$fields = \array_keys($config);
-		$de->setFields($fields);
-		$de->setCaptions($fields);
+		$de->setFields($keys);
+		$de->setCaptions($keys);
 		$de->setCaptionCallback(function (&$captions, $instance) use ($keys) {
 			$dbBt = $this->getCaptionToggleButton("database-bt", "Database...");
 			$dbBt->on("toggled", 'if(!event.active) {

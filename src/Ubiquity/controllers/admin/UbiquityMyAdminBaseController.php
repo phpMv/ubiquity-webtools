@@ -61,6 +61,8 @@ use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\mailer\MailerManager;
 use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
+use Ubiquity\utils\base\UDateTime;
+use Ubiquity\cache\ClassUtils;
 
 /**
  *
@@ -1699,20 +1701,58 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->getHeader("mailer");
 		$this->showSimpleMessage("This part is very recent, feel free to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/56'>github issue [RFC] E-mail module</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
 		$this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
-		$this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
+		$queue = MailerQueuedClass::initQueue();
+		$this->_getAdminViewer()->getMailerQueueDataTable($queue);
+		$this->activateQueueMenu($queue);
+
 		$this->_getAdminViewer()->getMailerDequeueDataTable(MailerQueuedClass::initQueue(true));
 		$this->jquery->execAtLast("$('.menu .item').tab();");
 
 		$this->addMailerBehavior($baseRoute);
 		$this->addQueueBehavior($baseRoute, true);
 		$this->addDequeueBehavior($baseRoute);
+
+		$this->jquery->getOnClick('#define-period-btn', $baseRoute . '/_definePeriodFrm', '#frm', [
+			'hasLoader' => 'internal'
+		]);
+
+		$this->jquery->getOnClick('#add-mailer-btn', $baseRoute . '/_addNewMailerFrm', '#frm', [
+			'hasLoader' => 'internal'
+		]);
+
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerIndex());
+			->getViewMailerIndex(), [
+			'period' => $this->queuePeriodToString($this->config['mailer']['queue-period'] ?? 'now')
+		]);
+	}
+
+	public function _sendMailNow($class) {
+		MailerManager::start();
+		if (MailerManager::addToQueue($class)) {
+			MailerManager::saveQueue();
+			$this->jquery->semantic()->toast('body', [
+				'message' => "$class added to queue",
+				'showIcon' => 'mail',
+				'title' => 'Queue'
+			]);
+			$this->_refreshQueue();
+			return;
+		}
+		UResponse::setResponseCode(404);
 	}
 
 	public function _addToQueue($class) {
+		$qp = $this->config['mailer']['queue-period'] ?? 'now';
 		MailerManager::start();
-		if (MailerManager::addToQueue($class)) {
+		$result = true;
+		if ($qp == 'now') {
+			$result = MailerManager::addToQueue($class);
+		} elseif ($qp instanceof \DateTime) {
+			MailerManager::sendAt($class, $qp);
+		} else {
+			MailerManager::sendBetween($class, $qp[0], $qp[1]);
+		}
+		if ($result) {
 			MailerManager::saveQueue();
 			$this->jquery->semantic()->toast('body', [
 				'message' => "$class added to queue",
@@ -1735,7 +1775,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function _refreshQueue($withMailer = true, $withDec = false) {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$dt = $this->_getAdminViewer()->getMailerQueueDataTable(MailerQueuedClass::initQueue());
+		$queue = MailerQueuedClass::initQueue();
+		$this->activateQueueMenu($queue);
+		$dt = $this->_getAdminViewer()->getMailerQueueDataTable($queue);
 		$dt->setLibraryId("_compo_");
 		$this->addQueueBehavior($baseRoute);
 		if ($withMailer) {
@@ -1758,17 +1800,98 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$dt = $this->_getAdminViewer()->getMailerDequeueDataTable(MailerQueuedClass::initQueue(true));
 		$dt->setLibraryId("_compo_");
 		$this->addDequeueBehavior($baseRoute);
-		// $this->addQueueBehavior($baseRoute);
-		/*
-		 * $this->jquery->get($baseRoute . '/_refreshQueue', '#dtQueue', [
-		 * 'hasLoader' => false
-		 * ]);
-		 */
 		$this->jquery->renderView("@framework/main/component.html");
+	}
+
+	private function getQueuePeriodeValues($qp) {
+		if ($qp == 'now') {
+			$choice = 1;
+			$d1 = $d2 = $d3 = (new \DateTime())->format('Y-m-d\TH:i:s');
+		} elseif ($qp instanceof \DateTime) {
+			$choice = 2;
+			$d1 = $qp->format('Y-m-d\TH:i:s');
+			$d2 = $d3 = (new \DateTime())->format('Y-m-d\TH:i:s');
+		} else {
+			$choice = 3;
+			$d1 = (new \DateTime())->format('Y-m-d\TH:i:s');
+			$d2 = $qp[0]->format('Y-m-d\TH:i:s');
+			$d3 = $qp[1]->format('Y-m-d\TH:i:s');
+		}
+		return \compact('choice', 'd1', 'd2', 'd3');
+	}
+
+	public function _definePeriodFrm() {
+		$qp = $this->config['mailer']['queue-period'] ?? 'now';
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->jquery->click("input[type=radio]", "$('td').removeClass('left marked green');$(this).closest('td').addClass('left marked green').next().addClass('green');", false, false, true);
+		$frm = $this->jquery->semantic()->htmlForm('define-period-frm');
+		$this->jquery->exec(Rule::custom('dateCompare', "function(value){if($('input[name=choice]:checked'). val()==3){return new Date(value)>=new Date($('#d-between').val());}return true;}"), true);
+		$frm->addExtraFieldRule('d-and', 'dateCompare', 'The and date must be greater than between date');
+		$frm->setValidationParams([
+			"on" => "blur",
+			"inline" => false
+		]);
+		$frm->setSubmitParams($baseRoute . '/_definePeriod', '#frm', [
+			'hasLoader' => 'internal'
+		]);
+		$this->jquery->click('#validate-btn', '$("#define-period-frm").form("submit");', false);
+		$this->jquery->click('#cancel-btn', '$("#frm").html("");', false);
+		$this->jquery->click('td', '$(this).closest("tr").find("input[type=radio]")[0].click();', false, false, true);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewMailerDefinePeriod(), $this->getQueuePeriodeValues($qp));
+	}
+
+	private function queuePeriodToString($qp) {
+		if (\is_string($qp)) {
+			return $qp;
+		}
+		if (\is_array($qp)) {
+			return $this->queuePeriodToString($qp[0]) . '->' . $this->queuePeriodToString($qp[1]);
+		}
+		if ($qp instanceof \DateTime) {
+			return $qp->format("d/m/Y H:i");
+		}
+	}
+
+	public function _definePeriod() {
+		$choice = URequest::post('choice');
+		switch ($choice) {
+			case "1":
+				$r = 'now';
+				break;
+			case "2":
+				$r = \DateTime::createFromFormat('Y-m-d\TH:i:s', URequest::post('d-at'));
+				break;
+			case "3":
+				$d1 = \DateTime::createFromFormat('Y-m-d\TH:i:s', URequest::post('d-between'));
+				$d2 = \DateTime::createFromFormat('Y-m-d\TH:i:s', URequest::post('d-and'));
+				$r = [
+					$d1,
+					$d2
+				];
+				break;
+		}
+		$this->jquery->execAtLast('$("#queue-period").html("' . $this->queuePeriodToString($r) . '");');
+		$this->config['mailer']['queue-period'] = $r;
+		$this->saveConfig();
+		echo $this->jquery->compile();
+	}
+
+	private function activateQueueMenu($queue) {
+		if (\sizeof($queue) > 0) {
+			$this->jquery->doJQuery('._queue, ._queue input', 'removeClass', 'disabled');
+		} else {
+			$this->jquery->doJQuery('._queue, ._queue input', 'addClass', 'disabled');
+		}
 	}
 
 	private function addMailerBehavior($baseRoute) {
 		$this->jquery->getOnClick('._add_to_queue', $baseRoute . '/_addToQueue', '#dtQueue', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-class',
+			'jqueryDone' => 'replaceWith'
+		]);
+		$this->jquery->getOnClick('._send_now', $baseRoute . '/_sendMailNow', '#dtQueue', [
 			'hasLoader' => 'internal',
 			'attr' => 'data-class',
 			'jqueryDone' => 'replaceWith'
@@ -1796,6 +1919,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'attr' => 'data-index',
 			'jqueryDone' => 'replaceWith'
 		]);
+
+		$this->jquery->click('#auto-refresh', "if($(this).prop('checked')){" . $this->jquery->ajaxInterval('post', $baseRoute . '/_sendQueue', "$('#interval').val()*1000", 'refresh', '#dtQueue', [
+			'hasLoader' => false,
+			'jqueryDone' => 'replaceWith',
+			'jsCondition' => "!$('._queue input').hasClass('disabled')"
+		], false) . "}else{" . $this->jquery->clearInterval('refresh', false) . "}", false);
 	}
 
 	private function addDequeueBehavior($baseRoute) {
@@ -1854,5 +1983,71 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->toast(MailerManager::getErrorInfo(), 'Send mail from Queue', 'error', 'mail');
 			$this->_refreshQueue(false);
 		}
+	}
+
+	public function _addNewMailerFrm() {
+		$mailerClasses = MailerManager::getMailClasses(true);
+		$mailerClasses[] = "Ubiquity\\mailer\\AbstractMail";
+		$mailerClasses = array_combine($mailerClasses, $mailerClasses);
+		$ctrlList = $this->jquery->semantic()->htmlDropdown("mailer-list", "Ubiquity\\mailer\\AbstractMail", $mailerClasses);
+		$ctrlList->asSelect("mailerClass");
+		$ctrlList->setDefaultText("Select mailer class");
+
+		$frm = $this->jquery->semantic()->htmlForm("new-mailer-frm");
+		$frm->addExtraFieldRules("mailer-name", [
+			"empty",
+			[
+				"checkMailer",
+				"Mailer {value} already exists!"
+			]
+		]);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkMailer", $this->_getFiles()
+			->getAdminBaseRoute() . "/_mailerExists/mailer-name", "{}", "result=data.result;", "postForm", [
+			"form" => "new-mailer-frm"
+		]), true);
+
+		$frm->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		$frm->setSubmitParams($this->_getFiles()
+			->getAdminBaseRoute() . "/_addNewMailer", "#frm");
+
+		$this->jquery->click("#validate-btn", '$("#new-mailer-frm").form("submit");');
+		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
+
+		$this->jquery->renderView($this->_getFiles()
+			->getViewNewMailerFrm(), [
+			"mailerNS" => MailerManager::getNamespace()
+		]);
+	}
+
+	public function _mailerExists($fieldname) {
+		if (URequest::isPost()) {
+			$result = [];
+			header('Content-type: application/json');
+			$mailer = ucfirst($_POST[$fieldname]);
+			$mailerNS = MailerManager::getNamespace();
+			$result["result"] = ! \class_exists($mailerNS . '\\' . $mailer);
+			echo json_encode($result);
+		}
+	}
+
+	public function _addNewMailer() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$mailerName = URequest::post('mailer-name');
+		$classname = ClassUtils::getClassSimpleName($mailerName);
+		$ns = MailerManager::getNamespace() . ClassUtils::getNamespaceFromCompleteClassname($mailerName);
+		$msg = $this->scaffold->_createClass('mailer.tpl', $classname, $ns, 'use Ubiquity\\mailer\\MailerManager;', '\\' . URequest::post('mailerClass'), '');
+		if (URequest::post('ck-add-view') == 'on') {
+			$vName = $this->scaffold->_createViewOp('mailer', $classname);
+			$msg->addContent("<br>Associated view created: <b>$vName</b>.");
+		}
+		$this->jquery->get($baseRoute . '/_refreshMailer', '#dtMailer', [
+			'hasLoader' => false,
+			'jqueryDone' => 'replaceWith'
+		]);
+		echo $msg;
+		echo $this->jquery->compile();
 	}
 }
