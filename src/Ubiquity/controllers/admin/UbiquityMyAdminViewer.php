@@ -1311,6 +1311,62 @@ class UbiquityMyAdminViewer {
 		return $de->asForm();
 	}
 
+	public function getConfigMailerDataForm($config) {
+		$fields = [
+			'types' => [
+				'password' => 'password',
+				'port' => 'number'
+			]
+		];
+		$de = $this->jquery->semantic()->dataElement("frmMailerConfig", $config);
+		$keys = \array_keys($config);
+
+		$de->setDefaultValueFunction(function ($name, $value) use ($fields) {
+			if (\is_object($value) && $value != null)
+				return $this->getArrayDataForm($name, \json_decode(\json_encode($value), true), $fields);
+			if (UString::isBoolean($value)) {
+				$input = new HtmlFormCheckbox($name, '', '', 'slider');
+				$input->setChecked($value);
+				return $input;
+			}
+			$input = new HtmlFormInput($name, null, $fields['types'][$name] ?? 'text', $value);
+			return $this->labeledInput($input, $value);
+		});
+		$de->setFields($keys);
+		$de->addField('_toDelete');
+
+		\array_walk($keys, function (&$item) {
+			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $item . '" style="visibility: hidden;"></i>';
+		});
+		$de->setCaptions($keys);
+		return $de->asForm();
+	}
+
+	private function getArrayDataForm($id, $array, $fields) {
+		$dbDe = new DataElement('de-' . $id, $array);
+		$keys = \array_keys($array);
+
+		$dbDe->setDefaultValueFunction(function ($name, $value) use ($id, $fields) {
+			if (\is_object($value) && $value != null) {
+				return $this->getArrayDataForm($id . '-' . $name, \json_decode(\json_encode($value), true), $fields);
+			}
+			if (UString::isBoolean($value)) {
+				$input = new HtmlFormCheckbox($id . '-' . $name, '', 'true', 'slider');
+				$input->setChecked($value);
+				return $input;
+			}
+			$input = new HtmlFormInput($id . '-' . $name, null, $fields['types'][$name] ?? 'text', $value);
+			return $this->labeledInput($input, $value);
+		});
+		$dbDe->setFields($keys);
+		\array_walk($keys, function (&$item) use ($id) {
+			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $id . '-' . $item . '" style="visibility: hidden;"></i>';
+		});
+
+		$dbDe->setCaptions($keys);
+		return $dbDe;
+	}
+
 	private static function formatBytes($size, $precision = 2) {
 		$base = log($size, 1024);
 		$suffixes = array(

@@ -1720,6 +1720,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'hasLoader' => 'internal'
 		]);
 
+		$this->jquery->getOnClick('#edit-config-btn', $baseRoute . '/_mailerConfigFrm', '#frm', [
+			'hasLoader' => 'internal',
+			'jsCallback' => '$("#mailer-details").hide();'
+		]);
+
 		$this->jquery->renderView($this->_getFiles()
 			->getViewMailerIndex(), [
 			'period' => $this->queuePeriodToString($this->config['mailer']['queue-period'] ?? 'now')
@@ -2049,5 +2054,102 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		echo $msg;
 		echo $this->jquery->compile();
+	}
+
+	public function _seeMail() {
+		$this->jquery->renderView($this->_getFiles()
+			->getViewSeeMail());
+	}
+
+	public function _mailerConfigFrm() {
+		$this->_getMailerConfigFrm(MailerManager::loadConfig());
+	}
+
+	private function _getMailerConfigFrm($config) {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->_getAdminViewer()->getConfigMailerDataForm($config);
+		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/submitMailerConfig', 'frmConfig', '#frm', [
+			'jsCallback' => '$("#mailer-details").show();'
+		]);
+		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();');
+		$this->jquery->mouseleave('td', '$(this).find("i._see").css({"visibility":"hidden"});');
+		$this->jquery->mouseenter('td', '$(this).find("i._see").css({"visibility":"visible"});');
+		$this->jquery->click('._delete', 'let table=$(this).closest("table tbody");$("#toDelete").val($("#toDelete").val()+","+$(this).attr("data-name"));$(this).closest("tr").remove();while(table && table.children().length==0){let next=table.closest("tr").closest("table tbody");table.closest("tr").remove();table=next;}');
+		$this->jquery->renderView($this->_getFiles()
+			->getViewMailerConfig());
+	}
+
+	public function submitMailerConfig($partial = true) {
+		$result = MailerManager::loadConfig();
+		$toDelete = $_POST['_toDelete'] ?? '';
+		unset($_POST['_toDelete']);
+		$toDeletes = \explode(',', $toDelete);
+		$postValues = $_POST;
+		foreach ($postValues as $key => $value) {
+			if ($value == null && UString::isBoolean($result[$key] ?? '')) {
+				$value = true;
+			}
+			if (strpos($key, "-") === false) {
+				$result[$key] = $value;
+			} else {
+				$keys = explode('-', $key);
+				$v = &$result;
+				foreach ($keys as $k) {
+					if (! isset($v[$k])) {
+						$v[$k] = [];
+					}
+					$v = &$v[$k];
+				}
+				$v = $value;
+			}
+		}
+
+		$this->removeDeletedsFromArray($result, $toDeletes);
+		$this->removeEmpty($result);
+
+		try {
+			if (MailerManager::saveConfig($result)) {
+				$msg = $this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
+			} else {
+				$msg = $this->showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
+			}
+		} catch (\Exception $e) {
+			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
+		}
+		$msg->setLibraryId('_compo_');
+		$this->jquery->renderView('@framework/main/component.html');
+	}
+
+	private function removeEmpty(&$array) {
+		foreach ($array as $k => $value) {
+			if ($value == null) {
+				unset($array[$k]);
+			} elseif (\is_array($value)) {
+				if (\count($value) == 0) {
+					unset($array[$k]);
+				} else {
+					$this->removeEmpty($array[$k]);
+				}
+			}
+		}
+	}
+
+	private function removeDeletedsFromArray(&$result, $toDeletes) {
+		$v = &$result;
+		foreach ($toDeletes as $toDeleteOne) {
+			if ($toDeleteOne != null) {
+				if (strpos($toDeleteOne, "-") === false) {
+					unset($result[$toDeleteOne]);
+				} else {
+					$keys = explode('-', $toDeleteOne);
+					$v = &$result;
+					$s = \count($keys);
+					for ($i = 0; $i < $s - 1; $i ++) {
+						$v = &$v[$keys[$i]];
+					}
+					unset($v[\end($keys)]);
+				}
+			}
+		}
 	}
 }
