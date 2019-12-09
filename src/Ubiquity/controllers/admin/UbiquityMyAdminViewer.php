@@ -1238,32 +1238,9 @@ class UbiquityMyAdminViewer {
 		$de->fieldAsCheckbox("debug", [
 			"class" => "ui checkbox slider"
 		]);
-		$js = '
-		$(function() {
-		  $("textarea[data-editor]").each(function() {
-		    var textarea = $(this);
-		    var mode = textarea.data("editor");
-		    var editDiv = $("<div>", {
-		      position: "absolute",
-		      width: "100%",
-		      height: textarea.height(),
-		      "class": textarea.attr("class")
-		    }).insertBefore(textarea);
-		    textarea.css("display", "none");
-		    var editor = ace.edit(editDiv[0]);
-			editDiv.css("border-radius","4px");
-			editor.$blockScrolling = Infinity ;
-		    editor.renderer.setShowGutter(textarea.data("gutter"));
-		    editor.getSession().setValue(textarea.val());
-		    editor.getSession().setMode({path:"ace/mode/php", inline:true});
-		    editor.setTheme("ace/theme/solarized_dark");
-		    $("#frm-frmDeConfig").on("ajaxSubmit",function() {
-		      textarea.val(editor.getSession().getValue());
-		    });
-		  });
-		});
-		';
-		$this->jquery->exec($js, true);
+
+		$this->insertAce();
+
 		$form = $de->getForm();
 		$form->setValidationParams([
 			"inline" => true,
@@ -1311,6 +1288,35 @@ class UbiquityMyAdminViewer {
 		return $de->asForm();
 	}
 
+	public function insertAce() {
+		$js = '
+		$(function() {
+		  $("textarea[data-editor]").each(function() {
+		    var textarea = $(this);
+		    var mode = textarea.data("editor");
+		    var editDiv = $("<div>", {
+		      position: "absolute",
+		      width: "100%",
+		      height: textarea.height(),
+		      "class": textarea.attr("class")
+		    }).insertBefore(textarea);
+		    textarea.css("display", "none");
+		    var editor = ace.edit(editDiv[0]);
+		    editDiv.css("border-radius","4px");
+		    editor.$blockScrolling = Infinity ;
+		    editor.renderer.setShowGutter(textarea.data("gutter"));
+		    editor.getSession().setValue(textarea.val());
+		    editor.getSession().setMode({path:"ace/mode/php", inline:true});
+		    editor.setTheme("ace/theme/solarized_dark");
+		    $("textarea[data-editor]").closest("form").on("ajaxSubmit",function() {
+		      textarea.val(editor.getSession().getValue());
+		    });
+		  });
+		});
+		';
+		$this->jquery->exec($js, true);
+	}
+
 	public function getConfigMailerDataForm($config) {
 		$fields = [
 			'types' => [
@@ -1327,6 +1333,8 @@ class UbiquityMyAdminViewer {
 			if (UString::isBoolean($value)) {
 				$input = new HtmlFormCheckbox($name, '', '', 'slider');
 				$input->setChecked($value);
+				$input->getField()
+					->forceValue();
 				return $input;
 			}
 			$input = new HtmlFormInput($name, null, $fields['types'][$name] ?? 'text', $value);
@@ -1334,12 +1342,24 @@ class UbiquityMyAdminViewer {
 		});
 		$de->setFields($keys);
 		$de->addField('_toDelete');
+		$de->fieldAsDropDown('_toDelete', [], true, [
+			'id' => 'toDelete',
+			'jsCallback' => function ($elm) {
+				$elm->getField()
+					->setAllowAdditions(true)
+					->setOnAdd("let self=$('[data-name='+addedValue+']');let table=self.closest('table tbody');self.closest('tr').hide();while(table && table.children(':visible').length==0){let next=table.closest('tr').closest('table tbody');table.closest('tr').hide();table=next;}")
+					->setOnRemove("let self=$('[data-name='+removedValue+']');let tr=self.closest('tr');tr.show();tr.parents('tr').show();");
+			}
+		]);
 
 		\array_walk($keys, function (&$item) {
 			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $item . '" style="visibility: hidden;"></i>';
 		});
 		$de->setCaptions($keys);
-		return $de->asForm();
+		$de->setCaption('_toDelete', '<div class="ui icon button"><i class="remove icon"></i> Cancel deletions</span>');
+		$de->setLibraryId('_compo_');
+		$de->setEdition(true);
+		return $de;
 	}
 
 	private function getArrayDataForm($id, $array, $fields) {

@@ -2067,46 +2067,105 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	private function _getMailerConfigFrm($config) {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$this->_getAdminViewer()->getConfigMailerDataForm($config);
+		$this->getMailerConfigFrmDataForm($config);
+
 		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/submitMailerConfig', 'frmConfig', '#frm', [
 			'jsCallback' => '$("#mailer-details").show();'
 		]);
 		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();');
-		$this->jquery->mouseleave('td', '$(this).find("i._see").css({"visibility":"hidden"});');
-		$this->jquery->mouseenter('td', '$(this).find("i._see").css({"visibility":"visible"});');
-		$this->jquery->click('._delete', 'let table=$(this).closest("table tbody");$("#toDelete").val($("#toDelete").val()+","+$(this).attr("data-name"));$(this).closest("tr").remove();while(table && table.children().length==0){let next=table.closest("tr").closest("table tbody");table.closest("tr").remove();table=next;}');
+
+		$this->jquery->execAtLast("$('._tabConfig .item').tab();");
+		$this->jquery->execAtLast("$('._tabConfig .item').tab({'onVisible':function(value){
+			if(value=='source'){
+			" . $this->jquery->postFormDeferred($baseRoute . '/_getMailerConfigSource', 'frmConfig', '#tab-source', [
+			'hasLoader' => false
+		]) . "}else{
+			" . $this->jquery->postFormDeferred($baseRoute . '/_refreshConfigFrm', 'frm-source', '#frmMailerConfig', [
+			'hasLoader' => false,
+			'jqueryDone' => 'replaceWith'
+		]) . "
+		}
+		}});");
 		$this->jquery->renderView($this->_getFiles()
 			->getViewMailerConfig());
 	}
 
+	private function getMailerConfigFrmDataForm($config) {
+		$df = $this->_getAdminViewer()->getConfigMailerDataForm($config);
+		$this->addConfigBehavior();
+		return $df;
+	}
+
+	private function addConfigBehavior() {
+		$this->jquery->mouseleave('td', '$(this).find("i._see").css({"visibility":"hidden"});');
+		$this->jquery->mouseenter('td', '$(this).find("i._see").css({"visibility":"visible"});');
+		$this->jquery->click('._delete', 'let tDf=$("[name=_toDelete]");tDf.closest(".ui.dropdown").dropdown("set selected",$(this).attr("data-name"));');
+	}
+
+	private function arrayUpdateRecursive(&$original, &$update, &$toRemove, $key = '', $remove = false) {
+		foreach ($original as $k => $v) {
+			$nKey = ($key == null) ? $k : ($key . '-' . $k);
+			if (\array_key_exists($k, $update)) {
+				if (\is_array($update[$k]) && \is_array($v)) {
+					$this->arrayUpdateRecursive($original[$k], $update[$k], $toRemove, $nKey, $remove);
+				} else {
+					if (\array_search($nKey, $toRemove) === false) {
+						$original[$k] = $update[$k];
+					}
+				}
+			} else {
+				if (\array_search($nKey, $toRemove) === false) {
+					$toRemove[] = $nKey;
+				}
+			}
+			if ($remove && \array_search($nKey, $toRemove) !== false) {
+				unset($original[$k]);
+			}
+			unset($update[$k]);
+		}
+		foreach ($update as $k => $v) {
+			if (\array_search($k, $toRemove) === false) {
+				$original[$k] = $v;
+			}
+		}
+	}
+
+	public function _refreshConfigFrm() {
+		$toRemove = [];
+		$original = MailerManager::loadConfig();
+		$update = eval('return ' . URequest::post('src') . ';');
+		$this->arrayUpdateRecursive($original, $update, $toRemove);
+		$this->getMailerConfigFrmDataForm($original);
+		if (\count($toRemove) > 0) {
+			$this->jquery->execAtLast("$('[name=_toDelete]').closest('.ui.dropdown').dropdown('set selected'," . \json_encode($toRemove) . ");");
+		}
+		$this->jquery->renderView('@framework/main/component.html');
+	}
+
+	public function _getMailerConfigSource() {
+		$original = MailerManager::loadConfig();
+		$toDelete = URequest::post('_toDelete');
+		$toRemove = \explode(',', $toDelete);
+		$update = $this->getMailerConfigFromPost();
+		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);
+		$src = UArray::asPhpArray($original, "array", 1, true);
+		$frm = $this->jquery->semantic()->htmlForm('frm-source');
+		$textarea = $frm->addTextarea('src', '', $src, null, 20);
+		$frm->addInput('toDeleteSrc', null, 'hidden', $toDelete);
+		$frm->setLibraryId('_compo_');
+		$textarea->getDataField()->setProperty('data-editor', true);
+		$this->_getAdminViewer()->insertAce();
+
+		$this->jquery->renderView('@framework/main/component.html');
+	}
+
 	public function submitMailerConfig($partial = true) {
-		$result = MailerManager::loadConfig();
+		$result = $this->getMailerConfigFromPost();
 		$toDelete = $_POST['_toDelete'] ?? '';
 		unset($_POST['_toDelete']);
 		$toDeletes = \explode(',', $toDelete);
-		$postValues = $_POST;
-		foreach ($postValues as $key => $value) {
-			if ($value == null && UString::isBoolean($result[$key] ?? '')) {
-				$value = true;
-			}
-			if (strpos($key, "-") === false) {
-				$result[$key] = $value;
-			} else {
-				$keys = explode('-', $key);
-				$v = &$result;
-				foreach ($keys as $k) {
-					if (! isset($v[$k])) {
-						$v[$k] = [];
-					}
-					$v = &$v[$k];
-				}
-				$v = $value;
-			}
-		}
-
 		$this->removeDeletedsFromArray($result, $toDeletes);
 		$this->removeEmpty($result);
-
 		try {
 			if (MailerManager::saveConfig($result)) {
 				$msg = $this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
@@ -2118,6 +2177,29 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 		$msg->setLibraryId('_compo_');
 		$this->jquery->renderView('@framework/main/component.html');
+	}
+
+	private function getMailerConfigFromPost() {
+		$result = MailerManager::loadConfig();
+		$postValues = $_POST;
+		foreach ($postValues as $key => $value) {
+			if ('_toDelete' != $key) {
+				if (strpos($key, "-") === false) {
+					$result[$key] = $value;
+				} else {
+					$keys = explode('-', $key);
+					$v = &$result;
+					foreach ($keys as $k) {
+						if (! isset($v[$k])) {
+							$v[$k] = [];
+						}
+						$v = &$v[$k];
+					}
+					$v = $value;
+				}
+			}
+		}
+		return $result;
 	}
 
 	private function removeEmpty(&$array) {
