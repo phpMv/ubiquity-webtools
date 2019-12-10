@@ -1,10 +1,11 @@
 {{ q["header"] | raw }}
 
-{% if q["msgGlobal"] is defined %}
 <div style="padding: 10px 0px;" id="messages">
+{% if q["msgGlobal"] is defined %}
 	{{ q["msgGlobal"] | raw }}
-</div>
 {% endif %}
+</div>
+
 {{ message | raw }}
 
 <div id="translations-refresh">
