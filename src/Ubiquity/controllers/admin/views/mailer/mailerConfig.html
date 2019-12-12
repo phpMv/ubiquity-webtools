@@ -4,13 +4,20 @@
 </div>
 <div class="ui bottom attached active tab segment" data-tab="config" id="tab-config">
 	<form class="ui form" id="frmConfig" name="frmConfig" novalidate>
-		<div class="ui inverted segment">
+		<div class="ui segment">
 			<div id="toolbar-frmDeConfig" class="ui menu secondary">
 				<div class="no-active item">
-					<div id="save-config-btn" class="ui button basic inverted">Save configuration</div>
+					<div id="save-config-btn" class="ui positive button">
+						<i class="icon check circle"></i>
+						Save configuration
+					</div>&nbsp;
+					<div id="bt-Canceledition" class="ui button">
+						<i class="icon remove circle outline"></i>
+						Cancel edition
+					</div>
 				</div>
-				<div class="no-active item">
-					<div id="bt-Canceledition" class="ui button">Cancel edition</div>
+				<div class="right menu">
+					<div class="no-active item">{{q["btDefaultConfig"]|raw}}</div>
 				</div>
 			</div>
 		</div>
@@ -18,6 +25,5 @@
 	</form>
 </div>
 <div class="ui bottom attached tab segment" data-tab="source" id="tab-source">
-	bla
 </div>
 {{script_foot|raw}}
