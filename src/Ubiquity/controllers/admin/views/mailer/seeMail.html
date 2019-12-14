@@ -1,5 +1,28 @@
 <div class='ui attached segment'>
-	<div class="ui black button" id="closeViewerBtn"><i class="close icon"></i>Close</div>
+	<div class="ui grid">
+		<div class="six wide column">
+			{%if queue%}
+			<div class="ui button _add_to_queue {{disabled}}">
+				<i id="icon-" class="icon plus"></i> Add to queue
+			</div>
+			<div id="send-queue-btn" class="ui button green _send_now {{disabled}}">
+				<i class="icon play"></i>Send now
+			</div>
+			{%else%}
+			<div class="ui left labeled button">
+				<a class="ui basic right pointing label" title="{{sentDate}}">
+				Sent {{sentAgo}}
+				</a>
+				<div id="re-send-btn" class="ui button green _re_send_now">
+					<i class="redo icon"></i> Send again
+				</div>
+			</div>
+			{%endif%}
+		</div>
+		<div class="ten wide column">
+			<div class="ui black fluid button" id="closeViewerBtn"><i class="close icon"></i>Close</div>
+		</div>
+	</div>
 </div>
 {{q['seeMail']|raw}}
 {{script_foot|raw}}
