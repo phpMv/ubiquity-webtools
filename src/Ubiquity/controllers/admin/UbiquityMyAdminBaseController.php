@@ -63,6 +63,7 @@ use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\utils\base\UDateTime;
 use Ubiquity\cache\ClassUtils;
+use Ubiquity\controllers\admin\traits\MailerTrait;
 
 /**
  *
@@ -71,7 +72,7 @@ use Ubiquity\cache\ClassUtils;
 class UbiquityMyAdminBaseController extends Controller implements HasModelViewerInterface {
 	use MessagesTrait,ModelsTrait,ModelsConfigTrait,RestTrait,CacheTrait,ConfigTrait,
 	ControllersTrait,RoutesTrait,DatabaseTrait,SeoTrait,GitTrait,CreateControllersTrait,
-	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait;
+	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait;
 
 	/**
 	 *
@@ -1722,7 +1723,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->getOnClick('#edit-config-btn', $baseRoute . '/_mailerConfigFrm', '#frm', [
 			'hasLoader' => 'internal',
-			'jsCallback' => '$("#mailer-details").hide();'
+			'jsCallback' => '$("#mailer-details").hide();$("._menu").addClass("disabled");'
 		]);
 
 		$this->jquery->renderView($this->_getFiles()
@@ -1901,6 +1902,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'attr' => 'data-class',
 			'jqueryDone' => 'replaceWith'
 		]);
+
+		$this->jquery->getOnClick('._see', $baseRoute . '/_seeMail', '#see-mail', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-class',
+			'jsCallback' => '$("#mailer-all").hide();'
+		]);
 	}
 
 	private function addQueueBehavior($baseRoute, $all = false) {
@@ -1937,6 +1944,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'hasLoader' => 'internal',
 			'attr' => 'data-index',
 			'jqueryDone' => 'replaceWith'
+		]);
+		$this->jquery->getOnClick('._see_dequeue', $baseRoute . '/_seeSentMail', '#see-mail', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-index',
+			'jsCallback' => '$("#mailer-all").hide();'
 		]);
 	}
 
@@ -2056,11 +2068,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		echo $this->jquery->compile();
 	}
 
-	public function _seeMail() {
-		$this->jquery->renderView($this->_getFiles()
-			->getViewSeeMail());
-	}
-
 	public function _mailerConfigFrm() {
 		$this->_getMailerConfigFrm(MailerManager::loadConfig());
 	}
@@ -2068,11 +2075,20 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	private function _getMailerConfigFrm($config) {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getMailerConfigFrmDataForm($config);
+		$configs = \array_keys($this->defaultMailerConfigs);
+		$dd = $this->jquery->semantic()->htmlDropdown('btDefaultConfig', 'Add default config', \array_combine($configs, $configs));
+		$dd->asButton(true)->setColor('olive');
+		$dd->addIcons($this->getDefaultMailerConfigIcons());
+		$this->jquery->postFormOnClick('#btDefaultConfig a.item', $baseRoute . '/_applyConfig', 'frmConfig', '#frmMailerConfig', [
+			'hasLoader' => false,
+			'attr' => 'data-value',
+			'jqueryDone' => 'replaceWith'
+		]);
 
 		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/submitMailerConfig', 'frmConfig', '#frm', [
 			'jsCallback' => '$("#mailer-details").show();'
 		]);
-		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();');
+		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();$("._menu").removeClass("disabled");');
 
 		$this->jquery->execAtLast("$('._tabConfig .item').tab();");
 		$this->jquery->execAtLast("$('._tabConfig .item').tab({'onVisible':function(value){
@@ -2142,6 +2158,20 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->renderView('@framework/main/component.html');
 	}
 
+	public function _applyConfig($key) {
+		$original = MailerManager::loadConfig();
+		$toDelete = URequest::post('_toDelete');
+		$toRemove = \explode(',', $toDelete);
+		$update = $this->getMailerConfigFromPost();
+		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);
+		$original = $this->mixDefaultMailerConfig($key, $original);
+		$this->getMailerConfigFrmDataForm($original);
+		if (\count($toRemove) > 0) {
+			$this->jquery->execAtLast("$('[name=_toDelete]').closest('.ui.dropdown').dropdown('set selected'," . \json_encode($toRemove) . ");");
+		}
+		$this->jquery->renderView('@framework/main/component.html');
+	}
+
 	public function _getMailerConfigSource() {
 		$original = MailerManager::loadConfig();
 		$toDelete = URequest::post('_toDelete');
@@ -2176,6 +2206,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
 		}
 		$msg->setLibraryId('_compo_');
+		$this->jquery->execAtLast('$("._menu").removeClass("disabled");');
 		$this->jquery->renderView('@framework/main/component.html');
 	}
 

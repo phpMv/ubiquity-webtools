@@ -44,6 +44,8 @@ use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\mailer\MailerManager;
 use Ajax\semantic\widgets\base\InstanceViewer;
+use Ajax\semantic\html\modules\HtmlTab;
+use Ajax\semantic\html\elements\HtmlSegment;
 
 /**
  *
@@ -307,7 +309,7 @@ class UbiquityMyAdminViewer {
 			"see"
 		], true, function (HtmlButtonGroups $bts, $instance, $index) {
 			$class = $instance->getName();
-			$disabled = MailerManager::inQueue($class) || \count($instance->getTo()) === 0;
+			$disabled = MailerManager::inQueue($class) || ! $instance->getHasRecipients();
 			$name = \urlencode($class);
 			$bts->setIdentifier("bts-" . $name . "-" . $index);
 			$bts->getItem(0)
@@ -319,6 +321,8 @@ class UbiquityMyAdminViewer {
 				->setProperty("data-class", $name)
 				->addIcon('play');
 			$bts->getItem(2)
+				->addClass("_see")
+				->setProperty("data-class", $name)
 				->asIcon("eye");
 		});
 		$dt->onPreCompile(function ($dt) {
@@ -338,17 +342,31 @@ class UbiquityMyAdminViewer {
 			}
 		]);
 		$dt->setValueFunction('from', function ($value, $instance) {
-			$value = \current($value);
-			$v = (isset($value['name']) ? "<{$value['name']}>" : "") . ($value['address'] ?? $value);
-			$lbl = new HtmlLabel('', \htmlentities($v), 'user');
-			return $lbl;
+			if (\is_array($value)) {
+				$value = \current($value);
+				$v = (isset($value['name']) ? "<{$value['name']}>" : "") . ($value['address'] ?? $value);
+				$lbl = new HtmlLabel('', \htmlentities($v), 'user');
+				return $lbl;
+			}
 		});
 		$dt->setValueFunction('to', function ($value, $instance) use ($dt) {
-			if (\is_array($value)) {
-				$v = \count($value);
-			}
+			return $this->multipleRecipientField($dt, $value);
+		});
+		$dt->setValueFunction('cc', function ($value, $instance) use ($dt) {
+			return $this->multipleRecipientField($dt, $value);
+		});
+		$dt->setValueFunction('bcc', function ($value, $instance) use ($dt) {
+			return $this->multipleRecipientField($dt, $value);
+		});
+	}
+
+	private function multipleRecipientField($dt, $value) {
+		$v = 0;
+		if (\is_array($value)) {
+			$v = \count($value);
+		}
+		if ($v != 0) {
 			$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . InstanceViewer::$index, \htmlentities($v), 'users');
-			$lbl->setCircular();
 			$lst = new HtmlList('');
 			$lst->fromDatabaseObjects($value, function ($item) {
 				return $item['address'];
@@ -356,7 +374,9 @@ class UbiquityMyAdminViewer {
 			$lst->setBulleted();
 			$lbl->addPopupHtml($lst);
 			return $lbl;
-		});
+		}
+		$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . InstanceViewer::$index, 'No recipient', 'ban');
+		return $lbl->addClass('basic');
 	}
 
 	public function getMailerQueueDataTable($mailClasses) {
@@ -435,7 +455,8 @@ class UbiquityMyAdminViewer {
 			}
 		});
 		$dt->addFieldButtons([
-			"remove"
+			"remove",
+			"see"
 		], true, function (HtmlButtonGroups $bts, $instance) {
 			$index = InstanceViewer::$index;
 			$class = $instance->getName();
@@ -446,6 +467,10 @@ class UbiquityMyAdminViewer {
 				->setProperty("data-class", $name)
 				->setProperty("data-index", $index)
 				->asIcon('delete');
+			$bts->getItem(1)
+				->addClass("_see_dequeue")
+				->setProperty("data-index", $index)
+				->asIcon("eye");
 		});
 		$dt->onPreCompile(function ($dt) {
 			$dt->setColAlignment(4, TextAlignment::RIGHT);
@@ -454,6 +479,51 @@ class UbiquityMyAdminViewer {
 		$dt->setEdition(true);
 		$dt->addClass("compact");
 		return $dt;
+	}
+
+	public function getSeeMailDataElement($mailerClass) {
+		$de = $this->jquery->semantic()->dataElement('seeMail', $mailerClass);
+		$de->setFields([
+			'from',
+			'to',
+			'cc',
+			'bcc',
+			'subject',
+			'body'
+		]);
+		$de->setCaptions([
+			$this->getSeeMailCaption('From', $mailerClass),
+			$this->getSeeMailCaption('To', $mailerClass),
+			$this->getSeeMailCaption('Cc', $mailerClass),
+			$this->getSeeMailCaption('Bcc', $mailerClass),
+			$this->getSeeMailCaption('Subject', $mailerClass),
+			$this->getSeeMailCaption('Body', $mailerClass)
+		]);
+		$this->initMailerFields($de);
+		$de->setValueFunction('body', function ($value, $instance) {
+			$tab = new HtmlTab('body');
+			$tab->addTab('Body', $value);
+			$src = new HtmlSegment('', '<pre>' . \htmlentities($value) . '</pre>');
+			$src->addClass('blue');
+			$tab->addTab('Source', $src);
+			$text = $instance->getBodyText();
+			if ($text != null) {
+				$tab->addTab('BodyText', '<pre>' . $text . '</pre>');
+			}
+			return $tab;
+		});
+		$de->fieldAsHeader('subject', 4);
+		$de->setAttached(true);
+	}
+
+	private function getSeeMailCaption($caption, $mailerClass) {
+		if (isset($mailerClass->original)) {
+			$member = 'get' . \ucfirst($caption);
+			if ($mailerClass->original->{$member}() !== $mailerClass->{$member}()) {
+				return $caption . '&nbsp;<span class="ui basic tag label">Updated</span>';
+			}
+		}
+		return $caption;
 	}
 
 	public function getFilterControllers($controllers) {
@@ -1250,12 +1320,12 @@ class UbiquityMyAdminViewer {
 		if ($origin == "check") {
 			$responseElement = "#main-content";
 		}
-		$de->addSubmitInToolbar("save-config-btn", "Save configuration", "basic inverted", $this->controller->_getFiles()
+		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/submitConfig/" . $origin, $responseElement);
-		$de->addButtonInToolbar("Cancel edition")->onClick('$("#config-div").show();$("#action-response").html("");');
+		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition")->onClick('$("#config-div").show();$("#action-response").html("");');
 		$de->getToolbar()
 			->setSecondary()
-			->wrap('<div class="ui inverted top attached segment">', '</div>');
+			->wrap('<div class="ui top attached segment">', '</div>');
 		$de->setAttached();
 
 		$form->addExtraFieldRules("siteUrl", [
@@ -1373,6 +1443,8 @@ class UbiquityMyAdminViewer {
 			if (UString::isBoolean($value)) {
 				$input = new HtmlFormCheckbox($id . '-' . $name, '', 'true', 'slider');
 				$input->setChecked($value);
+				$input->getField()
+					->forceValue();
 				return $input;
 			}
 			$input = new HtmlFormInput($id . '-' . $name, null, $fields['types'][$name] ?? 'text', $value);
