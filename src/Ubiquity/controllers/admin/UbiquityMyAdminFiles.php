@@ -152,6 +152,10 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/mailer/seeMail.html";
 	}
 
+	public function getViewSeeMailForm() {
+		return $this->viewBase . "/mailer/seeMailForm.html";
+	}
+
 	public function getViewMailerConfig() {
 		return $this->viewBase . "/mailer/mailerConfig.html";
 	}

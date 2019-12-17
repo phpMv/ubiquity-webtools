@@ -46,11 +46,12 @@ use Ubiquity\mailer\MailerManager;
 use Ajax\semantic\widgets\base\InstanceViewer;
 use Ajax\semantic\html\modules\HtmlTab;
 use Ajax\semantic\html\elements\HtmlSegment;
+use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 
 /**
  *
  * @author jc
- *
+ *        
  */
 class UbiquityMyAdminViewer {
 
@@ -514,6 +515,87 @@ class UbiquityMyAdminViewer {
 		});
 		$de->fieldAsHeader('subject', 4);
 		$de->setAttached(true);
+	}
+
+	public function getSeeMailDataElementForm($mailerClass) {
+		$de = $this->jquery->semantic()->dataElement('seeMailForm', $mailerClass);
+		$de->setFields([
+			'from',
+			'to',
+			'cc',
+			'bcc',
+			'subject',
+			'body'
+		]);
+		$de->setCaptions([
+			$this->getSeeMailCaption('From', $mailerClass),
+			$this->getSeeMailCaption('To', $mailerClass),
+			$this->getSeeMailCaption('Cc', $mailerClass),
+			$this->getSeeMailCaption('Bcc', $mailerClass),
+			$this->getSeeMailCaption('Subject', $mailerClass),
+			$this->getSeeMailCaption('Body', $mailerClass)
+		]);
+		$this->initMailerFieldAddress($de, 'to');
+		$this->initMailerFieldAddress($de, 'cc');
+		$this->initMailerFieldAddress($de, 'bcc');
+		$de->setValueFunction('body', function ($value, $instance) {
+			$tab = new HtmlTab('tab-body');
+			$tab->addTab('Body', new HtmlFormTextarea('body', null, $value));
+			$tab->addTab('Preview', $value);
+			$text = $instance->getBodyText();
+			if ($text != null) {
+				$tab->addTab('BodyText', new HtmlFormTextarea('bodyText', null, $text));
+			}
+			return $tab;
+		});
+		$de->fieldAsInput('subject');
+		$de->setValueFunction('from', function ($value) {
+			if (\is_array($value)) {
+				$value = \current($value);
+			}
+			return new HtmlFormInput('from', null, 'text', $this->getMailAddress($value, false));
+		});
+		$de->setAttached(true);
+		$de->asForm();
+		return $de;
+	}
+
+	private function initMailerFieldAddress(DataElement $dt, $name) {
+		$dt->setValueFunction($name, function ($values, $instance) use ($name) {
+			$dd = new HtmlFormDropdown($name, [], null, '', true, false);
+			$addresses = [];
+			if (! isset($values['address'])) {
+				if (\is_array($values)) {
+					foreach ($values as $value) {
+						$address = $this->getMailAddress($value);
+						$dd->addItem($address, $address);
+						$addresses[] = $address;
+					}
+				}
+			} else {
+				$dd->addItem($values, $values);
+				$addresses[] = $values;
+			}
+			$dd->getField()
+				->setValue(\implode(',', $addresses));
+			$dd->getField()
+				->asSearch($name, true, true)
+				->setAllowAdditions(true);
+			return $dd;
+		});
+	}
+
+	private function getMailAddress($value, $encoded = true) {
+		$ret = '';
+		if (isset($value['name'])) {
+			$ret = "<{$value['name']}>";
+		}
+
+		$ret .= ($value['address'] ?? '');
+		if ($encoded) {
+			$ret = \htmlentities($ret);
+		}
+		return $ret;
 	}
 
 	private function getSeeMailCaption($caption, $mailerClass) {
