@@ -183,6 +183,7 @@ trait MailerTrait {
 		$values['from'] = [
 			$this->getMailAddress(\html_entity_decode($_POST['from']))
 		];
+		$values['attachments'] = $this->getAttachmentsFromPost($_POST['attachments']);
 		$values['class'] = $class . '[*]';
 		if (MailerManager::sendArray($values)) {
 			MailerManager::saveQueue();
@@ -198,6 +199,17 @@ trait MailerTrait {
 		$ret = [];
 		foreach ($addresses as $strAddress) {
 			$ret[] = $this->getMailAddress($strAddress);
+		}
+		return $ret;
+	}
+
+	private function getAttachmentsFromPost(string $strAttachments): array {
+		$attachments = \explode(',', $strAttachments);
+		$ret = [];
+		foreach ($attachments as $att) {
+			$ret[] = [
+				'file' => $att
+			];
 		}
 		return $ret;
 	}

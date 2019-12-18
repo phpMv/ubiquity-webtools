@@ -51,7 +51,7 @@ use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 /**
  *
  * @author jc
- *        
+ *
  */
 class UbiquityMyAdminViewer {
 
@@ -293,7 +293,8 @@ class UbiquityMyAdminViewer {
 		$dt->setFields([
 			"shortname",
 			"from",
-			"to"
+			"to",
+			"attachments"
 		]);
 		$this->initMailerFields($dt);
 		$dt->setIdentifierFunction(function ($i, $instance) {
@@ -302,7 +303,8 @@ class UbiquityMyAdminViewer {
 		$dt->setCaptions([
 			"Mailer class",
 			"From",
-			"To"
+			"To",
+			"Att."
 		]);
 		$dt->addFieldButtons([
 			"Add to queue",
@@ -327,7 +329,7 @@ class UbiquityMyAdminViewer {
 				->asIcon("eye");
 		});
 		$dt->onPreCompile(function ($dt) {
-			$dt->setColAlignment(3, TextAlignment::RIGHT);
+			$dt->setColAlignment(4, TextAlignment::RIGHT);
 		});
 
 		$dt->setEdition(true);
@@ -359,6 +361,27 @@ class UbiquityMyAdminViewer {
 		$dt->setValueFunction('bcc', function ($value, $instance) use ($dt) {
 			return $this->multipleRecipientField($dt, $value);
 		});
+		$dt->setValueFunction('attachments', function ($v, $instance) use ($dt) {
+			return $this->attachmentsField($dt, $v);
+		});
+	}
+
+	private function attachmentsField($dt, $value) {
+		$v = 0;
+		if (\is_array($value)) {
+			$v = \count($value);
+		}
+		if ($v != 0) {
+			$lbl = new HtmlLabel('lbl-files-' . $dt->getIdentifier() . InstanceViewer::$index, \htmlentities($v), 'paperclip');
+			$lst = new HtmlList('');
+			$lst->fromDatabaseObjects($value, function ($item) {
+				return \basename($item['file']);
+			});
+			$lst->setBulleted();
+			$lbl->addPopupHtml($lst);
+			return $lbl;
+		}
+		return "";
 	}
 
 	private function multipleRecipientField($dt, $value) {
@@ -387,6 +410,7 @@ class UbiquityMyAdminViewer {
 			"shortname",
 			"from",
 			"to",
+			"attachments",
 			"delay"
 		]);
 		$this->initMailerFields($dt);
@@ -394,6 +418,7 @@ class UbiquityMyAdminViewer {
 			"Mailer class",
 			"From",
 			"To",
+			"Att.",
 			"Delay"
 		]);
 		$dt->setValueFunction('delay', function ($value, $instance) {
@@ -426,7 +451,7 @@ class UbiquityMyAdminViewer {
 				->asIcon('delete');
 		});
 		$dt->onPreCompile(function ($dt) {
-			$dt->setColAlignment(4, TextAlignment::RIGHT);
+			$dt->setColAlignment(5, TextAlignment::RIGHT);
 		});
 
 		$dt->setEdition(true);
@@ -441,6 +466,7 @@ class UbiquityMyAdminViewer {
 			"shortname",
 			"from",
 			"to",
+			"attachments",
 			"sentAt"
 		]);
 		$this->initMailerFields($dt);
@@ -448,6 +474,7 @@ class UbiquityMyAdminViewer {
 			"Mailer class",
 			"From",
 			"To",
+			"Att.",
 			"Sent at"
 		]);
 		$dt->setValueFunction('sentAt', function ($value, $instance) {
@@ -474,7 +501,7 @@ class UbiquityMyAdminViewer {
 				->asIcon("eye");
 		});
 		$dt->onPreCompile(function ($dt) {
-			$dt->setColAlignment(4, TextAlignment::RIGHT);
+			$dt->setColAlignment(5, TextAlignment::RIGHT);
 		});
 
 		$dt->setEdition(true);
@@ -490,7 +517,8 @@ class UbiquityMyAdminViewer {
 			'cc',
 			'bcc',
 			'subject',
-			'body'
+			'body',
+			'attachments'
 		]);
 		$de->setCaptions([
 			$this->getSeeMailCaption('From', $mailerClass),
@@ -498,7 +526,8 @@ class UbiquityMyAdminViewer {
 			$this->getSeeMailCaption('Cc', $mailerClass),
 			$this->getSeeMailCaption('Bcc', $mailerClass),
 			$this->getSeeMailCaption('Subject', $mailerClass),
-			$this->getSeeMailCaption('Body', $mailerClass)
+			$this->getSeeMailCaption('Body', $mailerClass),
+			$this->getSeeMailCaption('Attachments', $mailerClass)
 		]);
 		$this->initMailerFields($de);
 		$de->setValueFunction('body', function ($value, $instance) {
@@ -525,7 +554,8 @@ class UbiquityMyAdminViewer {
 			'cc',
 			'bcc',
 			'subject',
-			'body'
+			'body',
+			'attachments'
 		]);
 		$de->setCaptions([
 			$this->getSeeMailCaption('From', $mailerClass),
@@ -533,7 +563,8 @@ class UbiquityMyAdminViewer {
 			$this->getSeeMailCaption('Cc', $mailerClass),
 			$this->getSeeMailCaption('Bcc', $mailerClass),
 			$this->getSeeMailCaption('Subject', $mailerClass),
-			$this->getSeeMailCaption('Body', $mailerClass)
+			$this->getSeeMailCaption('Body', $mailerClass),
+			$this->getSeeMailCaption('Attachments', $mailerClass)
 		]);
 		$this->initMailerFieldAddress($de, 'to');
 		$this->initMailerFieldAddress($de, 'cc');
@@ -555,9 +586,34 @@ class UbiquityMyAdminViewer {
 			}
 			return new HtmlFormInput('from', null, 'text', $this->getMailAddress($value, false));
 		});
+		$this->initMailerFieldAttachments($de, 'attachments');
 		$de->setAttached(true);
 		$de->asForm();
 		return $de;
+	}
+
+	private function initMailerFieldAttachments(DataElement $dt, $name) {
+		$dt->setValueFunction($name, function ($values, $instance) use ($name) {
+			$dd = new HtmlFormDropdown($name, [], null, '', true, false);
+			$files = [];
+			if (! isset($values['file'])) {
+				if (\is_array($values)) {
+					foreach ($values as $value) {
+						$file = $value['file'];
+						$dd->addItem(\basename($file), $file);
+						$files[] = $file;
+					}
+				}
+			} else {
+				$dd->addItem($values, $values);
+				$files[] = $values;
+			}
+			$dd->getField()
+				->setValue(\implode(',', $files));
+			$dd->getField()
+				->asSearch($name, true, true);
+			return $dd;
+		});
 	}
 
 	private function initMailerFieldAddress(DataElement $dt, $name) {
