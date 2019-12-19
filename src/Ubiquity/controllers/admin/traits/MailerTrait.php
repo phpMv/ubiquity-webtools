@@ -177,9 +177,9 @@ trait MailerTrait {
 	public function _sendEditMail($class) {
 		MailerManager::start();
 		$values = $_POST;
-		$values['to'] = $this->getMailAddressesFromPost(\html_entity_decode($_POST['to']));
-		$values['cc'] = $this->getMailAddressesFromPost(\html_entity_decode($_POST['cc']));
-		$values['bcc'] = $this->getMailAddressesFromPost(\html_entity_decode($_POST['bcc']));
+		$values['to'] = $this->getMailAddressesFromPost(($_POST['to']));
+		$values['cc'] = $this->getMailAddressesFromPost(($_POST['cc']));
+		$values['bcc'] = $this->getMailAddressesFromPost(($_POST['bcc']));
 		$values['from'] = [
 			$this->getMailAddress(\html_entity_decode($_POST['from']))
 		];
@@ -194,13 +194,16 @@ trait MailerTrait {
 		$this->_refreshDequeue();
 	}
 
-	private function getMailAddressesFromPost(string $strAddresses): array {
-		$addresses = \explode(',', $strAddresses);
-		$ret = [];
-		foreach ($addresses as $strAddress) {
-			$ret[] = $this->getMailAddress($strAddress);
+	private function getMailAddressesFromPost(string $strAddresses): ?array {
+		if ($strAddresses != null) {
+			$addresses = \explode(',', $strAddresses);
+			$ret = [];
+			foreach ($addresses as $strAddress) {
+				$ret[] = $this->getMailAddress($strAddress);
+			}
+			return $ret;
 		}
-		return $ret;
+		return null;
 	}
 
 	private function getAttachmentsFromPost(string $strAttachments): array {
@@ -216,6 +219,7 @@ trait MailerTrait {
 
 	private function getMailAddress(string $strAddress): array {
 		$ret = [];
+		$strAddress = \preg_replace('#\((.*?)\)#', '<$1>', $strAddress);
 		if (($start = \strpos($strAddress, '<')) !== false) {
 			if (($end = \strpos($strAddress, '>', $start + 1)) !== false) {
 				$length = $end - $start;

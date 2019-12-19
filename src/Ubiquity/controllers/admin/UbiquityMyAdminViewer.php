@@ -555,7 +555,8 @@ class UbiquityMyAdminViewer {
 			'bcc',
 			'subject',
 			'body',
-			'attachments'
+			'attachments',
+			'attachmentsDir'
 		]);
 		$de->setCaptions([
 			$this->getSeeMailCaption('From', $mailerClass),
@@ -580,11 +581,12 @@ class UbiquityMyAdminViewer {
 			return $tab;
 		});
 		$de->fieldAsInput('subject');
+		$de->fieldAsHidden('attachmentsDir');
 		$de->setValueFunction('from', function ($value) {
 			if (\is_array($value)) {
 				$value = \current($value);
 			}
-			return new HtmlFormInput('from', null, 'text', $this->getMailAddress($value, false));
+			return new HtmlFormInput('from', null, 'text', $this->getMailAddress($value)['text']);
 		});
 		$this->initMailerFieldAttachments($de, 'attachments');
 		$de->setAttached(true);
@@ -624,16 +626,18 @@ class UbiquityMyAdminViewer {
 				if (\is_array($values)) {
 					foreach ($values as $value) {
 						$address = $this->getMailAddress($value);
-						$dd->addItem($address, $address);
-						$addresses[] = $address;
+						$dd->addItem($address['text'], $address['val']);
+						$addresses[] = $address['val'];
 					}
 				}
 			} else {
 				$dd->addItem($values, $values);
 				$addresses[] = $values;
 			}
+
+			$textValue = \implode(',', $addresses);
 			$dd->getField()
-				->setValue(\implode(',', $addresses));
+				->setValue($textValue);
 			$dd->getField()
 				->asSearch($name, true, true)
 				->setAllowAdditions(true);
@@ -641,17 +645,18 @@ class UbiquityMyAdminViewer {
 		});
 	}
 
-	private function getMailAddress($value, $encoded = true) {
-		$ret = '';
+	private function getMailAddress($value) {
+		$text = '';
+		$val = '';
 		if (isset($value['name'])) {
-			$ret = "<{$value['name']}>";
+			$text = "<{$value['name']}>";
+			$val = "({$value['name']})";
 		}
 
-		$ret .= ($value['address'] ?? '');
-		if ($encoded) {
-			$ret = \htmlentities($ret);
-		}
-		return $ret;
+		$val .= ($value['address'] ?? '');
+		$text .= ($value['address'] ?? '');
+		$text = \htmlentities($text);
+		return \compact('text', 'val');
 	}
 
 	private function getSeeMailCaption($caption, $mailerClass) {

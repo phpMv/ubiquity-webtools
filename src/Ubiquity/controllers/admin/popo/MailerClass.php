@@ -32,6 +32,24 @@ class MailerClass {
 
 	protected $sentAt;
 
+	protected $attachmentsDir;
+
+	/**
+	 *
+	 * @return mixed
+	 */
+	public function getAttachmentsDir() {
+		return $this->attachmentsDir;
+	}
+
+	/**
+	 *
+	 * @param mixed $attachmentsDir
+	 */
+	public function setAttachmentsDir($attachmentsDir) {
+		$this->attachmentsDir = $attachmentsDir;
+	}
+
 	/**
 	 *
 	 * @return mixed
@@ -264,6 +282,7 @@ class MailerClass {
 		$mailclass->bodyText = $mail->bodyText();
 		$mailclass->attachments = $mail->attachments;
 		$mailclass->rawAttachments = $mail->rawAttachments;
+		$mailclass->attachmentsDir = $mail->getAttachmentsDir();
 		return $mailclass;
 	}
 
