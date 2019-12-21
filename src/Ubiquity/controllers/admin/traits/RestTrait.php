@@ -174,7 +174,7 @@ trait RestTrait {
 		$fields->addDropdown("resource", $resources, "Resource", end($resources))->addRule([
 			"exactCount[1]"
 		]);
-		$frm->addCheckbox("re-init", "Re-init Rest cache (recommanded)", "reInit")->setChecked(true);
+		$frm->addCheckbox("re-init", "Re-init Rest cache (recommended)", "reInit")->setChecked(true);
 
 		$frm->addDivider();
 		$fields = $frm->addFields();
