@@ -140,6 +140,10 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/mailer/index.html";
 	}
 
+	public function getViewComposerIndex() {
+		return $this->viewBase . "/composer/index.html";
+	}
+
 	public function getViewMailerDefinePeriod() {
 		return $this->viewBase . "/mailer/sendDelay.html";
 	}

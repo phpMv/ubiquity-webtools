@@ -61,6 +61,8 @@ use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\controllers\admin\traits\MailerTrait;
+use Ubiquity\controllers\admin\traits\ComposerTrait;
+use Ubiquity\controllers\admin\popo\ComposerDependency;
 
 /**
  *
@@ -69,7 +71,7 @@ use Ubiquity\controllers\admin\traits\MailerTrait;
 class UbiquityMyAdminBaseController extends Controller implements HasModelViewerInterface {
 	use MessagesTrait,ModelsTrait,ModelsConfigTrait,RestTrait,CacheTrait,ConfigTrait,
 	ControllersTrait,RoutesTrait,DatabaseTrait,SeoTrait,GitTrait,CreateControllersTrait,
-	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait;
+	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait,ComposerTrait;
 
 	/**
 	 *
@@ -1727,5 +1729,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->getViewMailerIndex(), [
 			'period' => $this->queuePeriodToString($this->config['mailer']['queue-period'] ?? 'now')
 		]);
+	}
+
+	public function composer() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->getHeader("composer");
+		$this->_getAdminViewer()->getComposerDataTable(ComposerDependency::load($this->libraries));
+		$this->jquery->renderView($this->_getFiles()
+			->getViewComposerIndex());
 	}
 }

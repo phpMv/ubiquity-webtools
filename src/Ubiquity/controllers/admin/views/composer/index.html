@@ -1,0 +1,26 @@
+{{ q["header"] | raw }}
+{% if q["msgGlobal"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgGlobal"] | raw }}
+</div>
+{% endif %}
+{% if q["msgInfo"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgInfo"] | raw }}
+</div>
+{% endif %}
+<div id="composer">
+	<div class="ui secondary menu">
+		<button id="add-mailer-btn" class="ui button teal _menu">
+		  <i class="icon plus"></i>
+		  Add mailer class...
+		</button>
+	</div>
+	<div id="composer-details">
+		{{ q["dtComposer"] | raw }}
+		<div id="response">
+		
+		</div>
+	</div>
+</div>
+{{ script_foot | raw }}

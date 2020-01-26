@@ -47,11 +47,12 @@ use Ajax\semantic\widgets\base\InstanceViewer;
 use Ajax\semantic\html\modules\HtmlTab;
 use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\collections\form\HtmlFormDropdown;
+use Ubiquity\controllers\admin\popo\ComposerDependency;
 
 /**
  *
  * @author jc
- *
+ *        
  */
 class UbiquityMyAdminViewer {
 
@@ -73,7 +74,7 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getMainMenuElements() {
-		return [
+		$result = [
 			"models" => [
 				"Models",
 				"sticky note",
@@ -104,20 +105,10 @@ class UbiquityMyAdminViewer {
 				"settings",
 				"Configuration variables"
 			],
-			"git" => [
-				"Git",
-				"github",
-				"Git versioning"
-			],
 			"seo" => [
 				"Seo",
 				"google",
 				"Search Engine Optimization"
-			],
-			"logs" => [
-				"Logs",
-				"bug",
-				"Log files"
 			],
 			"translate" => [
 				"Translate",
@@ -134,12 +125,34 @@ class UbiquityMyAdminViewer {
 				"recycle",
 				"Manages maintenance modes"
 			],
-			"mailer" => [
+			"composer" => [
+				"Composer",
+				"box",
+				"Manages composer dependencies"
+			]
+		];
+		if (\class_exists('Cz\\Git\\GitRepository')) {
+			$result["git"] = [
+				"Git",
+				"github",
+				"Git versioning"
+			];
+		}
+		if (\class_exists('Monolog\\Logger')) {
+			$result["logs"] = [
+				"Logs",
+				"bug",
+				"Log files"
+			];
+		}
+		if (\class_exists('Ubiquity\\mailer\\MailerManager')) {
+			$result["mailer"] = [
 				"Mailer",
 				"mail",
 				"Mailer module"
-			]
-		];
+			];
+		}
+		return $result;
 	}
 
 	public function getRoutesDataTable($routes, $dtName = "dtRoutes") {
@@ -284,6 +297,18 @@ class UbiquityMyAdminViewer {
 		});
 		$dt->setEdition(true);
 		$dt->addClass("compact");
+		return $dt;
+	}
+
+	public function getComposerDataTable($dependencies) {
+		$dt = $this->jquery->semantic()->dataTable("dtComposer", ComposerDependency::class, $dependencies);
+		$dt->setFields([
+			"part",
+			"category",
+			"name",
+			"optional",
+			"version"
+		]);
 		return $dt;
 	}
 
