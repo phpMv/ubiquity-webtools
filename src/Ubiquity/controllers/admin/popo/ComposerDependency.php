@@ -7,7 +7,7 @@ namespace Ubiquity\controllers\admin\popo;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- *         
+ *
  */
 class ComposerDependency {
 
@@ -25,7 +25,7 @@ class ComposerDependency {
 
 	private static $composerContent;
 
-	public function __construct($part, $name, $optional = true, $category = 'none', $class = null) {
+	public function __construct($part = '', $name = '', $optional = true, $category = 'none', $class = null) {
 		$this->part = $part;
 		$this->loaded = ! isset($class) || \class_exists($class, true);
 		$this->name = $name;
@@ -142,9 +142,8 @@ class ComposerDependency {
 				}
 				$result[] = $depInstance;
 			}
+			self::addComposerPart($part, $result);
 		}
-		self::addComposerPart('require', $result);
-		self::addComposerPart('require-dev', $result);
 		return $result;
 	}
 
@@ -158,8 +157,8 @@ class ComposerDependency {
 
 	public static function getComposer() {
 		if (! isset(self::$composerContent['require'])) {
-			$content = \file_get_contents(\ROOT . './../vendor/autoload.php');
-			self::$composerContent = \json_decode($content);
+			$content = \file_get_contents(\ROOT . './../composer.json');
+			self::$composerContent = \json_decode($content, true);
 		}
 		return self::$composerContent;
 	}

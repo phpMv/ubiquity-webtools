@@ -48,11 +48,12 @@ use Ajax\semantic\html\modules\HtmlTab;
 use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
+use Ajax\semantic\html\content\table\HtmlTR;
 
 /**
  *
  * @author jc
- *        
+ *
  */
 class UbiquityMyAdminViewer {
 
@@ -304,11 +305,72 @@ class UbiquityMyAdminViewer {
 		$dt = $this->jquery->semantic()->dataTable("dtComposer", ComposerDependency::class, $dependencies);
 		$dt->setFields([
 			"part",
-			"category",
 			"name",
+			"category",
 			"optional",
-			"version"
+			"version",
+			"actions"
 		]);
+		$dt->setCaptions([
+			'',
+			'Name',
+			'Category',
+			'Optional',
+			'Version',
+			''
+		]);
+		$dt->fieldAsCheckbox('optional');
+		$dt->setValueFunction('version', function ($value) {
+			if ($value != null) {
+				return new HtmlLabel('', $value);
+			}
+		});
+		$dt->fieldAsLabel('part', 'tag', [
+			'class' => 'ui large label'
+		]);
+		$dt->setGroupByFields([
+			0
+		]);
+		$dt->onPreCompile(function () use (&$dt) {
+			$dt->getHtmlComponent()
+				->colRightFromRight(0);
+		});
+		$dt->onNewRow(function (HtmlTR $row, ComposerDependency $instance) {
+			if ($instance->getVersion() != null) {
+				if ($instance->getLoaded()) {
+					$row->addClass('positive');
+				} else {
+					$row->addClass('warning');
+				}
+			}
+		});
+		$dt->setValueFunction('name', function ($value, $instance) {
+			$lbl = new HtmlSemDoubleElement('', 'span', 'ui medium text', $value);
+			if ($instance->getVersion() != null) {
+				if ($instance->getLoaded()) {
+					$lbl->addClass('green');
+				} else {
+					$lbl->addClass('orange');
+				}
+			} else {
+				$lbl->addClass('grey');
+			}
+			return $lbl;
+		});
+		$dt->setValueFunction('actions', function ($value, $instance) {
+			if ($instance->getOptional()) {
+				$bt = new HtmlButton('bt-' . $instance->getName(), '', 'visiblehover mini basic');
+				if ($instance->getVersion() != null) {
+					$bt->setValue('Remove');
+				} else {
+					$bt->setValue('Add');
+				}
+				return $bt;
+			}
+			return '';
+		});
+		$dt->setCompact(true);
+		$dt->setEdition();
 		return $dt;
 	}
 
