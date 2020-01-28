@@ -3,6 +3,7 @@ namespace Ubiquity\controllers\admin\traits;
 
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\elements\HtmlInput;
+use Ajax\semantic\html\collections\HtmlMessage;
 
 /**
  * Manages composer dependencies
@@ -12,8 +13,12 @@ use Ajax\semantic\html\elements\HtmlInput;
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
  *
+ * @property \Ajax\php\ubiquity\JsUtils $jquery
+ *
  */
 trait ComposerTrait {
+
+	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected $libraries = [
 		'require' => [
@@ -37,13 +42,13 @@ trait ComposerTrait {
 			],
 			[
 				'name' => 'phpmv/php-mv-ui',
-				'optional' => true,
+				'optional' => false,
 				'category' => 'frontend',
 				'class' => 'Ajax\\JsUtils'
 			],
 			[
 				'name' => 'twig/twig',
-				'optional' => true,
+				'optional' => false,
 				'category' => 'templates',
 				'class' => 'Twig\\Environment'
 			],
@@ -88,7 +93,7 @@ trait ComposerTrait {
 			],
 			[
 				'name' => 'mindplay/annotations',
-				'optional' => true,
+				'optional' => false,
 				'category' => 'core',
 				'class' => 'mindplay\\annotations\\Annotation'
 			],
@@ -100,7 +105,7 @@ trait ComposerTrait {
 			],
 			[
 				'name' => 'phpmv/ubiquity-webtools',
-				'optional' => true,
+				'optional' => false,
 				'category' => 'core',
 				'class' => 'Ubiquity\\controllers\\admin\\UbiquityMyAdminBaseController'
 			],
@@ -112,6 +117,30 @@ trait ComposerTrait {
 			]
 		]
 	];
+
+	protected function getComposerDataTable() {
+		$libs = ComposerDependency::load($this->libraries);
+		\usort($libs, function ($left, $right) {
+			if ($left->getPart() == $right->getPart())
+				return $left->getCategory() <=> $right->getCategory();
+		});
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->_getAdminViewer()->getComposerDataTable($libs);
+		$input = 'let input=$(this).closest("tr").find("._value");';
+		$inputSetval = 'if($(this).hasClass("active")){input.val("");}else{input.val($(this).attr("data-part")+":"+$(this).attr("data-ajax"));}';
+		$this->jquery->execAtLast('$("#composer-frm").submit(false);$("._remove").click(function(){' . $input . $inputSetval . 'let elm=$(this).closest("tr").find("._u");if($(this).hasClass("active")){elm.unwrap();input.val("");}else{elm.wrap("<strike>");}});$("._remove").state({text:{inactive:"<i class=\'ui icon minus\'></i>Remove",active:"<i class=\'ui icon undo\'></i>To remove"}});');
+		$this->jquery->execAtLast('$("._add").click(function(){' . $input . $inputSetval . '$(this).closest("tr").find("._version").html("<input type=\'hidden\' name=\'version[]\'>");let elm=$(this).closest("tr").find("._u");elm.toggleClass("blue");});$("._add").state({text:{inactive:"<i class=\'ui icon plus\'></i>Add",active:"<i class=\'ui icon undo\'></i>To add"}});');
+		$this->jquery->postOn('dblclick', '._toUpdate', $baseRoute . '/_dependencyVersions/updatedVersion/', "{name: $(this).attr('data-ajax')}", '$(self)', [
+			'attr' => 'data-version',
+			'hasLoader' => false,
+			'jsCallback' => '$(self).closest("tr").find("._update").val($(self).attr("data-part")+":"+$(self).attr("data-ajax"));'
+		]);
+		$this->jquery->postOnClick('._add', $baseRoute . '/_dependencyVersions', "{name: $(this).attr('data-ajax')}", '$(self).closest("tr").find("._version")', [
+			'jsCondition' => '!$(this).hasClass("active")',
+			'ajaxLoader' => false
+		]);
+		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response');
+	}
 
 	public function _dependencyVersions($name = 'version', $version = '') {
 		$vendorPackage = $_POST['name'] ?? '';
@@ -126,7 +155,76 @@ trait ComposerTrait {
 	}
 
 	public function _updateComposer() {
-		\var_dump($_POST);
+		$values = $_POST;
+		$response = [];
+		$toAdd = [];
+		foreach ($values['toAdd'] as $index => $toAddOne) {
+			if ($toAddOne != '') {
+				list ($require, $pv) = \explode(':', $toAddOne);
+				if (($v = $values['version'][$index] ?? '') != '') {
+					$pv .= ':' . $v;
+				}
+				$toAdd[$require][] = $pv;
+			}
+		}
+		$toRemove = [];
+		foreach ($values['toRemove'] as $index => $toRemoveOne) {
+			if ($toRemoveOne != '') {
+				unset($values['toUpdate'][$index]);
+				list ($require, $pv) = \explode(':', $toRemoveOne);
+				$toRemove[$require][] = $pv;
+			}
+		}
+		$updatedVersionIndex = 0;
+		foreach ($values['toUpdate'] as $index => $toUpdateOne) {
+			if ($toUpdateOne != '') {
+				list ($require, $pv) = \explode(':', $toUpdateOne);
+				if (($v = $values['updatedVersion'][$updatedVersionIndex ++] ?? '') != '') {
+					$pv .= ':' . $v;
+				}
+				$toAdd[$require][] = $pv;
+			}
+		}
+		if (\count($toAdd) > 0) {
+			if (isset($toAdd['require'])) {
+				$response[] = 'composer require ' . \implode(' ', $toAdd['require']);
+			}
+			if (isset($toAdd['require-dev'])) {
+				$response[] = 'composer require ' . \implode(' ', $toAdd['require-dev']) . ' --dev';
+			}
+		}
+		if (\count($toRemove) > 0) {
+			if (isset($toRemove['require'])) {
+				$response[] = 'composer remove ' . \implode(' ', $toRemove['require']);
+			}
+			if (isset($toRemove['require-dev'])) {
+				$response[] = 'composer remove ' . \implode(' ', $toRemove['require-dev']) . ' --dev';
+			}
+		}
+		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', '#composer-frm', [
+			'before' => '$("#response").html("");'
+		]);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewComposerFrm(), [
+			'commands' => \implode("\n", $response)
+		]);
+	}
+
+	public function _execComposer() {
+		$commands = \explode("\n", $_POST['commands']);
+		$message = [];
+		foreach ($commands as $cmd) {
+			\exec($cmd . " 2>&1", $message, $result);
+			if ($result !== 0) {
+				break;
+			}
+		}
+
+		$this->showSimpleMessage(\implode('<br/>', $message), 'info', 'Composer update', 'info circle', null, 'msgInfo');
+		$this->getComposerDataTable();
+		$this->jquery->renderView($this->_getFiles()
+			->getViewExecComposer());
 	}
 }
 
