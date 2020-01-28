@@ -1732,28 +1732,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function composer() {
-		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("composer");
-		$libs = ComposerDependency::load($this->libraries);
-		\usort($libs, function ($left, $right) {
-			if ($left->getPart() == $right->getPart())
-				return $left->getCategory() <=> $right->getCategory();
-		});
-		$this->_getAdminViewer()->getComposerDataTable($libs);
-		$input = 'let input=$(this).closest("tr").find("._value");';
-		$inputSetval = 'if($(this).hasClass("active")){input.val("");}else{input.val($(this).attr("data-part")+":"+$(this).attr("data-ajax"));}';
-		$this->jquery->execAtLast('$("#composer-frm").submit(false);$("._remove").click(function(){' . $input . $inputSetval . 'let elm=$(this).closest("tr").find("._u");if($(this).hasClass("active")){elm.unwrap();input.val("");}else{elm.wrap("<strike>");}});$("._remove").state({text:{inactive:"<i class=\'ui icon minus\'></i>Remove",active:"<i class=\'ui icon undo\'></i>To remove"}});');
-		$this->jquery->execAtLast('$("._add").click(function(){' . $input . $inputSetval . '$(this).closest("tr").find("._version").html("<input type=\'hidden\' name=\'version[]\'>");let elm=$(this).closest("tr").find("._u");elm.toggleClass("blue");});$("._add").state({text:{inactive:"<i class=\'ui icon plus\'></i>Add",active:"<i class=\'ui icon undo\'></i>To add"}});');
-		$this->jquery->postOn('dblclick', '._toUpdate', $baseRoute . '/_dependencyVersions/updatedVersion/', "{name: $(this).attr('data-ajax')}", '$(self)', [
-			'attr' => 'data-version',
-			'hasLoader' => false,
-			'jsCallback' => '$(self).closest("tr").find("._update").val($(self).attr("data-part")+":"+$(self).attr("data-ajax"));'
-		]);
-		$this->jquery->postOnClick('._add', $baseRoute . '/_dependencyVersions', "{name: $(this).attr('data-ajax')}", '$(self).closest("tr").find("._version")', [
-			'jsCondition' => '!$(this).hasClass("active")',
-			'ajaxLoader' => false
-		]);
-		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response');
+		$this->getComposerDataTable();
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerIndex());
 	}

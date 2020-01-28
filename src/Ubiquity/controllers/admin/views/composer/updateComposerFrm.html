@@ -1,0 +1,16 @@
+<form class="ui form" id="composer-update-frm" name="composer-update-frm" novalidate>
+	<div class="ui top attached secondary segment">Composer commands</div>
+	<div class="ui attached segment">
+		<div class="field">
+			<label>Text</label>
+			<textarea name="commands" id="commands" rows="10">{{commands}}</textarea>
+		</div>
+	</div>
+</form>
+<div class="ui segment">
+  <button id="validate-btn" class="ui button positive">
+  	<i id="icon-bt-okay" class="icon check circle"></i>
+  	 Execute composer commands
+  </button>
+</div>
+{{ script_foot | raw }}

@@ -1,0 +1,7 @@
+{% if q["msgInfo"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgInfo"] | raw }}
+</div>
+{% endif %}
+{{ q["dtComposer"] | raw }}
+{{ script_foot | raw }}
