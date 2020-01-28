@@ -48,6 +48,12 @@ trait ComposerTrait {
 				'class' => 'Twig\\Environment'
 			],
 			[
+				'name' => 'phpmv/ubiquity-react',
+				'optional' => true,
+				'category' => 'servers',
+				'class' => 'Ubiquity\\servers\\react\\ReactServer'
+			],
+			[
 				'name' => 'phpmv/ubiquity-php-pm',
 				'optional' => true,
 				'category' => 'servers',
