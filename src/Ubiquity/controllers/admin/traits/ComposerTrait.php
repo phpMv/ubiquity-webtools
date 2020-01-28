@@ -1,6 +1,9 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ubiquity\controllers\admin\popo\ComposerDependency;
+use Ajax\semantic\html\elements\HtmlInput;
+
 /**
  * Manages composer dependencies
  * Ubiquity\controllers\admin\traits$ComposerTrait
@@ -8,12 +11,18 @@ namespace Ubiquity\controllers\admin\traits;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- *         
+ *
  */
 trait ComposerTrait {
 
 	protected $libraries = [
 		'require' => [
+			[
+				'name' => 'php',
+				'optional' => false,
+				'category' => 'core',
+				'class' => 'stdclass'
+			],
 			[
 				'name' => 'phpmv/ubiquity',
 				'optional' => false,
@@ -97,5 +106,21 @@ trait ComposerTrait {
 			]
 		]
 	];
+
+	public function _dependencyVersions($name = 'version', $version = '') {
+		$vendorPackage = $_POST['name'] ?? '';
+		list ($vendor, $package) = \explode('/', $vendorPackage);
+		$versions = ComposerDependency::getVersions($vendor, $package);
+		$dt = new HtmlInput('versions-' . $name, 'text', '', 'version...');
+		$dt->setValue(\urldecode($version));
+		$dt->setName($name . '[]');
+		$dt->addClass('mini');
+		$dt->addDataList($versions);
+		echo $dt;
+	}
+
+	public function _updateComposer() {
+		\var_dump($_POST);
+	}
 }
 

@@ -11,16 +11,19 @@
 {% endif %}
 <div id="composer">
 	<div class="ui secondary menu">
-		<button id="add-mailer-btn" class="ui button teal _menu">
+		<button id="add-dependency-btn" class="ui button teal _menu">
 		  <i class="icon plus"></i>
-		  Add mailer class...
+		  Add dependency...
 		</button>
+		<button class="ui green button" id="submit-composer-bt">Generate composer update...</button>
 	</div>
-	<div id="composer-details">
-		{{ q["dtComposer"] | raw }}
 		<div id="response">
 		
 		</div>
+	<div id="composer-details">
+		<form id='composer-frm' name='composer-frm'>
+		{{ q["dtComposer"] | raw }}
+		</form>
 	</div>
 </div>
 {{ script_foot | raw }}

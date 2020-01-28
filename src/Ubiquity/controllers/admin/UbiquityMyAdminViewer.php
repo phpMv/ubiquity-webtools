@@ -49,6 +49,7 @@ use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\content\table\HtmlTR;
+use Ajax\common\html\html5\HtmlInput;
 
 /**
  *
@@ -305,31 +306,37 @@ class UbiquityMyAdminViewer {
 		$dt = $this->jquery->semantic()->dataTable("dtComposer", ComposerDependency::class, $dependencies);
 		$dt->setFields([
 			"part",
-			"name",
 			"category",
-			"optional",
+			"name",
 			"version",
 			"actions"
 		]);
 		$dt->setCaptions([
 			'',
+			'',
 			'Name',
-			'Category',
-			'Optional',
 			'Version',
 			''
 		]);
-		$dt->fieldAsCheckbox('optional');
-		$dt->setValueFunction('version', function ($value) {
+		$dt->setValueFunction('category', function ($v) {
+			return "<h6 class='ui grey header'><i class='folder outline icon'></i><div class='content'>{$v}</div></h6>";
+		});
+		$dt->setValueFunction('version', function ($value, $instance) {
 			if ($value != null) {
-				return new HtmlLabel('', $value);
+				$lbl = new HtmlLabel('version-' . $instance->getName(), $value);
+				if ($instance->getOptional()) {
+					$lbl->wrap('<div class="_version _toUpdate" data-version="' . $value . '" data-ajax="' . $instance->getName() . '" data-part="' . $instance->getPart() . '">', '</div>');
+				}
+				return $lbl;
 			}
+			return "<div class='_version'><input type='hidden' name='version[]'></div>";
 		});
 		$dt->fieldAsLabel('part', 'tag', [
 			'class' => 'ui large label'
 		]);
 		$dt->setGroupByFields([
-			0
+			0,
+			1
 		]);
 		$dt->onPreCompile(function () use (&$dt) {
 			$dt->getHtmlComponent()
@@ -345,26 +352,37 @@ class UbiquityMyAdminViewer {
 			}
 		});
 		$dt->setValueFunction('name', function ($value, $instance) {
-			$lbl = new HtmlSemDoubleElement('', 'span', 'ui medium text', $value);
+			$lbl = new HtmlSemDoubleElement('', 'span', 'ui medium text _u', $value);
+			$lbl->setProperty('style', 'font-weight:600;margin-left:35px');
 			if ($instance->getVersion() != null) {
 				if ($instance->getLoaded()) {
 					$lbl->addClass('green');
 				} else {
 					$lbl->addClass('orange');
 				}
-			} else {
-				$lbl->addClass('grey');
 			}
 			return $lbl;
 		});
 		$dt->setValueFunction('actions', function ($value, $instance) {
 			if ($instance->getOptional()) {
-				$bt = new HtmlButton('bt-' . $instance->getName(), '', 'visiblehover mini basic');
+				$name = $instance->getName();
+				$bt = new HtmlButton('bt-' . $name, '', 'mini basic');
 				if ($instance->getVersion() != null) {
-					$bt->setValue('Remove');
+					$bt->setValue('Remove')
+						->addClass('_remove');
+					$bt->addIcon('minus');
+					$input = "<input type='hidden' class='_value' name='toRemove[]' id='remove-" . $name . "'><input type='hidden' class='_update' name='toUpdate[]' id='update-" . $name . "'>";
 				} else {
-					$bt->setValue('Add');
+					$bt->setValue('Add')
+						->addClass('_add');
+					$bt->addIcon('plus');
+					$input = "<input type='hidden' class='_value' name='toAdd[]' id='add-" . $name . "'>";
 				}
+				$bt->setToggle();
+				$bt->wrap($input);
+				$bt->setProperty('data-part', $instance->getPart())
+					->setProperty('data-ajax', $name);
+
 				return $bt;
 			}
 			return '';

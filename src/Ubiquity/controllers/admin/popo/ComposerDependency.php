@@ -162,5 +162,21 @@ class ComposerDependency {
 		}
 		return self::$composerContent;
 	}
+
+	public static function getVersions($vendor, $package) {
+		$url = "https://packagist.org/packages/{$vendor}/{$package}.json";
+		$curl = \curl_init();
+		\curl_setopt($curl, CURLOPT_URL, $url);
+		\curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		\curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+		\curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		$result = \curl_exec($curl);
+		if (! $result) {
+			return false;
+		}
+		\curl_close($curl);
+		$result = \json_decode($result, true);
+		return \array_keys($result['package']['versions'] ?? []);
+	}
 }
 
