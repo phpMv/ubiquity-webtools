@@ -53,7 +53,7 @@ trait ComposerTrait {
 				'class' => 'Twig\\Environment'
 			],
 			[
-				'name' => 'phpmv/ubiquity-react',
+				'name' => 'phpmv/ubiquity-reactphp',
 				'optional' => true,
 				'category' => 'servers',
 				'class' => 'Ubiquity\\servers\\react\\ReactServer'
@@ -168,7 +168,7 @@ trait ComposerTrait {
 			}
 		}
 		$toRemove = [];
-		foreach ($values['toRemove'] as $index => $toRemoveOne) {
+		foreach ($values['toRemove'] ?? [] as $index => $toRemoveOne) {
 			if ($toRemoveOne != '') {
 				unset($values['toUpdate'][$index]);
 				list ($require, $pv) = \explode(':', $toRemoveOne);
@@ -176,7 +176,7 @@ trait ComposerTrait {
 			}
 		}
 		$updatedVersionIndex = 0;
-		foreach ($values['toUpdate'] as $index => $toUpdateOne) {
+		foreach ($values['toUpdate'] ?? [] as $index => $toUpdateOne) {
 			if ($toUpdateOne != '') {
 				list ($require, $pv) = \explode(':', $toUpdateOne);
 				if (($v = $values['updatedVersion'][$updatedVersionIndex ++] ?? '') != '') {
@@ -202,8 +202,10 @@ trait ComposerTrait {
 			}
 		}
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
-			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', '#composer-frm', [
-			'before' => '$("#response").html("");'
+			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', null, [
+			'before' => '$("#response").html("<div style=\'white-space: pre;white-space: pre-line;\' class=\'ui inverted message\'><i class=\'icon close\'></i><div class=\'header\'>Composer update...</div><div id=\'partial\' class=\'content\'><div class=\'ui active slow green double loader\'></div></div></div>");',
+			'hasLoader' => false,
+			'partial' => "$('#partial').html(response);"
 		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerFrm(), [
@@ -212,19 +214,44 @@ trait ComposerTrait {
 	}
 
 	public function _execComposer() {
-		$commands = \explode("\n", $_POST['commands']);
-		$message = [];
-		foreach ($commands as $cmd) {
-			\exec($cmd . " 2>&1", $message, $result);
-			if ($result !== 0) {
-				break;
-			}
-		}
+		header('Content-type: text/html; charset=utf-8');
 
-		$this->showSimpleMessage(\implode('<br/>', $message), 'info', 'Composer update', 'info circle', null, 'msgInfo');
+		$this->jquery->execAtLast('$(".message .close").on("click", function() {$(this).closest(".message").transition("fade");});');
+
+		$commands = \explode("\n", $_POST['commands']);
+		if (\ob_get_length())
+			\ob_end_clean();
+		ob_end_flush();
+		foreach ($commands as $cmd) {
+			echo "<span class='ui teal text'>$cmd</span>\n";
+			flush();
+			ob_flush();
+			$this->liveExecuteCommand($cmd);
+		}
+		$this->jquery->get($this->_getFiles()
+			->getAdminBaseRoute() . '/_refreshComposer', '#dtComposer', [
+			'jqueryDone' => 'replaceWith',
+			'hasLoader' => false
+		]);
+		echo $this->jquery->compile();
+	}
+
+	public function _refreshComposer() {
 		$this->getComposerDataTable();
 		$this->jquery->renderView($this->_getFiles()
 			->getViewExecComposer());
+	}
+
+	private function liveExecuteCommand($cmd) {
+		$proc = \popen("$cmd 2>&1", 'r');
+		$live_output = "";
+		while (! \feof($proc)) {
+			$live_output = fread($proc, 4096);
+			echo "$live_output";
+			flush();
+			ob_flush();
+		}
+		\pclose($proc);
 	}
 }
 
