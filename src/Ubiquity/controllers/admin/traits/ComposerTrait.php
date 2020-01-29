@@ -139,7 +139,6 @@ trait ComposerTrait {
 			'jsCondition' => '!$(this).hasClass("active")',
 			'ajaxLoader' => false
 		]);
-		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response');
 	}
 
 	public function _dependencyVersions($name = 'version', $version = '') {
@@ -203,7 +202,7 @@ trait ComposerTrait {
 		}
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', null, [
-			'before' => '$("#response").html("<div style=\'white-space: pre;white-space: pre-line;\' class=\'ui inverted message\'><i class=\'icon close\'></i><div class=\'header\'>Composer update...</div><div id=\'partial\' class=\'content\'><div class=\'ui active slow green double loader\'></div></div></div>");',
+			'before' => '$("#response").html(' . $this->getConsoleMessage() . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
 		]);
@@ -216,7 +215,7 @@ trait ComposerTrait {
 	public function _execComposer() {
 		header('Content-type: text/html; charset=utf-8');
 
-		$this->jquery->execAtLast('$(".message .close").on("click", function() {$(this).closest(".message").transition("fade");});');
+		$this->addCloseToMessage();
 
 		$commands = \explode("\n", $_POST['commands']);
 		if (\ob_get_length())
@@ -241,6 +240,8 @@ trait ComposerTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewExecComposer());
 	}
+
+	public function _optComposer() {}
 
 	private function liveExecuteCommand($cmd) {
 		$proc = \popen("$cmd 2>&1", 'r');

@@ -62,7 +62,6 @@ use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\controllers\admin\traits\MailerTrait;
 use Ubiquity\controllers\admin\traits\ComposerTrait;
-use Ubiquity\controllers\admin\popo\ComposerDependency;
 
 /**
  *
@@ -1732,9 +1731,35 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function composer() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("composer");
 		$this->getComposerDataTable();
+
+		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response');
+
+		$this->jquery->postOnClick('#opt-composer-bt', $this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer', "{commands:'composer install --optimize-autoloader --classmap-authoritative'}", null, [
+			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Composer optimization...') . ');',
+			'hasLoader' => 'internal',
+			'partial' => "$('#partial').html(response);"
+		]);
+
+		$this->jquery->postOnClick('#opt-dev-composer-bt', $this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer', "{commands:'composer install --optimize-autoloader --classmap-authoritative --no-dev'}", null, [
+			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Composer production optimization...') . ');',
+			'hasLoader' => 'internal',
+			'partial' => "$('#partial').html(response);"
+		]);
+
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerIndex());
+	}
+
+	protected function getConsoleMessage($id = 'partial', $defaultMsg = 'Composer update...') {
+		return "\"<div style=\'white-space: pre;white-space: pre-line;\' class=\'ui inverted message\'><i class=\'icon close\'></i><div class=\'header\'>{$defaultMsg}</div><div id=\'" . $id . "\' class=\'content\'><div class=\'ui active slow green double loader\'></div></div></div>\"";
+	}
+
+	protected function addCloseToMessage() {
+		$this->jquery->execAtLast('$(".message .close").on("click", function() {$(this).closest(".message").transition("fade");});');
 	}
 }
