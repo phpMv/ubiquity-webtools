@@ -1744,11 +1744,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'partial' => "$('#partial').html(response);"
 		]);
 
-		$this->jquery->postOnClick('#opt-dev-composer-bt', $this->_getFiles()
-			->getAdminBaseRoute() . '/_execComposer', "{commands:'composer install --optimize-autoloader --classmap-authoritative --no-dev'}", null, [
-			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Composer production optimization...') . ');',
-			'hasLoader' => 'internal',
-			'partial' => "$('#partial').html(response);"
+		$this->jquery->getOnClick('#add-dependency-btn', $baseRoute . '/_addDependencyFrm', '#response', [
+			'hasLoader' => 'internal'
 		]);
 
 		$this->jquery->renderView($this->_getFiles()

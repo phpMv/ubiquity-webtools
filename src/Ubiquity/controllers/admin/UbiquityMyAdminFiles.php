@@ -152,6 +152,10 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/composer/execComposer.html";
 	}
 
+	public function getViewAddDependencyFrm() {
+		return $this->viewBase . "/composer/addDependencyFrm.html";
+	}
+
 	public function getViewMailerDefinePeriod() {
 		return $this->viewBase . "/mailer/sendDelay.html";
 	}

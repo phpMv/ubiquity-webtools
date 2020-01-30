@@ -1,0 +1,38 @@
+<form class="ui form" id="add-dependency-frm" name="add-dependency-frm" novalidate>
+	<div class="ui top attached secondary segment">Adding a new composer dependency</div>
+		<div class="ui attached segment">
+			<div class="inline fields">
+				<div class="six wide field">
+					<input type="text" placeholder="vendor" id="vendor" name="vendor">
+				</div>
+				<div class="six wide field">
+					<input type="text" placeholder="Package..." id="package" name="package" list="list-package">
+					<datalist id="list-package">
+					</datalist>
+				</div>
+				<div class="four wide field">
+					<div id="div-name" class="ui input right labeled">
+						<input id="version" name="version" value="" type="text" placeholder="version" list="list-version">
+						<datalist id="list-version">
+						</datalist>
+						<div class="ui checkbox label">
+						<input id="dev" name="dev" value="v" type="checkbox" tabindex="0" class="hidden">
+						<label for="dev">dev</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<div class="ui segment">
+	<button id="validate-btn" class="ui button positive">
+	<i id="icon-bt-okay" class="icon check circle"></i>
+		Validate
+	</button>
+	&nbsp;
+	<button id="cancel-btn" class="ui button">
+		<i id="icon-bt-cancel" class="icon remove circle outline"></i>
+		Cancel
+	</button>
+</div>
+{{ script_foot | raw }}

@@ -4,6 +4,8 @@ namespace Ubiquity\controllers\admin\traits;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\elements\HtmlInput;
 use Ajax\semantic\html\collections\HtmlMessage;
+use Ubiquity\controllers\admin\utils\PackagistApi;
+use Ajax\semantic\html\elements\html5\HtmlDatalist;
 
 /**
  * Manages composer dependencies
@@ -70,7 +72,12 @@ trait ComposerTrait {
 				'category' => 'database',
 				'class' => 'Ubiquity\\db\\providers\\tarantool\\TarantoolWrapper'
 			],
-
+			[
+				'name' => 'phpmv/ubiquity-mysqli',
+				'optional' => true,
+				'category' => 'database',
+				'class' => 'Ubiquity\\db\\providers\\mysqli\\MysqliWrapper'
+			],
 			[
 				'name' => 'phpmv/ubiquity-swoole',
 				'optional' => true,
@@ -123,6 +130,7 @@ trait ComposerTrait {
 		\usort($libs, function ($left, $right) {
 			if ($left->getPart() == $right->getPart())
 				return $left->getCategory() <=> $right->getCategory();
+			return $left->getPart() <=> $right->getPart();
 		});
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->_getAdminViewer()->getComposerDataTable($libs);
@@ -144,13 +152,33 @@ trait ComposerTrait {
 	public function _dependencyVersions($name = 'version', $version = '') {
 		$vendorPackage = $_POST['name'] ?? '';
 		list ($vendor, $package) = \explode('/', $vendorPackage);
-		$versions = ComposerDependency::getVersions($vendor, $package);
+		$versions = PackagistApi::getVersions($vendor, $package);
 		$dt = new HtmlInput('versions-' . $name, 'text', '', 'version...');
 		$dt->setValue(\urldecode($version));
 		$dt->setName($name . '[]');
 		$dt->addClass('mini');
 		$dt->addDataList($versions);
 		echo $dt;
+	}
+
+	public function _dependencyVersionsAlone($name = 'version') {
+		$versions = PackagistApi::getVersions($_POST['vendor'], $_POST['package']);
+		$dl = new HtmlDatalist('list-' . $name);
+		$dl->addItems($versions);
+		echo $dl;
+	}
+
+	public function _dependencyPackagesAlone($name = 'package') {
+		$vendor = $_POST['vendor'];
+		$packages = PackagistApi::getPackages($vendor);
+		if (count($packages) > 0) {
+			\array_walk($packages, function (&$item) use ($vendor) {
+				$item = \str_replace($vendor . '/', '', $item);
+			});
+		}
+		$dl = new HtmlDatalist('list-' . $name);
+		$dl->addItems($packages);
+		echo $dl;
 	}
 
 	public function _updateComposer() {
@@ -200,12 +228,14 @@ trait ComposerTrait {
 				$response[] = 'composer remove ' . \implode(' ', $toRemove['require-dev']) . ' --dev';
 			}
 		}
+
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', null, [
 			'before' => '$("#response").html(' . $this->getConsoleMessage() . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
 		]);
+		$this->jquery->click('#cancel-btn', '$("#response").html("");');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerFrm(), [
 			'commands' => \implode("\n", $response)
@@ -241,7 +271,41 @@ trait ComposerTrait {
 			->getViewExecComposer());
 	}
 
-	public function _optComposer() {}
+	public function _addDependencyFrm() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->jquery->postFormOn('change', '#vendor', $baseRoute . '/_dependencyPackagesAlone', 'add-dependency-frm', '#list-package', [
+			'hasLoader' => false,
+			'jsCondition' => '$(this).val().length>1',
+			'jqueryDone' => 'replaceWith'
+		]);
+		$this->jquery->postFormOn('change', '#package', $baseRoute . '/_dependencyVersionsAlone', 'add-dependency-frm', '#list-version', [
+			'hasLoader' => false,
+			'jsCondition' => '$(this).val().length>1',
+			'jqueryDone' => 'replaceWith'
+		]);
+		$this->jquery->keypress('#vendor, #package', 'if(event.key=="/"){event.preventDefault();;$("#package").focus();}');
+
+		$this->jquery->postFormOnClick('#validate-btn', $baseRoute . '/_addDependency', 'add-dependency-frm', '#response', [
+			'hasLoader' => 'internal'
+		]);
+
+		$this->jquery->renderView($this->_getFiles()
+			->getViewAddDependencyFrm());
+	}
+
+	public function _addDependency() {
+		$command = 'composer require ' . $_POST['vendor'] . '/' . $_POST['package'];
+		if (isset($_POST['dev'])) {
+			$command .= ' --dev';
+		}
+		$this->jquery->post($this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer', '{commands: "' . $command . '"}', null, [
+			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Install dependency...') . ');',
+			'hasLoader' => false,
+			'partial' => "$('#partial').html(response);"
+		]);
+		echo $this->jquery->compile();
+	}
 
 	private function liveExecuteCommand($cmd) {
 		$proc = \popen("$cmd 2>&1", 'r');
