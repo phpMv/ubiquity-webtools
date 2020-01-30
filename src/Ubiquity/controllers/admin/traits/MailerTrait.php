@@ -565,6 +565,10 @@ trait MailerTrait {
 			[
 				"checkMailer",
 				"Mailer {value} already exists!"
+			],
+			[
+				"regExp[/^[A-Za-z]\w*$/]",
+				"Mailer class name contains invalid characters"
 			]
 		]);
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkMailer", $this->_getFiles()
