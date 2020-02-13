@@ -60,7 +60,7 @@ trait LogsTrait {
 
 	public function _deleteAllLogs() {
 		Logger::clearAll();
-		$this->logsRefresh();
+		$this->_logsRefresh();
 	}
 
 	public function _activateLog() {
