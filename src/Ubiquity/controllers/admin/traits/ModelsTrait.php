@@ -57,8 +57,13 @@ trait ModelsTrait {
 		foreach ($metas as $k => $meta) {
 			$metas_[ltrim($k, '#')] = $meta;
 		}
-		$this->_getAdminViewer()->getModelsStructureDataTable($metas_);
-		$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), "dtValidation");
+		if (count($metas_) > 0) {
+			$this->_getAdminViewer()->getModelsStructureDataTable($metas_);
+		}
+		$vMetas_ = ValidatorsManager::getCacheInfo($model);
+		if (count($vMetas_) > 0) {
+			$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), "dtValidation");
+		}
 		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram");
 		$bt->postOnClick($adminRoute . "/_showDiagram/", "{model:'" . \str_replace("\\", "|", $model) . "'}", "#modal", [
 			"attr" => ""
