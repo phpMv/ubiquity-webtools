@@ -36,19 +36,12 @@ trait GitTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function gitRefresh() {
-		echo $this->_git();
-		echo $this->jquery->compile($this->view);
-	}
-
-	public function _git() {}
-
 	protected function _getRepo($getfiles = true) {
 		$gitRepo = RepositoryGit::init($getfiles);
 		return $gitRepo;
 	}
 
-	public function gitInit() {
+	public function _gitInit() {
 		$this->_getRepo();
 		$appDir = Startup::getApplicationDir();
 		try {
@@ -64,7 +57,7 @@ trait GitTrait {
 		}
 	}
 
-	public function frmSettings() {
+	public function _gitFrmSettings() {
 		$gitRepo = $this->_getRepo();
 		$this->_getAdminViewer()->gitFrmSettings($gitRepo);
 		$this->jquery->execOn("click", "#validate-btn", '$("#frmGitSettings").form("submit");');
@@ -73,7 +66,7 @@ trait GitTrait {
 			->getViewGitSettings());
 	}
 
-	public function updateGitParams() {
+	public function _updateGitParams() {
 		$gitRepo = $this->_getRepo(false);
 		$activeRemoteUrl = $gitRepo->getRemoteUrl();
 		$newRemoteUrl = URequest::post("remoteUrl");
@@ -86,7 +79,7 @@ trait GitTrait {
 		$this->git();
 	}
 
-	public function commit() {
+	public function _gitCommit() {
 		$filesToCommit = URequest::post("files-to-commit", []);
 		if (sizeof($filesToCommit) > 0) {
 			$messages = [];
@@ -143,7 +136,7 @@ trait GitTrait {
 	protected function _refreshParts() {
 		$this->jquery->exec('$(".to-clear").html("");$(".to-clear-value").val("");', true);
 		$this->jquery->get($this->_getFiles()
-			->getAdminBaseRoute() . "/refreshFiles", "#dtGitFiles", [
+			->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
 			"attr" => "",
 			"jqueryDone" => "replaceWith",
 			"hasLoader" => false
@@ -156,7 +149,7 @@ trait GitTrait {
 		]);
 	}
 
-	public function gitPush() {
+	public function _gitPush() {
 		$gitRepo = $this->_getRepo(false);
 		try {
 			if ($gitRepo->setRepoRemoteUrl()) {
@@ -176,7 +169,7 @@ trait GitTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function gitPull() {
+	public function _gitPull() {
 		$gitRepo = $this->_getRepo(false);
 		$repo = $gitRepo->getRepository();
 		$repo->pull();
@@ -186,9 +179,9 @@ trait GitTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function gitIgnoreEdit() {
+	public function _gitIgnoreEdit() {
 		$this->jquery->postFormOnClick("#validate-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/gitIgnoreValidate", "gitignore-frm", "#frm");
+			->getAdminBaseRoute() . "/_gitIgnoreValidate", "gitignore-frm", "#frm");
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$content = UFileSystem::load(Startup::getApplicationDir() . \DS . ".gitignore");
 		if ($content === false) {
@@ -200,12 +193,12 @@ trait GitTrait {
 		]);
 	}
 
-	public function gitIgnoreValidate() {
+	public function _gitIgnoreValidate() {
 		if (URequest::isPost()) {
 			$content = URequest::post("content");
 			if (UFileSystem::save(Startup::getApplicationDir() . \DS . ".gitignore", $content)) {
 				$this->jquery->get($this->_getFiles()
-					->getAdminBaseRoute() . "/refreshFiles", "#dtGitFiles", [
+					->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
 					"attr" => "",
 					"jqueryDone" => "replaceWith",
 					"hasLoader" => false
@@ -219,7 +212,7 @@ trait GitTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function refreshFiles() {
+	public function _refreshGitFiles() {
 		$gitRepo = $this->_getRepo();
 		$files = $gitRepo->getFiles();
 		echo $this->_getAdminViewer()->getGitFilesDataTable($files);

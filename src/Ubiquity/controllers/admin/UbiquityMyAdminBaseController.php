@@ -108,9 +108,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.3';
+	public const version = '2.3.3+';
 
-	public static function getConfigFile() {
+	public static function _getConfigFile() {
 		$defaultConfig = [
 			'devtools-path' => 'Ubiquity',
 			'info' => [],
@@ -156,7 +156,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->addAdminViewPath();
 		DAO::$transformerOp = 'toView';
 		$this->insertJquerySemantic();
-		$this->config = self::getConfigFile();
+		$this->config = self::_getConfigFile();
 	}
 
 	public function initialize() {
@@ -266,7 +266,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$caches = CacheManager::controllerCacheUpdated($config);
 		if (is_array($caches) && sizeof($caches) > 0) {
 			if (! $this->hasMaintenance()) {
-				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'small compact', $onMainPage ? '_initCache/controllers' : 'initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
+				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'small compact', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
 			}
 		}
 	}
@@ -332,7 +332,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if ($this->hasMaintenance()) {
 			$this->_smallMaintenanceActive(true, MaintenanceMode::getActiveMaintenance($this->config["maintenance"]));
 		}
-		$this->jquery->getOnClick("#bt-customize", $baseRoute . "/indexCustomizing", "#dialog", [
+		$this->jquery->getOnClick("#bt-customize", $baseRoute . "/_indexCustomizing", "#dialog", [
 			'hasLoader' => 'internal',
 			'jsCallback' => '$("#admin-elements").hide();$("#bt-customize").addClass("active");'
 		]);
@@ -345,7 +345,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function _closeMessage($type) {
 		$this->config['info'][] = $type;
-		$this->saveConfig();
+		$this->_saveConfig();
 	}
 
 	private function getMenuElements($array, $part = null) {
@@ -373,7 +373,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 	}
 
-	public function indexCustomizing() {
+	public function _indexCustomizing() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$array = $this->_getAdminViewer()->getMainMenuElements();
 		$keys = array_keys($array);
@@ -398,7 +398,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->getOnClick("#reset-conf-btn", $baseRoute . "/_resetConfigParams", 'body', [
 			'hasLoader' => 'internal'
 		]);
-		$this->jquery->postFormOnClick('#validate-btn', $baseRoute . '/indexCustomizingSubmit', 'customize-frm', 'body', [
+		$this->jquery->postFormOnClick('#validate-btn', $baseRoute . '/_indexCustomizingSubmit', 'customize-frm', 'body', [
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->renderView($this->_getFiles()
@@ -420,19 +420,19 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $result;
 	}
 
-	public function indexCustomizingSubmit() {
+	public function _indexCustomizingSubmit() {
 		$part1Str = URequest::post('t-part1', []);
 		$part2Str = URequest::post('t-part2', []);
 		$this->config["part1"] = explode(',', $part1Str);
 		$this->config["part2"] = explode(',', $part2Str);
-		$this->saveConfig();
+		$this->_saveConfig();
 		$_GET["_refresh"] = true;
 		$this->forward(self::class, 'index', [], true, true);
 	}
 
 	public function _resetConfigParams() {
 		$this->config = [];
-		$this->saveConfig();
+		$this->_saveConfig();
 		$_GET["_refresh"] = true;
 		$this->forward(self::class, 'index', [], true, true);
 	}
@@ -528,7 +528,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 
 		$bt = $fields->addButton("filter-bt", "Filter controllers");
-		$bt->getOnClick($baseRoute . "/frmFilterControllers", "#frm", [
+		$bt->getOnClick($baseRoute . "/_frmFilterControllers", "#frm", [
 			"attr" => ""
 		]);
 		$bt->addIcon("filter");
@@ -566,13 +566,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$routes = CacheManager::getRoutes();
 		$this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
 		$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
-			->getAdminBaseRoute() . "/initCacheRouter", "#divRoutes", [
+			->getAdminBaseRoute() . "/_initCacheRouter", "#divRoutes", [
 			"dataType" => "html",
 			"attr" => "",
 			"hasLoader" => "internal"
 		]);
 		$this->jquery->postOnClick("#bt-filter-routes", $this->_getFiles()
-			->getAdminBaseRoute() . "/filterRoutes", "{filter:$('#filter-routes').val()}", "#divRoutes", [
+			->getAdminBaseRoute() . "/_filterRoutes", "{filter:$('#filter-routes').val()}", "#divRoutes", [
 			"ajaxTransition" => "random"
 		]);
 		if (isset($_POST["filter"]))
@@ -623,7 +623,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		], 'Display cache types: ', $this->config['display-cache-types']);
 
 		$this->jquery->postFormOn('change', '#ctvv .checkbox', $this->_getFiles()
-			->getAdminBaseRoute() . "/setCacheTypes", "frmCache", "#dtCacheFiles tbody", [
+			->getAdminBaseRoute() . "/_setCacheTypes", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
 			"preventDefault" => false,
 			"hasLoader" => false
@@ -670,7 +670,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->getHeader("config");
 		$this->_getAdminViewer()->getConfigDataElement($config);
 		$this->jquery->getOnClick("#edit-config-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/formConfig/ajax", "#action-response", [
+			->getAdminBaseRoute() . "/_formConfig/ajax", "#action-response", [
 			"hasLoader" => "internal",
 			"jsCallback" => '$("#config-div").hide();'
 		]);
@@ -824,22 +824,22 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$dtCtrl->setUrls([
 			"delete" => $this->_getFiles()
-				->getAdminBaseRoute() . "/deleteSeoController"
+				->getAdminBaseRoute() . "/_deleteSeoController"
 		]);
 		$dtCtrl->getOnRow('click', $this->_getFiles()
-			->getAdminBaseRoute() . '/displaySiteMap', '#seo-details', [
+			->getAdminBaseRoute() . '/_displaySiteMap', '#seo-details', [
 			'attr' => 'data-ajax',
 			'hasLoader' => false
 		]);
 		$dtCtrl->setHasCheckboxes(true);
 		$dtCtrl->setSubmitParams($this->_getFiles()
-			->getAdminBaseRoute() . '/generateRobots', "#messages", [
+			->getAdminBaseRoute() . '/_generateRobots', "#messages", [
 			'attr' => '',
 			'ajaxTransition' => 'random'
 		]);
 		$dtCtrl->setActiveRowSelector('error');
 		$this->jquery->getOnClick("._see", $this->_getFiles()
-			->getAdminBaseRoute() . "/seeSeoUrl", "#messages", [
+			->getAdminBaseRoute() . "/_seeSeoUrl", "#messages", [
 			"attr" => "data-ajax"
 		]);
 		$dtCtrl->setEmptyMessage($this->showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "info", "SEO Controllers", "info circle"));
@@ -861,7 +861,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$initializeBt = $this->jquery->semantic()->htmlButton("initialize-bt", "Initialize repository", "orange");
 			$initializeBt->addIcon("magic");
 			$initializeBt->getOnClick($this->_getFiles()
-				->getAdminBaseRoute() . "/gitInit", "#main-content", [
+				->getAdminBaseRoute() . "/_gitInit", "#main-content", [
 				"attr" => ""
 			]);
 			if ($hasMessage)
@@ -879,8 +879,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"download"
 			]);
 			$pushPullBts->setPropertyValues("data-ajax", [
-				"gitPush",
-				"gitPull"
+				"_gitPush",
+				"_gitPull"
 			]);
 			$pushPullBts->addPropertyValues("class", [
 				"blue",
@@ -894,13 +894,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$pushPullBts->setPropertyValues("style", "width: 260px;");
 			$gitIgnoreBt = $this->jquery->semantic()->htmlButton("gitIgnore-bt", ".gitignore");
 			$gitIgnoreBt->getOnClick($this->_getFiles()
-				->getAdminBaseRoute() . "/gitIgnoreEdit", "#frm", [
+				->getAdminBaseRoute() . "/_gitIgnoreEdit", "#frm", [
 				"attr" => ""
 			]);
 			$btRefresh = $this->jquery->semantic()->htmlButton("refresh-bt", "Refresh files", "green");
 			$btRefresh->addIcon("sync alternate");
 			$btRefresh->getOnClick($this->_getFiles()
-				->getAdminBaseRoute() . "/refreshFiles", "#dtGitFiles", [
+				->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
 				"attr" => "",
 				"jqueryDone" => "replaceWith",
 				"hasLoader" => false
@@ -915,9 +915,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->exec('$("#lbl-changed").toggle(' . ((sizeof($files) > 0) ? "true" : "false") . ');', true);
 
 		$this->jquery->getOnClick("#settings-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/frmSettings", "#frm");
+			->getAdminBaseRoute() . "/_gitFrmSettings", "#frm");
 		$this->jquery->exec('$("#commit-frm").form({"fields":{"summary":{"rules":[{"type":"empty"}]},"files-to-commit[]":{"rules":[{"type":"checkeds","prompt":"You must select at least 1 file!"}]}},"on":"blur","onSuccess":function(event,fields){' . $this->jquery->postFormDeferred($this->_getFiles()
-			->getAdminBaseRoute() . "/commit", "commit-frm", "#messages", [
+			->getAdminBaseRoute() . "/_gitCommit", "commit-frm", "#messages", [
 			"preventDefault" => true,
 			"stopPropagation" => true,
 			"ajaxLoader" => $loader
@@ -1167,7 +1167,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return "<img src='http://yuml.me/diagram/" . $sizeType . "/class/" . $yumlContent . "'>";
 	}
 
-	public function showDatabaseCreation() {
+	public function _showDatabaseCreation() {
 		$config = Startup::getConfig();
 		$models = $this->getModels();
 		$dbConfig = DAO::getDbOffset($config, $this->getActiveDb());
@@ -1206,7 +1206,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		], false, "associations[]");
 		$btApply = new HtmlButton("bt-apply", "Create SQL script", "green fluid");
 		$btApply->postFormOnClick($this->_getFiles()
-			->getAdminBaseRoute() . "/createSQLScript", "menu", "#div-create", [
+			->getAdminBaseRoute() . "/_createSQLScript", "menu", "#div-create", [
 			"ajaxTransition" => "random",
 			"attr" => ""
 		]);
@@ -1624,7 +1624,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $this->config;
 	}
 
-	public function saveConfig() {
+	public function _saveConfig() {
 		$content = "<?php\nreturn " . UArray::asPhpArray($this->config, "array", 1, true) . ";";
 		return UFileSystem::save(self::$configFile, $content);
 	}

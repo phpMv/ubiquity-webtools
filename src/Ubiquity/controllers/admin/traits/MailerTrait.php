@@ -417,7 +417,7 @@ trait MailerTrait {
 		}
 		$this->jquery->execAtLast('$("#queue-period").html("' . $this->queuePeriodToString($r) . '");');
 		$this->config['mailer']['queue-period'] = $r;
-		$this->saveConfig();
+		$this->_saveConfig();
 		echo $this->jquery->compile();
 	}
 

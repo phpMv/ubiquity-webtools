@@ -70,7 +70,7 @@ trait ModelsTrait {
 		]);
 		$bt = $this->jquery->semantic()->htmlButton("btValidation", "Validate instances");
 		$bt->addIcon("check", true, true);
-		$bt->postOnClick($adminRoute . "/validateInstances/", "{model:'" . \str_replace("\\", "|", $model) . "'}", "#validationResults", [
+		$bt->postOnClick($adminRoute . "/_validateInstances/", "{model:'" . \str_replace("\\", "|", $model) . "'}", "#validationResults", [
 			"attr" => "",
 			"hasLoader" => "internal"
 		]);
@@ -85,7 +85,7 @@ trait ModelsTrait {
 		]);
 	}
 
-	public function validateInstances() {
+	public function _validateInstances() {
 		$model = $_POST['model'];
 		$model = str_replace("|", "\\", $model);
 		if (class_exists($model)) {
@@ -107,7 +107,7 @@ trait ModelsTrait {
 		}
 	}
 
-	public function refreshTable($id = null) {
+	public function _refreshTable($id = null) {
 		$model = $_SESSION["model"];
 		$compo = $this->_showModel($model, $id);
 		$this->jquery->execAtLast('$("#table-details").html("");');
@@ -116,7 +116,7 @@ trait ModelsTrait {
 		]);
 	}
 
-	public function showModelClick($modelAndId) {
+	public function _showModelClick($modelAndId) {
 		$array = \explode("||", $modelAndId);
 		if (\is_array($array)) {
 			$table = $array[0];
@@ -156,7 +156,7 @@ trait ModelsTrait {
 		return CRUDHelper::search($model, $search, $fields);
 	}
 
-	public function refresh_() {
+	public function _refresh_() {
 		$model = $_POST["_model"];
 		if (isset($_POST["s"])) {
 			$instances = $this->search($model, $_POST["s"]);
@@ -309,7 +309,7 @@ trait ModelsTrait {
 		$semantic = $this->jquery->semantic();
 		if ($update !== false) {
 			$this->config['activeDb'] = $databaseOffset;
-			$this->saveConfig();
+			$this->_saveConfig();
 		}
 		if (($hasHeader = UString::isBooleanTrue($hasHeader))) {
 			$stepper = $this->_getModelsStepper();
@@ -376,7 +376,7 @@ trait ModelsTrait {
 			if ($hasElements)
 				echo $grid;
 			$this->jquery->getOnClick(".showTable", $this->_getFiles()
-				->getAdminBaseRoute() . "/showModelClick", "#divTable", [
+				->getAdminBaseRoute() . "/_showModelClick", "#divTable", [
 				"attr" => "data-ajax",
 				"ajaxTransition" => "random"
 			]);

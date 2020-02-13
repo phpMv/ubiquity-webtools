@@ -28,7 +28,7 @@ trait RoutesTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function initCacheRouter() {
+	public function _initCacheRouter() {
 		$config = Startup::getConfig();
 		\ob_start();
 		try {
@@ -48,7 +48,7 @@ trait RoutesTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function filterRoutes() {
+	public function _filterRoutes() {
 		$filter = $_POST["filter"];
 		$ctrls = [];
 		if (UString::isNotNull($filter)) {

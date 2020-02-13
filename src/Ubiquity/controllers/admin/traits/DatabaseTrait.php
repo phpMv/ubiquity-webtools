@@ -45,7 +45,7 @@ trait DatabaseTrait {
 		return $result;
 	}
 
-	public function createSQLScript() {
+	public function _createSQLScript() {
 		if (URequest::isPost()) {
 			$db = $_POST["dbName"];
 			$activeDb = $this->getActiveDb();
@@ -63,7 +63,7 @@ trait DatabaseTrait {
 				$btExport = $bts->addElement("Export datas script : " . $actualDb . " => " . $db);
 				$btExport->addIcon("exchange");
 				$btExport->postOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/exportDatasScript", "{}", "#div-datas");
+					->getAdminBaseRoute() . "/_exportDatasScript", "{}", "#div-datas");
 			}
 			$frm->addDivider();
 			$this->jquery->exec("setAceEditor('sql');", true);
@@ -73,7 +73,7 @@ trait DatabaseTrait {
 		}
 	}
 
-	public function exportDatasScript() {
+	public function _exportDatasScript() {
 		$dbExport = new DbExport();
 		$frm = $this->jquery->semantic()->htmlForm("form-sql-datas");
 		$text = $frm->addElement("datas-sql", $dbExport->exports(), "Datas export script", "div", "ui segment editor");

@@ -262,11 +262,11 @@ trait ControllersTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function frmFilterControllers() {
+	public function _frmFilterControllers() {
 		$controllers = CacheManager::getControllers();
 		$this->_getAdminViewer()->getFilterControllers($controllers);
 		$this->jquery->postFormOn("click", "#validate-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/filterControllers", "filtering-frm", "#dtControllers", [
+			->getAdminBaseRoute() . "/_filterControllers", "filtering-frm", "#dtControllers", [
 			"jqueryDone" => "replaceWith",
 			"hasLoader" => false,
 			"jsCallback" => '$("#frm").html("");'
@@ -276,7 +276,7 @@ trait ControllersTrait {
 			->getViewControllersFiltering());
 	}
 
-	public function filterControllers() {
+	public function _filterControllers() {
 		USession::set("filtered-controllers", URequest::post("filtered-controllers", []));
 		$this->_refreshControllers("refresh");
 	}

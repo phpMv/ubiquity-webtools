@@ -52,7 +52,7 @@ trait CheckTrait {
 	 */
 	abstract public function _getFiles();
 
-	public function createModels($singleTable = null) {
+	public function _createModels($singleTable = null) {
 		$config = Startup::getConfig();
 		$offset = $this->getActiveDb();
 		\ob_start();
@@ -276,7 +276,7 @@ trait CheckTrait {
 				if ($this->engineering === "reverse")
 					$buttons->addItem("(Re-)Create database")
 						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/showDatabaseCreation", "#main-content")
+						->getAdminBaseRoute() . "/_showDatabaseCreation", "#main-content")
 						->addIcon("database");
 			case "Conf":
 				$buttons->addItem("Show config file")
@@ -286,7 +286,7 @@ trait CheckTrait {
 				$buttons->addItem("Edit config file")
 					->addClass("orange")
 					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/formConfig/check", "#action-response")
+					->getAdminBaseRoute() . "/_formConfig/check", "#action-response")
 					->addIcon("edit");
 				$buttons->addItem('Import from SQL file')
 					->getOnClick($this->_getFiles()
@@ -299,14 +299,14 @@ trait CheckTrait {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton();
 						$ddBtn->getOnClick($this->_getFiles()
-							->getAdminBaseRoute() . "/createModels", "#main-content", [
+							->getAdminBaseRoute() . "/_createModels", "#main-content", [
 							"attr" => "data-value"
 						]);
 						$buttons->addItem($ddBtn);
 					}
 					$buttons->addItem("(Re-)Create all models")
 						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/createModels", "#main-content", [
+						->getAdminBaseRoute() . "/_createModels", "#main-content", [
 						"attr" => ""
 					])
 						->addIcon("sticky note");

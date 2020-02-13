@@ -24,13 +24,13 @@ trait CacheTrait {
 
 	abstract public function _getFiles();
 
-	abstract public function saveConfig();
+	abstract public function _saveConfig();
 
-	public function setCacheTypes() {
+	public function _setCacheTypes() {
 		if (isset($_POST["cacheTypes"])) {
 			$caches = $_POST["cacheTypes"];
 			$this->config['display-cache-types'] = $caches;
-			$this->saveConfig();
+			$this->_saveConfig();
 		} else {
 			$caches = [];
 		}
@@ -52,7 +52,7 @@ trait CacheTrait {
 		return $cacheFiles;
 	}
 
-	public function deleteCacheFile() {
+	public function _deleteCacheFile() {
 		if (isset($_POST["toDelete"])) {
 			$toDelete = $_POST["toDelete"];
 			$type = \strtolower($_POST["type"]);
@@ -63,10 +63,10 @@ trait CacheTrait {
 					\unlink($toDelete);
 			}
 		}
-		$this->setCacheTypes();
+		$this->_setCacheTypes();
 	}
 
-	public function deleteAllCacheFiles() {
+	public function _deleteAllCacheFiles() {
 		if (isset($_POST["type"])) {
 			\session_destroy();
 			$toDelete = \strtolower($_POST["type"]);
@@ -76,7 +76,7 @@ trait CacheTrait {
 				CacheFile::delete(\ROOT . \DS . CacheManager::getCacheDirectory() . \strtolower($toDelete));
 			}
 		}
-		$this->setCacheTypes();
+		$this->_setCacheTypes();
 	}
 
 	public function _showFileContent() {
@@ -84,14 +84,17 @@ trait CacheTrait {
 			$type = \strtolower($_POST["type"]);
 			$filename = $_POST["filename"];
 			$key = $_POST["key"];
-			if (\array_search($type, ['controllers','models'])!==false) {
+			if (\array_search($type, [
+				'controllers',
+				'models'
+			]) !== false) {
 				$content = CacheManager::$cache->file_get_contents($key);
 			} else {
 				if (\file_exists($filename)) {
 					$content = \file_get_contents($filename);
 				}
 			}
-			if(isset($content)){
+			if (isset($content)) {
 				$modal = $this->jquery->semantic()->htmlModal("file", $type . " : " . \basename($filename));
 				$frm = new HtmlForm("frmShowFileContent");
 				$frm->addTextarea("file-content", null, $content, "", 10);
@@ -104,7 +107,7 @@ trait CacheTrait {
 		}
 	}
 
-	public function initCacheType() {
+	public function _initCacheType() {
 		if (isset($_POST["type"])) {
 			$type = $_POST["type"];
 			$config = Startup::getConfig();
@@ -127,7 +130,7 @@ trait CacheTrait {
 					break;
 			}
 		}
-		$this->setCacheTypes();
+		$this->_setCacheTypes();
 	}
 
 	public function _initCache($type = 'models', $redirect = null) {
@@ -142,7 +145,7 @@ trait CacheTrait {
 		}
 		\ob_end_clean();
 		if (isset($redirect)) {
-			if($type=='models'){
+			if ($type == 'models') {
 				DAO::start();
 			}
 			$this->$redirect();

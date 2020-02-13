@@ -1,75 +1,82 @@
 <?php
-
 namespace Ubiquity\controllers\admin\traits;
 
 /**
  * Contains all methods returning the urls for CRUDControllers
- * @author jc
  *
+ * @author jc
+ *        
  */
 trait UrlsTrait {
-	
+
 	/**
 	 * To override
-	 * Returns the route for refreshing the index route (default : /refresh_)
+	 * Returns the route for refreshing the index route (default : /_refresh_)
+	 *
 	 * @return string
 	 */
-	public function getRouteRefresh(){
-		return "/refresh_";
+	public function getRouteRefresh() {
+		return "/_refresh_";
 	}
 
 	/**
 	 * To override
 	 * Returns the route for the detail route, when the user click on a dataTable row (default : /showDetail)
+	 *
 	 * @return string
 	 */
-	public function getRouteDetails(){
+	public function getRouteDetails() {
 		return "/showDetail";
 	}
-	
+
 	/**
 	 * To override
 	 * Returns the route for deleting an instance (default : /delete)
+	 *
 	 * @return string
 	 */
-	public function getRouteDelete(){
+	public function getRouteDelete() {
 		return "/delete";
 	}
-	
+
 	/**
 	 * To override
 	 * Returns the route for editing an instance (default : /edit)
+	 *
 	 * @return string
 	 */
-	public function getRouteEdit(){
+	public function getRouteEdit() {
 		return "/edit";
 	}
-	
+
 	/**
 	 * To override
 	 * Returns the route for displaying an instance (default : /display)
+	 *
 	 * @return string
 	 */
-	public function getRouteDisplay(){
+	public function getRouteDisplay() {
 		return "/display";
 	}
-	
+
 	/**
 	 * To override
-	 * Returns the route for refreshing the dataTable (default : /refreshTable)
+	 * Returns the route for refreshing the dataTable (default : /_refreshTable)
+	 *
 	 * @return string
 	 */
-	public function getRouteRefreshTable(){
-		return "/refreshTable";
+	public function getRouteRefreshTable() {
+		return "/_refreshTable";
 	}
-	
+
 	/**
 	 * To override
 	 * Returns the url associated with a foreign key instance in list
+	 *
 	 * @param string $model
 	 * @return string
 	 */
-	public function getDetailClickURL($model){
+	public function getDetailClickURL($model) {
 		return "";
 	}
 }

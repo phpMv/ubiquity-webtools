@@ -16,7 +16,7 @@ trait ThemesTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	abstract public function saveConfig();
+	abstract public function _saveConfig();
 
 	protected function refreshTheme($partial = true) {
 		$activeTheme = ThemesManager::getActiveTheme() ?? 'no theme';
@@ -90,7 +90,7 @@ trait ThemesTrait {
 	public function setDevtoolsPath() {
 		$path = $_POST['path'];
 		$this->config["devtools-path"] = $path;
-		$this->saveConfig();
+		$this->_saveConfig();
 		echo $this->_checkDevtoolsPath($path);
 		echo $this->jquery->compile();
 	}

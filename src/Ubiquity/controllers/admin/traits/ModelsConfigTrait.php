@@ -327,7 +327,7 @@ trait ModelsConfigTrait {
 			];
 			if (Startup::saveConfig($result)) {
 				$this->config['activeDb'] = $postValues['connection-name'];
-				$this->saveConfig();
+				$this->_saveConfig();
 				$this->showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "opMessage");
 			} else {
 				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "opMessage");

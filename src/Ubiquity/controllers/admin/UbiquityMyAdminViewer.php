@@ -54,7 +54,7 @@ use Ajax\common\html\html5\HtmlInput;
 /**
  *
  * @author jc
- *
+ *        
  */
 class UbiquityMyAdminViewer {
 
@@ -920,17 +920,17 @@ class UbiquityMyAdminViewer {
 			"hasLoader" => false
 		]);
 		$this->jquery->postFormOnClick("._delete", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/deleteCacheFile", "frmCache", "#dtCacheFiles tbody", [
+			->getAdminBaseRoute() . "/_deleteCacheFile", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
 			"params" => "{type:$(this).attr('data-type'),toDelete:$(this).attr('data-key')}"
 		]);
 		$this->jquery->postFormOnClick("._delete-all", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/deleteAllCacheFiles", "frmCache", "#dtCacheFiles tbody", [
+			->getAdminBaseRoute() . "/_deleteAllCacheFiles", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
 			"params" => "{type:$(this).attr('data-ajax')}"
 		]);
 		$this->jquery->postFormOnClick("._init", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/initCacheType", "frmCache", "#dtCacheFiles tbody", [
+			->getAdminBaseRoute() . "/_initCacheType", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
 			"params" => "{type:$(this).attr('data-ajax')}"
 		]);
@@ -1569,7 +1569,7 @@ class UbiquityMyAdminViewer {
 			$responseElement = "#main-content";
 		}
 		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/submitConfig/" . $origin, $responseElement);
+			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement);
 		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition")->onClick('$("#config-div").show();$("#action-response").html("");');
 		$de->getToolbar()
 			->setSecondary()
@@ -1817,7 +1817,7 @@ class UbiquityMyAdminViewer {
 			"icon" => HtmlIconGroups::corner("git", "settings")
 		]);
 		$frm->setSubmitParams($this->controller->_getFiles()
-			->getAdminBaseRoute() . "/updateGitParams", "#main-content");
+			->getAdminBaseRoute() . "/_updateGitParams", "#main-content");
 		$frm->fieldAsInput(1);
 		$frm->fieldAsInput(3, [
 			"rules" => [
@@ -1831,7 +1831,10 @@ class UbiquityMyAdminViewer {
 		return $frm;
 	}
 
-	public function getLogsDataTable($maxLines = null, $reverse = true, $groupBy = [1,2], $contexts = null) {
+	public function getLogsDataTable($maxLines = null, $reverse = true, $groupBy = [
+		1,
+		2
+	], $contexts = null) {
 		$os = Logger::asObjects($reverse, $maxLines, $contexts);
 		$dt = $this->jquery->semantic()->dataTable("dt-logs", LogMessage::class, $os);
 		$gbSize = 0;

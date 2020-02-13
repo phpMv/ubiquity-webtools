@@ -85,7 +85,7 @@ trait MaintenanceTrait {
 			$this->showSimpleMessage("<b>{$maintenanceId}</b> successfully deactivated!", "success", "Maintenance", "info circle", null, "msgInfo");
 		}
 
-		$this->saveConfig();
+		$this->_saveConfig();
 		$this->maintenance();
 	}
 
@@ -205,7 +205,7 @@ trait MaintenanceTrait {
 					$this->_initCache('controllers');
 				}
 			}
-			$this->saveConfig();
+			$this->_saveConfig();
 		}
 		$this->maintenance();
 	}
@@ -241,7 +241,7 @@ trait MaintenanceTrait {
 			$modes = $this->config['maintenance']['modes'];
 			if (isset($modes[$idMaintenance])) {
 				unset($this->config['maintenance']['modes'][$idMaintenance]);
-				$this->saveConfig();
+				$this->_saveConfig();
 			}
 			$this->maintenance();
 		} else {
@@ -281,7 +281,7 @@ trait MaintenanceTrait {
 	public function _stopMaintenance() {
 		$this->config['maintenance']['on'] = false;
 		$this->_initCache('controllers');
-		$this->saveConfig();
+		$this->_saveConfig();
 	}
 }
 

@@ -35,7 +35,7 @@ trait ConfigTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function formConfig($hasHeader = true) {
+	public function _formConfig($hasHeader = true) {
 		global $config;
 		if ($hasHeader === true) {
 			$this->getHeader("config");
@@ -68,7 +68,7 @@ trait ConfigTrait {
 		}
 	}
 
-	public function submitConfig($partial = true) {
+	public function _submitConfig($partial = true) {
 		$result = Startup::getConfig();
 		$postValues = $_POST;
 		if ($partial !== true) {
