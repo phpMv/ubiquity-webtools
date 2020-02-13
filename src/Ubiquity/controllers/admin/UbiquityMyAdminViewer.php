@@ -1747,7 +1747,7 @@ class UbiquityMyAdminViewer {
 		}, $files);
 		$list->addCheckedList($elements, "<i class='file icon'></i>&nbsp;Files", array_keys($elements), false, "files-to-commit[]");
 		$this->jquery->getOnClick("#dtGitFiles label[data-value]", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/changesInfiles", "#changesInFiles-div", [
+			->getAdminBaseRoute() . "/_gitChangesInfiles", "#changesInFiles-div", [
 			"attr" => "data-value",
 			"preventDefault" => false,
 			"stopPropagation" => true
@@ -1780,7 +1780,7 @@ class UbiquityMyAdminViewer {
 		]);
 		$dt->setActiveRowSelector();
 		$dt->onRowClick($this->jquery->getDeferred($this->controller->_getFiles()
-			->getAdminBaseRoute() . "/changesInCommit", "#changesInCommit-div", [
+			->getAdminBaseRoute() . "/_gitChangesInCommit", "#changesInCommit-div", [
 			"attr" => "data-ajax"
 		]));
 		$dt->setValueFunction(0, function ($value, $instance) {

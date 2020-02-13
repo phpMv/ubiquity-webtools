@@ -142,7 +142,7 @@ trait GitTrait {
 			"hasLoader" => false
 		]);
 		$this->jquery->get($this->_getFiles()
-			->getAdminBaseRoute() . "/refreshCommits", "#dtCommits", [
+			->getAdminBaseRoute() . "/_refreshGitCommits", "#dtCommits", [
 			"attr" => "",
 			"jqueryDone" => "replaceWith",
 			"hasLoader" => false
@@ -220,13 +220,13 @@ trait GitTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function refreshCommits() {
+	public function _refreshGitCommits() {
 		$gitRepo = $this->_getRepo(false);
 		echo $this->_getAdminViewer()->getGitCommitsDataTable($gitRepo->getCommits());
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function changesInfiles(...$filenameParts) {
+	public function _gitChangesInfiles(...$filenameParts) {
 		$filename = implode(\DS, $filenameParts);
 		$gitRepo = $this->_getRepo(false);
 		$changes = $gitRepo->getRepository()->getChangesInFile($filename);
@@ -238,7 +238,7 @@ trait GitTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function changesInCommit($commitHash) {
+	public function _gitChangesInCommit($commitHash) {
 		$gitRepo = $this->_getRepo(false);
 		$changes = $gitRepo->getRepository()->getChangesInCommit($commitHash);
 		if (UString::isNull($changes)) {

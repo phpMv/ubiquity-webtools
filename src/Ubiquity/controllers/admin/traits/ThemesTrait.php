@@ -22,13 +22,14 @@ trait ThemesTrait {
 		$activeTheme = ThemesManager::getActiveTheme() ?? 'no theme';
 		$themes = ThemesManager::getAvailableThemes();
 		$notInstalled = ThemesManager::getNotInstalledThemes();
-		$this->jquery->getOnClick("._installTheme", "Admin/installTheme", "#refresh-theme", [
+		$this->jquery->getOnClick("._installTheme", $this->_getFiles()
+			->getAdminBaseRoute() . "/_installTheme", "#refresh-theme", [
 			"attr" => "data-ajax"
 		]);
 		$this->loadView('@admin/themes/refreshTheme.html', compact('activeTheme', 'themes', 'notInstalled', 'partial'));
 	}
 
-	public function createNewTheme() {
+	public function _createNewTheme() {
 		$themeName = $_POST["themeName"];
 		$ubiquityCmd = $this->config["devtools-path"] ?? 'Ubiquity';
 		$allThemes = ThemesManager::getRefThemes();
@@ -55,7 +56,7 @@ trait ThemesTrait {
 		$this->refreshTheme();
 	}
 
-	public function installTheme($themeName) {
+	public function _installTheme($themeName) {
 		$allThemes = ThemesManager::getRefThemes();
 		$ubiquityCmd = $this->config["devtools-path"] ?? 'Ubiquity';
 
@@ -76,7 +77,7 @@ trait ThemesTrait {
 		$this->refreshTheme();
 	}
 
-	public function setTheme($theme) {
+	public function _setTheme($theme) {
 		$allThemes = ThemesManager::getAvailableThemes();
 		if (array_search($theme, $allThemes) !== false) {
 			ThemesManager::setActiveTheme($theme);
@@ -87,7 +88,7 @@ trait ThemesTrait {
 		$this->refreshTheme();
 	}
 
-	public function setDevtoolsPath() {
+	public function _setDevtoolsPath() {
 		$path = $_POST['path'];
 		$this->config["devtools-path"] = $path;
 		$this->_saveConfig();

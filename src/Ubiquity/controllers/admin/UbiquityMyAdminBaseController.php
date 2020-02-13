@@ -513,8 +513,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$activeTheme = ThemesManager::getActiveTheme();
 
 		$bt = $fields->addDropdown("crud-bt", [
-			"frmAddCrudController" => "CRUD controller",
-			"frmAddAuthController" => "Auth controller"
+			"_frmAddCrudController" => "CRUD controller",
+			"_frmAddAuthController" => "Auth controller"
 		], "Create special controller");
 		$bt->asButton();
 		$bt->addIcon("plus");
@@ -685,7 +685,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$menu = $this->jquery->semantic()->htmlMenu("menu-logs");
 		$ck = $menu->addItem(HtmlCheckbox::toggle("ck-reverse"));
 		$ck->postFormOnClick($this->_getFiles()
-			->getAdminBaseRoute() . "/logsRefresh", "frm-logs", "#logs-div");
+			->getAdminBaseRoute() . "/_logsRefresh", "frm-logs", "#logs-div");
 		$menu->addItem(new HtmlInput("maxLines", "number", 50));
 		$dd = new HtmlDropdown("groupBy", "1,2", [
 			"1" => "Date",
@@ -703,7 +703,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if (! $config["debug"]) {
 			$this->showSimpleMessage("Debug mode is not active in config.php file. <br><br><a class='_activateLogs ui blue button'><i class='ui toggle on icon'></i> Activate logging</a>", "info", "Debug", "info circle", null, "logs-message");
 			$this->jquery->getOnClick("._activateLogs", $this->_getFiles()
-				->getAdminBaseRoute() . "/activateLog", "#main-content");
+				->getAdminBaseRoute() . "/_activateLog", "#main-content");
 		} else {
 			$item = $menu->addItem($bts = new HtmlButtonGroups("bt-apply", [
 				"",
@@ -721,9 +721,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"black"
 			]);
 			$bts->setPropertyValues("data-url", [
-				"deActivateLog",
-				"deleteAllLogs",
-				"logsRefresh"
+				"_deActivateLog",
+				"_deleteAllLogs",
+				"_logsRefresh"
 			]);
 			$bts->setPropertyValues("title", [
 				"Stop logging",
@@ -935,6 +935,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function themes() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$devtoolsPath = $this->config["devtools-path"] ?? 'Ubiquity';
 		$this->getHeader("themes");
 		$this->jquery->semantic()->htmlLabel("activeTheme");
@@ -956,8 +957,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$dd->getField()->setClearable(true);
 		$fields->addButton("btNewTheme", "Create theme", "positive");
 
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkTheme", $this->_getFiles()
-			->getAdminBaseRoute() . "/_themeExists/themeName", "{}", "result=data.result;", "postForm", [
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkTheme", $baseRoute . "/_themeExists/themeName", "{}", "result=data.result;", "postForm", [
 			"form" => "frmNewTheme"
 		]), true);
 
@@ -965,15 +965,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			"on" => "blur",
 			"inline" => true
 		]);
-		$frm->setSubmitParams("Admin/createNewTheme", "#refresh-theme", [
+		$frm->setSubmitParams($baseRoute . "/_createNewTheme", "#refresh-theme", [
 			"hasLoader" => "internal"
 		]);
 
-		$this->jquery->getOnClick("._installTheme", "Admin/installTheme", "#refresh-theme", [
+		$this->jquery->getOnClick("._installTheme", $baseRoute . "/_installTheme", "#refresh-theme", [
 			"attr" => "data-ajax",
 			"hasLoader" => "internal"
 		]);
-		$this->jquery->postOnClick("._saveConfig", "Admin/setDevtoolsPath", "{path:$('#devtools-path').val()}", "#devtools-message", [
+		$this->jquery->postOnClick("._saveConfig", $baseRoute . "/_setDevtoolsPath", "{path:$('#devtools-path').val()}", "#devtools-message", [
 			"hasLoader" => "internal"
 		]);
 		$this->jquery->getHref("._setTheme", "#refresh-theme");

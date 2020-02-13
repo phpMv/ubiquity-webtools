@@ -638,7 +638,7 @@ trait MailerTrait {
 			'jqueryDone' => 'replaceWith'
 		]);
 
-		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/submitMailerConfig', 'frmConfig', '#frm', [
+		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/_submitMailerConfig', 'frmConfig', '#frm', [
 			'jsCallback' => '$("#mailer-details").show();'
 		]);
 		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();$("._menu").removeClass("disabled");');
@@ -742,7 +742,7 @@ trait MailerTrait {
 		$this->jquery->renderView('@framework/main/component.html');
 	}
 
-	public function submitMailerConfig($partial = true) {
+	public function _submitMailerConfig($partial = true) {
 		$result = $this->getMailerConfigFromPost();
 		$toDelete = $_POST['_toDelete'] ?? '';
 		unset($_POST['_toDelete']);

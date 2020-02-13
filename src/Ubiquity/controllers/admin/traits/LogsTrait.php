@@ -30,7 +30,7 @@ trait LogsTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function logsRefresh() {
+	public function _logsRefresh() {
 		$maxLines = URequest::post("maxLines", null);
 		if (! is_numeric($maxLines)) {
 			$maxLines = null;
@@ -58,16 +58,16 @@ trait LogsTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	public function deleteAllLogs() {
+	public function _deleteAllLogs() {
 		Logger::clearAll();
 		$this->logsRefresh();
 	}
 
-	public function activateLog() {
+	public function _activateLog() {
 		$this->startStopLogging();
 	}
 
-	public function deActivateLog() {
+	public function _deActivateLog() {
 		$this->startStopLogging(false);
 	}
 
