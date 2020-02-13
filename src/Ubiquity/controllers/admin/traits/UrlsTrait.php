@@ -21,32 +21,32 @@ trait UrlsTrait {
 
 	/**
 	 * To override
-	 * Returns the route for the detail route, when the user click on a dataTable row (default : /showDetail)
+	 * Returns the route for the detail route, when the user click on a dataTable row (default : /_showModelDetails)
 	 *
 	 * @return string
 	 */
 	public function getRouteDetails() {
-		return "/showDetail";
+		return "/_showModelDetails";
 	}
 
 	/**
 	 * To override
-	 * Returns the route for deleting an instance (default : /delete)
+	 * Returns the route for deleting an instance (default : /_deleteModel)
 	 *
 	 * @return string
 	 */
 	public function getRouteDelete() {
-		return "/delete";
+		return "/_deleteModel";
 	}
 
 	/**
 	 * To override
-	 * Returns the route for editing an instance (default : /edit)
+	 * Returns the route for editing an instance (default : /_editModel)
 	 *
 	 * @return string
 	 */
 	public function getRouteEdit() {
-		return "/edit";
+		return "/_editModel";
 	}
 
 	/**

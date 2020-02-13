@@ -45,7 +45,7 @@ trait RestTrait {
 	 */
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function initRestCache($refresh = true) {
+	public function _initRestCache($refresh = true) {
 		$config = Startup::getConfig();
 		\ob_start();
 		CacheManager::initCache($config, "rest");

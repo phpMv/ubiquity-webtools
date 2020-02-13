@@ -643,7 +643,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 		$this->_refreshRest();
 		$this->jquery->getOnClick("#bt-init-rest-cache", $this->_getFiles()
-			->getAdminBaseRoute() . "/initRestCache", "#divRest", [
+			->getAdminBaseRoute() . "/_initRestCache", "#divRest", [
 			"attr" => "",
 			"dataType" => "html"
 		]);
@@ -1620,7 +1620,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return "1=1";
 	}
 
-	public function getConfig() {
+	public function _getConfig() {
 		return $this->config;
 	}
 

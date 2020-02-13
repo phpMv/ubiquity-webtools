@@ -63,7 +63,7 @@ class AdminScaffoldController extends ScaffoldController {
 	}
 
 	public function initRestCache($refresh = true) {
-		$this->controller->initRestCache($refresh);
+		$this->controller->_initRestCache($refresh);
 	}
 
 	public function _refreshRest($refresh = false) {

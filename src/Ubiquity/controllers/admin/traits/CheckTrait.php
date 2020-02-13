@@ -44,7 +44,7 @@ trait CheckTrait {
 
 	abstract public function _isModelsCompleted();
 
-	abstract public function getConfig();
+	abstract public function _getConfig();
 
 	/**
 	 *

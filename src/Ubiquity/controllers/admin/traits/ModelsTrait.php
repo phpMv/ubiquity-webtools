@@ -48,10 +48,10 @@ trait ModelsTrait {
 
 	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	public function showModel($model, $id = null) {
+	public function _showModel($model, $id = null) {
 		$model = str_replace(".", "\\", $model);
 		$adminRoute = $this->_getFiles()->getAdminBaseRoute();
-		$this->_showModel($model, $id);
+		$this->showModel_($model, $id);
 		$metas = OrmUtils::getModelMetadata($model);
 		$metas_ = [];
 		foreach ($metas as $k => $meta) {
@@ -75,7 +75,7 @@ trait ModelsTrait {
 			"hasLoader" => "internal"
 		]);
 		$this->jquery->exec('$("#models-tab .item").tab();', true);
-		$this->jquery->getOnClick("#btAddNew", $adminRoute . "/newModel/" . $this->formModal, "#frm-add-update", [
+		$this->jquery->getOnClick("#btAddNew", $adminRoute . "/_newModel/" . $this->formModal, "#frm-add-update", [
 			"hasLoader" => "internal"
 		]);
 		$this->jquery->compile($this->view);
@@ -109,7 +109,7 @@ trait ModelsTrait {
 
 	public function _refreshTable($id = null) {
 		$model = $_SESSION["model"];
-		$compo = $this->_showModel($model, $id);
+		$compo = $this->showModel_($model, $id);
 		$this->jquery->execAtLast('$("#table-details").html("");');
 		$this->jquery->renderView("@admin/main/elements.html", [
 			"compo" => $compo
@@ -122,13 +122,13 @@ trait ModelsTrait {
 			$table = $array[0];
 			$id = $array[1];
 			$this->jquery->exec("$('#menuDbs .active').removeClass('active');$('.ui.label.left.pointing.teal').removeClass('left pointing teal active');$(\"[data-model='" . $table . "']\").addClass('active');$(\"[data-model='" . $table . "']\").find('.ui.label').addClass('left pointing teal');", true);
-			$this->showModel($table, $id);
+			$this->_showModel($table, $id);
 			$this->jquery->execAtLast("$(\"tr[data-ajax='" . $id . "']\").click();");
 			echo $this->jquery->compile();
 		}
 	}
 
-	protected function _showModel($model, $id = null) {
+	protected function showModel_($model, $id = null) {
 		$_SESSION["model"] = $model;
 		$totalCount = 0;
 		$datas = $this->getInstances($model, $totalCount, 1, $id);
@@ -185,7 +185,7 @@ trait ModelsTrait {
 		}
 	}
 
-	protected function _edit($instance, $modal = "no") {
+	protected function editInstance_($instance, $modal = "no") {
 		$_SESSION["instance"] = $instance;
 		$modal = ($modal == "modal");
 		$formName = "frmEdit-" . UString::cleanAttribute(get_class($instance));
@@ -214,20 +214,20 @@ trait ModelsTrait {
 		}
 	}
 
-	public function edit($modal = "no", $ids = "") {
+	public function _editModel($modal = "no", $ids = "") {
 		$instance = $this->getModelInstance($ids, false);
 		$instance->_new = false;
-		$this->_edit($instance, $modal);
+		$this->editInstance_($instance, $modal);
 	}
 
-	public function newModel($modal = "no") {
+	public function _newModel($modal = "no") {
 		$model = $_SESSION["model"];
 		$instance = new $model();
 		$instance->_new = true;
-		$this->_edit($instance, $modal);
+		$this->editInstance_($instance, $modal);
 	}
 
-	public function update() {
+	public function _updateModel() {
 		$message = new CRUDMessage("Modifications were successfully saved", "Updating");
 		$instance = @$_SESSION["instance"];
 		$isNew = $instance->_new;
@@ -269,7 +269,7 @@ trait ModelsTrait {
 		exit(1);
 	}
 
-	public function delete($ids) {
+	public function _deleteModel($ids) {
 		$instance = $this->getModelInstance($ids);
 		if (method_exists($instance, "__toString"))
 			$instanceString = $instance . "";
@@ -284,7 +284,7 @@ trait ModelsTrait {
 			}
 		} else {
 			$message = $this->showConfMessage("Do you confirm the deletion of `<b>" . $instanceString . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
-				->getAdminBaseRoute() . "/delete/{$ids}", "#table-messages", $ids);
+				->getAdminBaseRoute() . "/_deleteModel/{$ids}", "#table-messages", $ids);
 		}
 		echo $message;
 		echo $this->jquery->compile($this->view);
@@ -329,7 +329,7 @@ trait ModelsTrait {
 					$item->setProperty("data-model", str_replace("\\", ".", $model));
 				}
 				$menu->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/showModel", "#divTable", [
+					->getAdminBaseRoute() . "/_showModel", "#divTable", [
 					"attr" => "data-model",
 					"historize" => true
 				]);
@@ -354,7 +354,7 @@ trait ModelsTrait {
 		}
 	}
 
-	public function showDetail($ids) {
+	public function _showModelDetails($ids) {
 		$instance = $this->getModelInstance($ids);
 		$viewer = $this->_getModelViewer();
 		$hasElements = false;
