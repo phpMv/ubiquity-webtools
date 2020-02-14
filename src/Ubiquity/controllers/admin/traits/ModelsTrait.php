@@ -416,7 +416,7 @@ trait ModelsTrait {
 		$this->jquery->renderView("@admin/main/component.html");
 	}
 
-	public function updateMember($member, $callback = false) {
+	public function _updateMember($member, $callback = false) {
 		$instance = @$_SESSION["instance"];
 		$model = $_SESSION['model'];
 		$updated = CRUDHelper::update($instance, $_POST);
