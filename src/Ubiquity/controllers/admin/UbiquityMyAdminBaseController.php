@@ -1739,7 +1739,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->postOnClick('#opt-composer-bt', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', "{commands:'composer install --optimize-autoloader --classmap-authoritative'}", null, [
-			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Composer optimization...') . ');',
+			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Composer optimization...') . ');',
 			'hasLoader' => 'internal',
 			'partial' => "$('#partial').html(response);"
 		]);
@@ -1752,7 +1752,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->getViewComposerIndex());
 	}
 
-	protected function getConsoleMessage($id = 'partial', $defaultMsg = 'Composer update...') {
+	protected function getConsoleMessage_($id = 'partial', $defaultMsg = 'Composer update...') {
 		return "\"<div style=\'white-space: pre;white-space: pre-line;\' class=\'ui inverted message\'><i class=\'icon close\'></i><div class=\'header\'>{$defaultMsg}</div><div id=\'" . $id . "\' class=\'content\'><div class=\'ui active slow green double loader\'></div></div></div>\"";
 	}
 
