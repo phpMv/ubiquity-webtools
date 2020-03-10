@@ -67,6 +67,12 @@ trait ComposerTrait {
 				'class' => 'PHPPM\\Ubiquity'
 			],
 			[
+				'name' => 'lapinskas/roadrunner-ubiquity',
+				'optional' => true,
+				'category' => 'servers',
+				'class' => 'RoadRunnerUbiquity\\Request'
+			],
+			[
 				'name' => 'phpmv/ubiquity-tarantool',
 				'optional' => true,
 				'category' => 'database',
@@ -134,7 +140,7 @@ trait ComposerTrait {
 		});
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->_getAdminViewer()->getComposerDataTable($libs);
-		$input = 'let input=$(this).closest("tr").find("._value");';
+		$input = '$("#submit-composer-bt").removeClass("disabled");let input=$(this).closest("tr").find("._value");';
 		$inputSetval = 'if($(this).hasClass("active")){input.val("");}else{input.val($(this).attr("data-part")+":"+$(this).attr("data-ajax"));}';
 		$this->jquery->execAtLast('$("#composer-frm").submit(false);$("._remove").click(function(){' . $input . $inputSetval . 'let elm=$(this).closest("tr").find("._u");if($(this).hasClass("active")){elm.unwrap();input.val("");}else{elm.wrap("<strike>");}});$("._remove").state({text:{inactive:"<i class=\'ui icon minus\'></i>Remove",active:"<i class=\'ui icon undo\'></i>To remove"}});');
 		$this->jquery->execAtLast('$("._add").click(function(){' . $input . $inputSetval . '$(this).closest("tr").find("._version").html("<input type=\'hidden\' name=\'version[]\'>");let elm=$(this).closest("tr").find("._u");elm.toggleClass("blue");});$("._add").state({text:{inactive:"<i class=\'ui icon plus\'></i>Add",active:"<i class=\'ui icon undo\'></i>To add"}});');
@@ -231,7 +237,7 @@ trait ComposerTrait {
 
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', null, [
-			'before' => '$("#response").html(' . $this->getConsoleMessage() . ');',
+			'before' => '$("#response").html(' . $this->getConsoleMessage_() . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
 		]);
@@ -288,6 +294,8 @@ trait ComposerTrait {
 		$this->jquery->postFormOnClick('#validate-btn', $baseRoute . '/_addDependency', 'add-dependency-frm', '#response', [
 			'hasLoader' => 'internal'
 		]);
+
+		$this->jquery->click('#cancel-btn', '$("#response").html("");');
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddDependencyFrm());
