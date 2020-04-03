@@ -111,11 +111,15 @@ trait ControllersTrait {
 			$frm->addContent("<div id='div-new-route' style='display: none;'>");
 			$frm->addDivider();
 			$fields = $frm->addFields();
-			$fields->addInput("path", "", "text", "")->addRule([
+			$fields->setInline();
+			$fields->addInput("path", "", "text", "")
+				->setWidth(6)
+				->addRule([
 				"checkRoute",
 				"Route {value} already exists!"
 			]);
-			$fields->addDropdown("methods", Constants::REQUEST_METHODS, null, "", true);
+			$field = $fields->addDropdown("methods", Constants::REQUEST_METHODS, null, "", true)->setWidth(3);
+			$field->getField()->addClass("fluid");
 			$duration = $fields->addInput("duration", "", "number");
 			$ck = $duration->labeledCheckbox("left", null);
 			$ck->getField()->setProperty("name", "ck-Cache");
