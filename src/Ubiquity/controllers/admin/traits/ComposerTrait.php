@@ -14,7 +14,7 @@ use Ajax\semantic\html\elements\html5\HtmlDatalist;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- *
+ *         
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  *
  */
@@ -272,6 +272,7 @@ trait ComposerTrait {
 	}
 
 	public function _refreshComposer() {
+		$this->showSimpleMessage("<b>Composer</b> successfully updated!", "success", "Composer", "info circle", null, "msgInfo");
 		$this->getComposerDataTable();
 		$this->jquery->renderView($this->_getFiles()
 			->getViewExecComposer());
@@ -308,7 +309,7 @@ trait ComposerTrait {
 		}
 		$this->jquery->post($this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', '{commands: "' . $command . '"}', null, [
-			'before' => '$("#response").html(' . $this->getConsoleMessage('partial', 'Install dependency...') . ');',
+			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Install dependency...') . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
 		]);
