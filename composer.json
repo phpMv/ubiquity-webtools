@@ -11,7 +11,7 @@
 		"php-framework"
 	],
 	"require" : {
-		"php" : ">7.0",
+		"php" : "^7.4",
 		"phpmv/php-mv-ui": "^2.2.19",
 		"phpmv/ubiquity-dev": "^0.0"
 	},
