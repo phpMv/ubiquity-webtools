@@ -1,0 +1,18 @@
+<div class="ui icon positive message">
+  <i class="check square icon"></i>
+	  <div class="content">
+		  <div class="header">
+		    <i class="ui {{provider}} icon"></i> connection established to {{provider}}
+		  </div>
+	</div>
+</div>
+<div class="ui green segment">
+		<div class="ui divided selection list">
+			{% for key, value in values %}
+				<div class="item">{{value |raw}}</div>
+			{% endfor %}
+		</div>
+		<div class="ui divider"></div>
+		<div class="ui fluid positive button _close icon"><i class="ui stop circle icon"></i> Close</div>
+</div>
+<br>		  

@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin;
 
+use Ajax\common\html\BaseWidget;
 use Ajax\php\ubiquity\JsUtils;
 use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\base\HtmlSemDoubleElement;
@@ -21,18 +22,24 @@ use Ubiquity\controllers\Controller;
 use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\popo\ControllerAction;
+use Ubiquity\controllers\admin\popo\MailerClass;
+use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\controllers\admin\popo\MaintenanceMode;
 use Ubiquity\controllers\admin\popo\Route;
 use Ubiquity\controllers\admin\traits\CacheTrait;
+use Ubiquity\controllers\admin\traits\ComposerTrait;
+use Ubiquity\controllers\admin\traits\ConfigPartTrait;
 use Ubiquity\controllers\admin\traits\ConfigTrait;
 use Ubiquity\controllers\admin\traits\ControllersTrait;
 use Ubiquity\controllers\admin\traits\CreateControllersTrait;
 use Ubiquity\controllers\admin\traits\DatabaseTrait;
 use Ubiquity\controllers\admin\traits\GitTrait;
 use Ubiquity\controllers\admin\traits\LogsTrait;
+use Ubiquity\controllers\admin\traits\MailerTrait;
 use Ubiquity\controllers\admin\traits\MaintenanceTrait;
 use Ubiquity\controllers\admin\traits\ModelsConfigTrait;
 use Ubiquity\controllers\admin\traits\ModelsTrait;
+use Ubiquity\controllers\admin\traits\OAuthTrait;
 use Ubiquity\controllers\admin\traits\RestTrait;
 use Ubiquity\controllers\admin\traits\RoutesTrait;
 use Ubiquity\controllers\admin\traits\SeoTrait;
@@ -58,10 +65,8 @@ use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
-use Ubiquity\controllers\admin\popo\MailerClass;
-use Ubiquity\controllers\admin\popo\MailerQueuedClass;
-use Ubiquity\controllers\admin\traits\MailerTrait;
-use Ubiquity\controllers\admin\traits\ComposerTrait;
+use Ubiquity\client\oauth\OAuthAdmin;
+use Ajax\semantic\html\elements\HtmlLabel;
 
 /**
  *
@@ -70,7 +75,8 @@ use Ubiquity\controllers\admin\traits\ComposerTrait;
 class UbiquityMyAdminBaseController extends Controller implements HasModelViewerInterface {
 	use MessagesTrait,ModelsTrait,ModelsConfigTrait,RestTrait,CacheTrait,ConfigTrait,
 	ControllersTrait,RoutesTrait,DatabaseTrait,SeoTrait,GitTrait,CreateControllersTrait,
-	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait,ComposerTrait;
+	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait,
+	ComposerTrait,OAuthTrait,ConfigPartTrait;
 
 	/**
 	 *
@@ -1410,7 +1416,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if (URequest::isPost()) {
 			$url = URequest::cleanUrl($_POST["url"]);
 			unset($_POST["url"]);
-			$method = $_POST["method"];
+			$method = $_POST["method"] ?? 'GET';
 			unset($_POST["method"]);
 			$newParams = null;
 			$postParams = $_POST;
@@ -1431,7 +1437,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					$this->_setGetCookie($url, \json_encode($newParams));
 				}
 			}
-			$modal = $this->jquery->semantic()->htmlModal("response", \strtoupper($method) . ":" . $url);
+			$modal = $this->jquery->semantic()->htmlModal("rModal", \strtoupper($method) . ":" . $url);
 			$params = $this->getRequiredRouteParameters($url, $newParams);
 			if (\sizeof($params) > 0) {
 				$toPost = \array_merge($postParams, [
@@ -1456,14 +1462,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				]);
 				$modal->setContent($frm);
 				$modal->addAction("Validate");
-				$this->jquery->click("#action-response-0", "$('#frmGetParams').form('submit');");
+				$this->jquery->click("#action-rModal-0", "$('#frmGetParams').form('submit');");
 			} else {
-				$this->jquery->ajax($method, $url, '#content-response.content', [
+				$this->jquery->ajax($method, $url, '#content-rModal.content', [
 					"params" => \json_encode($postParams)
 				]);
 			}
 			$modal->addAction("Close");
-			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#response').modal('show');", true);
+			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#rModal').modal('show');", true);
 			echo $modal;
 			echo $this->jquery->compile($this->view);
 		}
@@ -1531,6 +1537,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 		}
 		return [];
+	}
+
+	protected function loadViewCompo(BaseWidget $elm) {
+		$elm->setLibraryId('_compo_');
+		$this->jquery->renderView('@framework/main/component.html');
 	}
 
 	protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
@@ -1750,6 +1761,53 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerIndex());
+	}
+
+	public function oauth($response = '') {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$this->getHeader("oauth");
+		$this->getOAuthDataTable($baseRoute);
+
+		$pConfig = OAuthAdmin::loadConfig();
+		$url = $pConfig['callback'] ?? null;
+		if (isset($url) && $url != null) {
+			$callback = new HtmlLabel('_link', $url, 'tags');
+			$callback->addClass('large');
+			$rRoute = OAuthAdmin::getRedirectRoute();
+			$rInfo = Router::getRouteInfo($rRoute . '/Google');
+			if (is_array($rInfo)) {
+				$lbl = new HtmlLabel("", "<span style='font-weight: bold;color: #3B83C0;'>" . $rInfo['controller'] . "</span>::<span style='color: #7F0055;'>" . $rInfo['action'] . "</span>", "heartbeat");
+				$lbl->addClass('basic large');
+				$firstProvider = array_key_first($pConfig['providers'] ?? []);
+				if (isset($firstProvider)) {
+					$callback->asLink($url . '/' . $firstProvider, '_blank');
+					$this->jquery->postOnClick('#_link', $baseRoute . '/_runAction', "{url: \"{$rRoute}/(.+?)/\"}", '#response');
+				}
+				$callback .= $lbl . '&nbsp;<i class="ui icon large check green"></i>';
+			} else {
+				$callback .= (HtmlLabel::tag('', "<i class='ui warning circle icon'></i> no route associated with callback"))->addClass('orange');
+			}
+		} else {
+			$callback = $this->showSimpleMessage('Callback URL is missing in config file!', 'warning', 'Callback', 'warning circle');
+		}
+
+		$this->jquery->getOnClick('#config-btn', $baseRoute . '/_globalConfigFrm', '#response', [
+			'hasLoader' => 'internal'
+		]);
+		$this->jquery->getOnClick('#add-provider-btn', $baseRoute . '/_addOAuthProviderFrm', '#response', [
+			'hasLoader' => 'internal'
+		]);
+
+		$this->jquery->getOnClick('#create-controller-btn', $baseRoute . '/_createOAuthControllerFrm', '#response', [
+			'hasLoader' => 'internal'
+		]);
+		$this->jquery->execAtLast('$(".ui.accordion").accordion({exclusive:false});');
+
+		$this->jquery->renderView($this->_getFiles()
+			->getViewOAuthIndex(), [
+			'response' => $response,
+			'callback' => $callback
+		]);
 	}
 
 	protected function getConsoleMessage_($id = 'partial', $defaultMsg = 'Composer update...') {

@@ -412,8 +412,7 @@ trait ModelsTrait {
 		$_SESSION["model"] = get_class($instance);
 		$instance->_new = false;
 		$form = $this->_getModelViewer()->getMemberForm("frm-member-" . $member, $instance, $member, $td, $part);
-		$form->setLibraryId("_compo_");
-		$this->jquery->renderView("@admin/main/component.html");
+		$this->loadViewCompo($form);
 	}
 
 	public function _updateMember($member, $callback = false) {

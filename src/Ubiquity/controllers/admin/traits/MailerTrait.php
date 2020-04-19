@@ -312,9 +312,8 @@ trait MailerTrait {
 	public function _refreshMailer() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$dt = $this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
-		$dt->setLibraryId("_compo_");
 		$this->addMailerBehavior($baseRoute);
-		$this->jquery->renderView("@framework/main/component.html");
+		$this->loadViewCompo($dt);
 	}
 
 	public function _refreshQueue($withMailer = true, $withDec = false) {
@@ -322,7 +321,6 @@ trait MailerTrait {
 		$queue = MailerQueuedClass::initQueue();
 		$this->activateQueueMenu($queue);
 		$dt = $this->_getAdminViewer()->getMailerQueueDataTable($queue);
-		$dt->setLibraryId("_compo_");
 		$this->addQueueBehavior($baseRoute);
 		if ($withMailer) {
 			$this->jquery->get($baseRoute . '/_refreshMailer', '#dtMailer', [
@@ -336,15 +334,14 @@ trait MailerTrait {
 				'jqueryDone' => 'replaceWith'
 			]);
 		}
-		$this->jquery->renderView("@framework/main/component.html");
+		$this->loadViewCompo($dt);
 	}
 
 	public function _refreshDequeue() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$dt = $this->_getAdminViewer()->getMailerDequeueDataTable(MailerQueuedClass::initQueue(true));
-		$dt->setLibraryId("_compo_");
 		$this->addDequeueBehavior($baseRoute);
-		$this->jquery->renderView("@framework/main/component.html");
+		$this->loadViewCompo($dt);
 	}
 
 	private function getQueuePeriodeValues($qp) {
@@ -627,7 +624,7 @@ trait MailerTrait {
 
 	private function _getMailerConfigFrm($config) {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$this->getMailerConfigFrmDataForm($config);
+		$this->getConfigPartFrmDataForm($config);
 		$configs = \array_keys($this->defaultMailerConfigs);
 		$dd = $this->jquery->semantic()->htmlDropdown('btDefaultConfig', 'Add default config', \array_combine($configs, $configs));
 		$dd->asButton(true)->setColor('olive');
@@ -638,87 +635,40 @@ trait MailerTrait {
 			'jqueryDone' => 'replaceWith'
 		]);
 
-		$this->jquery->postFormOnClick("#save-config-btn", $baseRoute . '/_submitMailerConfig', 'frmConfig', '#frm', [
-			'jsCallback' => '$("#mailer-details").show();'
+		$this->addSubmitConfigBehavior([
+			'form' => '#frmMailerConfig',
+			'response' => '#frm'
+		], [
+			'submit' => $baseRoute . '/_submitMailerConfig',
+			'source' => $baseRoute . '/_getMailerConfigSource',
+			'form' => $baseRoute . '/_refreshConfigFrmMailer'
+		], [
+			'submit' => '$("#mailer-details").show();',
+			'cancel' => '$("#frm").html("");$("#mailer-details").show();$("._menu").removeClass("disabled");'
 		]);
-		$this->jquery->execOn("click", "#bt-Canceledition", '$("#frm").html("");$("#mailer-details").show();$("._menu").removeClass("disabled");');
 
-		$this->jquery->execAtLast("$('._tabConfig .item').tab();");
-		$this->jquery->execAtLast("$('._tabConfig .item').tab({'onVisible':function(value){
-			if(value=='source'){
-			" . $this->jquery->postFormDeferred($baseRoute . '/_getMailerConfigSource', 'frmConfig', '#tab-source', [
-			'hasLoader' => false
-		]) . "}else{
-			" . $this->jquery->postFormDeferred($baseRoute . '/_refreshConfigFrm', 'frm-source', '#frmMailerConfig', [
-			'hasLoader' => false,
-			'jqueryDone' => 'replaceWith'
-		]) . "
-		}
-		}});");
 		$this->jquery->renderView($this->_getFiles()
 			->getViewMailerConfig());
 	}
 
-	private function getMailerConfigFrmDataForm($config) {
-		$df = $this->_getAdminViewer()->getConfigMailerDataForm($config);
+	private function getConfigPartFrmDataForm($config, $identifier = 'frmMailerConfig') {
+		$df = $this->_getAdminViewer()->getConfigPartDataForm($config, $identifier);
 		$this->addConfigBehavior();
 		return $df;
 	}
 
-	private function addConfigBehavior() {
-		$this->jquery->mouseleave('td', '$(this).find("i._see").css({"visibility":"hidden"});');
-		$this->jquery->mouseenter('td', '$(this).find("i._see").css({"visibility":"visible"});');
-		$this->jquery->click('._delete', 'let tDf=$("[name=_toDelete]");tDf.closest(".ui.dropdown").dropdown("set selected",$(this).attr("data-name"));');
-	}
-
-	private function arrayUpdateRecursive(&$original, &$update, &$toRemove, $key = '', $remove = false) {
-		foreach ($original as $k => $v) {
-			$nKey = ($key == null) ? $k : ($key . '-' . $k);
-			if (\array_key_exists($k, $update)) {
-				if (\is_array($update[$k]) && \is_array($v)) {
-					$this->arrayUpdateRecursive($original[$k], $update[$k], $toRemove, $nKey, $remove);
-				} else {
-					if (\array_search($nKey, $toRemove) === false) {
-						$original[$k] = $update[$k];
-					}
-				}
-			} else {
-				if (\array_search($nKey, $toRemove) === false) {
-					$toRemove[] = $nKey;
-				}
-			}
-			if ($remove && \array_search($nKey, $toRemove) !== false) {
-				unset($original[$k]);
-			}
-			unset($update[$k]);
-		}
-		foreach ($update as $k => $v) {
-			if (\array_search($k, $toRemove) === false) {
-				$original[$k] = $v;
-			}
-		}
-	}
-
-	public function _refreshConfigFrm() {
-		$toRemove = [];
-		$original = MailerManager::loadConfig();
-		$update = eval('return ' . URequest::post('src') . ';');
-		$this->arrayUpdateRecursive($original, $update, $toRemove);
-		$this->getMailerConfigFrmDataForm($original);
-		if (\count($toRemove) > 0) {
-			$this->jquery->execAtLast("$('[name=_toDelete]').closest('.ui.dropdown').dropdown('set selected'," . \json_encode($toRemove) . ");");
-		}
-		$this->jquery->renderView('@framework/main/component.html');
+	public function _refreshConfigFrmMailer() {
+		$this->refreshConfigFrmPart(MailerManager::loadConfig(), 'frmMailerConfig');
 	}
 
 	public function _applyConfig($key) {
 		$original = MailerManager::loadConfig();
 		$toDelete = URequest::post('_toDelete');
 		$toRemove = \explode(',', $toDelete);
-		$update = $this->getMailerConfigFromPost();
+		$update = $this->getConfigPartFromPost($original);
 		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);
 		$original = $this->mixDefaultMailerConfig($key, $original);
-		$this->getMailerConfigFrmDataForm($original);
+		$this->getConfigPartFrmDataForm($original);
 		if (\count($toRemove) > 0) {
 			$this->jquery->execAtLast("$('[name=_toDelete]').closest('.ui.dropdown').dropdown('set selected'," . \json_encode($toRemove) . ");");
 		}
@@ -726,24 +676,11 @@ trait MailerTrait {
 	}
 
 	public function _getMailerConfigSource() {
-		$original = MailerManager::loadConfig();
-		$toDelete = URequest::post('_toDelete');
-		$toRemove = \explode(',', $toDelete);
-		$update = $this->getMailerConfigFromPost();
-		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);
-		$src = UArray::asPhpArray($original, "array", 1, true);
-		$frm = $this->jquery->semantic()->htmlForm('frm-source');
-		$textarea = $frm->addTextarea('src', '', $src, null, 20);
-		$frm->addInput('toDeleteSrc', null, 'hidden', $toDelete);
-		$frm->setLibraryId('_compo_');
-		$textarea->getDataField()->setProperty('data-editor', true);
-		$this->_getAdminViewer()->insertAce();
-
-		$this->jquery->renderView('@framework/main/component.html');
+		$this->getConfigSourcePart(MailerManager::loadConfig(), 'Configuration', 'cogs');
 	}
 
 	public function _submitMailerConfig($partial = true) {
-		$result = $this->getMailerConfigFromPost();
+		$result = $this->getConfigPartFromPost(MailerManager::loadConfig());
 		$toDelete = $_POST['_toDelete'] ?? '';
 		unset($_POST['_toDelete']);
 		$toDeletes = \explode(',', $toDelete);
@@ -758,65 +695,8 @@ trait MailerTrait {
 		} catch (\Exception $e) {
 			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
 		}
-		$msg->setLibraryId('_compo_');
 		$this->jquery->execAtLast('$("._menu").removeClass("disabled");');
-		$this->jquery->renderView('@framework/main/component.html');
-	}
-
-	private function getMailerConfigFromPost() {
-		$result = MailerManager::loadConfig();
-		$postValues = $_POST;
-		foreach ($postValues as $key => $value) {
-			if ('_toDelete' != $key) {
-				if (strpos($key, "-") === false) {
-					$result[$key] = $value;
-				} else {
-					$keys = explode('-', $key);
-					$v = &$result;
-					foreach ($keys as $k) {
-						if (! isset($v[$k])) {
-							$v[$k] = [];
-						}
-						$v = &$v[$k];
-					}
-					$v = $value;
-				}
-			}
-		}
-		return $result;
-	}
-
-	private function removeEmpty(&$array) {
-		foreach ($array as $k => $value) {
-			if ($value == null) {
-				unset($array[$k]);
-			} elseif (\is_array($value)) {
-				if (\count($value) == 0) {
-					unset($array[$k]);
-				} else {
-					$this->removeEmpty($array[$k]);
-				}
-			}
-		}
-	}
-
-	private function removeDeletedsFromArray(&$result, $toDeletes) {
-		$v = &$result;
-		foreach ($toDeletes as $toDeleteOne) {
-			if ($toDeleteOne != null) {
-				if (strpos($toDeleteOne, "-") === false) {
-					unset($result[$toDeleteOne]);
-				} else {
-					$keys = explode('-', $toDeleteOne);
-					$v = &$result;
-					$s = \count($keys);
-					for ($i = 0; $i < $s - 1; $i ++) {
-						$v = &$v[$keys[$i]];
-					}
-					unset($v[\end($keys)]);
-				}
-			}
-		}
+		$this->loadViewCompo($msg);
 	}
 }
 

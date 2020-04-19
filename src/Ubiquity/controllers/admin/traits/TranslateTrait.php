@@ -25,7 +25,7 @@ use Ubiquity\utils\http\USession;
  *
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  * @author jcheron <myaddressmail@gmail.com>
- *        
+ *
  */
 trait TranslateTrait {
 
@@ -345,8 +345,7 @@ trait TranslateTrait {
 
 	public function _refreshDomainAll($locale, $domain) {
 		$dt = $this->loadLocaleDomain_($locale, $domain, false);
-		$dt->setLibraryId("_compo_");
-		$this->jquery->renderView("@admin/main/component.html");
+		$this->loadViewCompo($dt);
 	}
 
 	public function _compareToLocale($domain, $locale) {
@@ -376,8 +375,7 @@ trait TranslateTrait {
 		$p = URequest::post('p', 1);
 		$dt->autoPaginate(is_numeric($p) ? $p : 1, 50, 9);
 		$dt->refresh();
-		$dt->setLibraryId("_compo_");
-		$this->jquery->renderView("@admin/main/component.html");
+		$this->loadViewCompo($dt);
 	}
 
 	public function _createLocale() {

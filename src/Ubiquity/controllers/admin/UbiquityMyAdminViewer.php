@@ -50,11 +50,12 @@ use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\content\table\HtmlTR;
 use Ajax\common\html\html5\HtmlInput;
+use Ubiquity\controllers\admin\popo\OAuthProvider;
 
 /**
  *
  * @author jc
- *        
+ *
  */
 class UbiquityMyAdminViewer {
 
@@ -152,6 +153,13 @@ class UbiquityMyAdminViewer {
 				"Mailer",
 				"mail",
 				"Mailer module"
+			];
+		}
+		if (\class_exists('Ubiquity\\client\\oauth\\OAuthManager')) {
+			$result["oauth"] = [
+				"OAuth",
+				"openid",
+				"Authentification OAuth or OpenID"
 			];
 		}
 		return $result;
@@ -389,6 +397,91 @@ class UbiquityMyAdminViewer {
 		});
 		$dt->setCompact(true);
 		$dt->setEdition();
+		return $dt;
+	}
+
+	public function getOAuthDataTable($providers, $baseRoute, $checkeds = []) {
+		$dt = $this->jquery->semantic()->dataTable("dtOAuth", OAuthProvider::class, OAuthProvider::load($providers));
+		$dt->setFields([
+			'name',
+			'enabled',
+			'checked'
+		]);
+		$dt->fieldAsCheckbox('enabled', [
+			'type' => 'toggle',
+			'jsCallback' => function (&$elm, $instance) {
+				$f = $elm->getDataField();
+				$f->setProperty('data-ajax', $instance->getName());
+				$f->addClass('_activate');
+				$keys = $instance->getKeys();
+				if (! isset($keys['id']) || ! isset($keys['secret'])) {
+					$elm->setDisabled();
+				}
+			}
+		]);
+		$dt->setValueFunction('checked', function ($v, $instance) use ($checkeds) {
+			$name = $instance->getName();
+			$icon = new HtmlIcon('', '');
+			$i = 'question';
+			$c = 'grey';
+			if (isset($checkeds[$name])) {
+				if ($checkeds[$name] === true) {
+					$i = 'check';
+					$c = 'green';
+				} else {
+					$i = 'exclamation';
+					$c = 'orange';
+				}
+			}
+			$icon->setIcon("large $i $c");
+			return $icon;
+		});
+		$dt->setValueFunction('name', function ($value, $instance) {
+			$lbl = new HtmlLabel('', $value, strtolower($value) . " blue");
+			$lbl->setSize('large inverted grey');
+			$keys = $instance->getKeys();
+			if (! isset($keys['id']) || ! isset($keys['secret'])) {
+				$lbl->wrap('', "<span class='ui tag red label'><i class='ui bug icon'></i> id or secret are not set!</span>");
+			}
+			return $lbl;
+		});
+		$dt->setCaptions([
+			'Provider name',
+			'Enabled',
+			'Checked status',
+			'Actions'
+		]);
+		$dt->addFieldButtons([
+			'see',
+			'edit',
+			'Check'
+		], false, function (HtmlButtonGroups $bts, $instance, $index) use ($baseRoute) {
+			$name = $instance->getName();
+			$bts->getItem(0)
+				->addClass("_delete red basic")
+				->setProperty("data-name", $name)
+				->asIcon("times");
+			$bts->getItem(1)
+				->addClass("_edit basic")
+				->setProperty("data-name", $name)
+				->asIcon("edit");
+			$bts->getItem(2)
+				->addClass("green")
+				->setTagName('a')
+				->setProperty("href", $baseRoute . "/_testOauth/" . $name)
+				->addIcon("sign in alternate");
+			if (! $instance->getEnabled()) {
+				$bts->getItem(2)
+					->setDisabled();
+			}
+		});
+		$dt->onPreCompile(function ($dt) {
+			$dt->setColAlignment(3, TextAlignment::RIGHT);
+			$dt->setColAlignment(2, TextAlignment::CENTER);
+		});
+
+		$dt->setEdition(true);
+		$dt->addClass("compact");
 		return $dt;
 	}
 
@@ -1621,6 +1714,8 @@ class UbiquityMyAdminViewer {
 		    textarea.css("display", "none");
 		    var editor = ace.edit(editDiv[0]);
 		    editDiv.css("border-radius","4px");
+			editDiv.css("margin-top","8px");
+			editDiv.css("font-size","14px");
 		    editor.$blockScrolling = Infinity ;
 		    editor.renderer.setShowGutter(textarea.data("gutter"));
 		    editor.getSession().setValue(textarea.val());
@@ -1635,14 +1730,14 @@ class UbiquityMyAdminViewer {
 		$this->jquery->exec($js, true);
 	}
 
-	public function getConfigMailerDataForm($config) {
+	public function getConfigPartDataForm($config, $identifier = 'frmMailerConfig') {
 		$fields = [
 			'types' => [
 				'password' => 'password',
 				'port' => 'number'
 			]
 		];
-		$de = $this->jquery->semantic()->dataElement("frmMailerConfig", $config);
+		$de = $this->jquery->semantic()->dataElement($identifier, $config);
 		$keys = \array_keys($config);
 
 		$de->setDefaultValueFunction(function ($name, $value) use ($fields) {
@@ -1937,5 +2032,30 @@ class UbiquityMyAdminViewer {
 			});
 			echo $dt;
 		}
+	}
+
+	public function getOAuthProviderFrm($config) {
+		$de = $this->jquery->semantic()->dataElement("provider-frm", $config);
+		$keys = array_keys($config);
+
+		$de->setDefaultValueFunction(function ($name, $value) {
+			if (is_object($value)) {
+				$arr = (array) $value;
+				$de_child = new DataElement('', $arr);
+				$de_child->setFields(array_keys($arr));
+				$de_child->setDefaultValueFunction(function ($name, $value) {
+					$input = new HtmlFormInput($name, null, "text", $value);
+					$input->setFluid();
+					return $this->labeledInput($input, $value);
+				});
+				$de_child->setEdition();
+				return $de_child;
+			}
+			$input = new HtmlFormInput($name, null, "text", $value);
+			return $this->labeledInput($input, $value);
+		});
+		$de->setFields($keys);
+		$de->setCaptions($keys);
+		return $de;
 	}
 }
