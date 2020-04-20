@@ -1,6 +1,16 @@
 <?php
 namespace Ubiquity\controllers\admin\popo;
 
+use Ubiquity\client\oauth\OAuthAdmin;
+
+/**
+ * Ubiquity\controllers\admin\popo$OAuthProvider
+ * This class is part of Ubiquity
+ *
+ * @author jc
+ * @version 1.0.0
+ *
+ */
 class OAuthProvider {
 
 	private $name;
@@ -10,6 +20,8 @@ class OAuthProvider {
 	private $keys;
 
 	private $values;
+
+	private $type;
 
 	/**
 	 *
@@ -51,7 +63,7 @@ class OAuthProvider {
 		$this->keys = $keys;
 	}
 
-	public function __construct($name = '', $values = []) {
+	public function __construct($name = '', $values = [], $type = 'OAuth2') {
 		$this->name = $name;
 		$this->values = $values;
 		$this->enabled = $values['enabled'] ?? false;
@@ -59,16 +71,22 @@ class OAuthProvider {
 			'id' => '',
 			'secret' => ''
 		];
+		$this->type = $type;
 	}
 
 	public function __get(string $name) {
 		return $this->values[$name] ?? null;
 	}
 
+	public function needsApplication() {
+		return $this->type === 'OAuth2' || $this->type === 'OAuth1';
+	}
+
 	public static function load($providers) {
+		$refProviders = OAuthAdmin::PROVIDERS;
 		$result = [];
 		foreach ($providers as $name => $values) {
-			$result[] = new OAuthProvider($name, $values);
+			$result[] = new OAuthProvider($name, $values, $refProviders[$name]['type'] ?? 'OAuth2');
 		}
 		return $result;
 	}

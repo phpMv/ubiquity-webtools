@@ -114,7 +114,10 @@ trait OAuthTrait {
 	}
 
 	public function _newOAuthProviderFrm($name) {
-		$this->showSimpleMessage("You need to create an application on your <u>{$name}</u> account and specify the <b>id</b> and <b>secret</b> credentials of the provider.", "info", "Provider creation", "info circle", null, 'msg-new-provider');
+		$type = OAuthAdmin::getProviderType($name);
+		if ($type === 'OAuth2' || $type === 'OAuth1') {
+			$this->showSimpleMessage("You need to create an application on your <u>{$name}</u> account and specify the <b>id</b> and <b>secret</b> credentials of the provider.", "info", "Provider creation", "info circle", null, 'msg-new-provider');
+		}
 		$this->_oauthProviderFrm($name);
 	}
 

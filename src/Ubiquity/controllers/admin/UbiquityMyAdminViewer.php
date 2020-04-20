@@ -414,7 +414,7 @@ class UbiquityMyAdminViewer {
 				$f->setProperty('data-ajax', $instance->getName());
 				$f->addClass('_activate');
 				$keys = $instance->getKeys();
-				if (! isset($keys['id']) || ! isset($keys['secret'])) {
+				if ($instance->needsApplication() && (! isset($keys['id']) || ! isset($keys['secret']))) {
 					$elm->setDisabled();
 				}
 			}
@@ -440,7 +440,7 @@ class UbiquityMyAdminViewer {
 			$lbl = new HtmlLabel('', $value, strtolower($value) . " blue");
 			$lbl->setSize('large inverted grey');
 			$keys = $instance->getKeys();
-			if (! isset($keys['id']) || ! isset($keys['secret'])) {
+			if ($instance->needsApplication() && (! isset($keys['id']) || ! isset($keys['secret']))) {
 				$lbl->wrap('', "<span class='ui tag red label'><i class='ui bug icon'></i> id or secret are not set!</span>");
 			}
 			return $lbl;
