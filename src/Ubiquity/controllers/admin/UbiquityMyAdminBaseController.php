@@ -4,7 +4,6 @@ namespace Ubiquity\controllers\admin;
 use Ajax\common\html\BaseWidget;
 use Ajax\php\ubiquity\JsUtils;
 use Ajax\semantic\components\validation\Rule;
-use Ajax\semantic\html\base\HtmlSemDoubleElement;
 use Ajax\semantic\html\base\constants\Direction;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ajax\semantic\html\collections\form\HtmlFormFields;
@@ -54,7 +53,6 @@ use Ubiquity\log\LoggerParams;
 use Ubiquity\orm\DAO;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\scaffolding\AdminScaffoldController;
-use Ubiquity\seo\ControllerSeo;
 use Ubiquity\themes\ThemesManager;
 use Ubiquity\translation\TranslatorManager;
 use Ubiquity\utils\UbiquityUtils;
@@ -114,7 +112,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.6';
+	public const version = '2.3.7';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -753,8 +751,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function seo() {
 		$this->getHeader("seo");
 		$this->_seo();
-		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
+		$this->jquery->execOn('click', '#generateRobots', '$("#frm-seoCtrls").form("submit");');
+		$this->jquery->getOnClick('.addNewSeo', $this->_getFiles()
+			->getAdminBaseRoute() . '/_newSeoController', '#seo-details');
+		$this->jquery->renderView($this->_getFiles()
 			->getViewSeoIndex());
 	}
 
@@ -772,87 +772,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					return uuid;
 			}");
 		$this->_translate($loc, $baseRoute);
-	}
-
-	protected function _seo() {
-		$ctrls = ControllerSeo::init();
-		$dtCtrl = $this->jquery->semantic()->dataTable("seoCtrls", "Ubiquity\seo\ControllerSeo", $ctrls);
-		$dtCtrl->setFields([
-			'name',
-			'urlsFile',
-			'siteMapTemplate',
-			'route',
-			'inRobots',
-			'see'
-		]);
-		$dtCtrl->setIdentifierFunction('getName');
-		$dtCtrl->setCaptions([
-			'Controller name',
-			'Urls file',
-			'SiteMap template',
-			'Route',
-			'In robots?',
-			''
-		]);
-		$dtCtrl->fieldAsLabel('route', 'car', [
-			'jsCallback' => function ($lbl, $instance, $i, $index) {
-				if ($instance->getRoute() == "") {
-					$lbl->setProperty('style', 'display:none;');
-				}
-			}
-		]);
-		$dtCtrl->fieldAsCheckbox('inRobots', [
-			'type' => 'toggle',
-			'disabled' => true
-		]);
-		$dtCtrl->setValueFunction('see', function ($value, $instance, $index) {
-			if ($instance->urlExists()) {
-				$bt = new HtmlButton('see-' . $index, '', '_see circular basic right floated');
-				$bt->setProperty("data-ajax", $instance->getName());
-				$bt->asIcon('eye');
-				return $bt;
-			}
-		});
-		$dtCtrl->setValueFunction('urlsFile', function ($value, $instance, $index) {
-			if (! $instance->urlExists()) {
-				$elm = new HtmlSemDoubleElement('urls-' . $index, 'span', '', $value);
-				$elm->addIcon("warning circle red");
-				$elm->addPopup("Missing", $value . ' is missing!');
-				return $elm;
-			}
-			return $value;
-		});
-		$dtCtrl->addDeleteButton(false, [], function ($bt) {
-			$bt->setProperty('class', 'ui circular basic red right floated icon button _delete');
-		});
-		$dtCtrl->setTargetSelector([
-			"delete" => "#messages"
-		]);
-		$dtCtrl->setUrls([
-			"delete" => $this->_getFiles()
-				->getAdminBaseRoute() . "/_deleteSeoController"
-		]);
-		$dtCtrl->getOnRow('click', $this->_getFiles()
-			->getAdminBaseRoute() . '/_displaySiteMap', '#seo-details', [
-			'attr' => 'data-ajax',
-			'hasLoader' => false
-		]);
-		$dtCtrl->setHasCheckboxes(true);
-		$dtCtrl->setSubmitParams($this->_getFiles()
-			->getAdminBaseRoute() . '/_generateRobots', "#messages", [
-			'attr' => '',
-			'ajaxTransition' => 'random'
-		]);
-		$dtCtrl->setActiveRowSelector('error');
-		$this->jquery->getOnClick("._see", $this->_getFiles()
-			->getAdminBaseRoute() . "/_seeSeoUrl", "#messages", [
-			"attr" => "data-ajax"
-		]);
-		$dtCtrl->setEmptyMessage($this->showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "info", "SEO Controllers", "info circle"));
-		$this->jquery->execOn('click', '#generateRobots', '$("#frm-seoCtrls").form("submit");');
-		$this->jquery->getOnClick('.addNewSeo', $this->_getFiles()
-			->getAdminBaseRoute() . '/_newSeoController', '#seo-details');
-		return $dtCtrl;
 	}
 
 	public function git($hasMessage = true) {

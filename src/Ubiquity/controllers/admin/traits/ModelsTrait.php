@@ -133,7 +133,9 @@ trait ModelsTrait {
 		$totalCount = 0;
 		$datas = $this->getInstances($model, $totalCount, 1, $id);
 		$this->formModal = ($this->_getModelViewer()->isModal($datas, $model)) ? "modal" : "no";
-		return $this->_getModelViewer()->getModelDataTable($datas, $model, $totalCount, $this->activePage);
+		$dt = $this->_getModelViewer()->getModelDataTable($datas, $model, $totalCount, $this->activePage);
+		$dt->setActiveRowSelector('blue');
+		return $dt;
 	}
 
 	protected function getInstances($model, &$totalCount, $page = 1, $id = null) {
