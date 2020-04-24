@@ -431,14 +431,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->config["part2"] = explode(',', $part2Str);
 		$this->_saveConfig();
 		$_GET["_refresh"] = true;
-		$this->forward(self::class, 'index', [], true, true);
+		$_REQUEST["_userInfo"] = true;
+		$this->forward(static::class, 'index', [], true, true);
 	}
 
 	public function _resetConfigParams() {
 		$this->config = [];
 		$this->_saveConfig();
 		$_GET["_refresh"] = true;
-		$this->forward(self::class, 'index', [], true, true);
+		$this->forward(static::class, 'index', [], true, true);
 	}
 
 	protected function getActiveDb() {
