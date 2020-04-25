@@ -96,7 +96,7 @@ abstract class DefaultMaintenance extends ControllerBase {
 
 	public function __construct() {
 		parent::__construct();
-		$this->insertJquerySemantic();
+		$this->_insertJquerySemantic();
 		$config = \controllers\Admin::_getConfigFile()['maintenance'];
 		$this->activeMaintenance = MaintenanceMode::getActiveMaintenance($config);
 	}

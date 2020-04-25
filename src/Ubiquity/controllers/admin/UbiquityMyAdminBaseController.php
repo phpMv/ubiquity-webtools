@@ -159,7 +159,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		parent::__construct();
 		$this->addAdminViewPath();
 		DAO::$transformerOp = 'toView';
-		$this->insertJquerySemantic();
+		$this->_insertJquerySemantic();
 		$this->config = self::_getConfigFile();
 	}
 
