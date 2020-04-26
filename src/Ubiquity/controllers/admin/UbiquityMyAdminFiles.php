@@ -9,7 +9,7 @@ class UbiquityMyAdminFiles {
 	private $viewBase = "@admin";
 
 	public function getAdminBaseRoute() {
-		return "Admin";
+		return "/Admin";
 	}
 
 	public function getViewDataIndex() {

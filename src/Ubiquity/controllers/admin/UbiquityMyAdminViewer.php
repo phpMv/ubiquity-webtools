@@ -49,7 +49,6 @@ use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\content\table\HtmlTR;
-use Ajax\common\html\html5\HtmlInput;
 use Ubiquity\controllers\admin\popo\OAuthProvider;
 
 /**

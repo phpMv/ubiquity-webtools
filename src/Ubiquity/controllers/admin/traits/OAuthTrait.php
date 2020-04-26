@@ -68,7 +68,7 @@ trait OAuthTrait {
 	}
 
 	public function _testOauth($name) {
-		$baseRoute = $GLOBALS["config"]["siteUrl"] . $this->_getFiles()->getAdminBaseRoute();
+		$baseRoute = rtrim($GLOBALS["config"]["siteUrl"], '/') . '/' . ltrim($this->_getFiles()->getAdminBaseRoute(), '/');
 		$this->config['oauth-providers'][$name] = false;
 		$this->_saveConfig();
 		$adapter = OAuthManager::startAdapter($name, $baseRoute . '/_testOauth/' . $name);
