@@ -243,7 +243,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"js" => $this->initializeJs()
 			]);
 		}
-		ob_end_flush();
+		while (ob_get_level() > 0) {
+			ob_end_flush();
+		}
 	}
 
 	protected function addAdminViewPath() {
@@ -776,6 +778,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function git($hasMessage = true) {
+		$semantic = $this->jquery->semantic();
 		$loader = '<div class="ui active inline centered indeterminate text loader">Waiting for git operation...</div>';
 		$this->getHeader("git");
 		$gitRepo = $this->_getRepo();
@@ -783,8 +786,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$pushPullBts = "";
 		$gitIgnoreBt = "";
 		$btRefresh = "";
+		$execCmdBt = "";
 		if (! $gitRepo->getInitialized()) {
-			$initializeBt = $this->jquery->semantic()->htmlButton("initialize-bt", "Initialize repository", "orange");
+			$initializeBt = $semantic->htmlButton("initialize-bt", "Initialize repository", "orange");
 			$initializeBt->addIcon("magic");
 			$initializeBt->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_gitInit", "#main-content", [
@@ -796,7 +800,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			if ($hasMessage) {
 				$this->showSimpleMessage("<b>{$gitRepo->getName()}</b> repository is correctly initialized.", "info", null, "info circle", null, "init-message");
 			}
-			$pushPullBts = $this->jquery->semantic()->htmlButtonGroups("push-pull-bts", [
+			$pushPullBts = $semantic->htmlButtonGroups("push-pull-bts", [
 				"3-Push",
 				"1-Pull"
 			]);
@@ -817,46 +821,40 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"attr" => "data-ajax",
 				"ajaxLoader" => $loader
 			]);
-			$pushPullBts->setPropertyValues("style", "width: 260px;");
-			$gitIgnoreBt = $this->jquery->semantic()->htmlButton("gitIgnore-bt", ".gitignore");
+			$pushPullBts->setPropertyValues("style", "width: 220px;");
+			$gitIgnoreBt = $semantic->htmlButton("gitIgnore-bt", ".gitignore");
 			$gitIgnoreBt->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_gitIgnoreEdit", "#frm", [
 				"attr" => ""
 			]);
-			$btRefresh = $this->jquery->semantic()->htmlButton("refresh-bt", "Refresh files", "green");
+			$btRefresh = $semantic->htmlButton("refresh-bt", "Refresh files", "green");
 			$btRefresh->addIcon("sync alternate");
 			$btRefresh->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
-				"attr" => "",
-				"jqueryDone" => "replaceWith",
-				"hasLoader" => false
+				'attr' => '',
+				'jqueryDone' => 'replaceWith',
+				'hasLoader' => false
+			]);
+
+			$execCmdBt = $semantic->htmlButton("execCmd-bt", "Git cmd");
+			$execCmdBt->getOnClick($this->_getFiles()
+				->getAdminBaseRoute() . '/_gitCmdFrm', '#frm', [
+				'hasLoader' => 'internal'
 			]);
 		}
 
-		$this->jquery->exec('$.fn.form.settings.rules.checkeds=function(value){var fields = $("[name=\'files-to-commit[]\']:checked");return fields.length>0;};', true);
-		$files = $gitRepo->getFiles();
-		$this->_getAdminViewer()->getGitFilesDataTable($files);
-		$this->_getAdminViewer()->getGitCommitsDataTable($gitRepo->getCommits());
-
-		$this->jquery->exec('$("#lbl-changed").toggle(' . ((sizeof($files) > 0) ? "true" : "false") . ');', true);
-
 		$this->jquery->getOnClick("#settings-btn", $this->_getFiles()
 			->getAdminBaseRoute() . "/_gitFrmSettings", "#frm");
-		$this->jquery->exec('$("#commit-frm").form({"fields":{"summary":{"rules":[{"type":"empty"}]},"files-to-commit[]":{"rules":[{"type":"checkeds","prompt":"You must select at least 1 file!"}]}},"on":"blur","onSuccess":function(event,fields){' . $this->jquery->postFormDeferred($this->_getFiles()
-			->getAdminBaseRoute() . "/_gitCommit", "commit-frm", "#messages", [
-			"preventDefault" => true,
-			"stopPropagation" => true,
-			"ajaxLoader" => $loader
-		]) . ';return false;}});', true);
-		$this->jquery->exec('$("#git-tabs .item").tab();', true);
-		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
+
+		$this->gitTabs($gitRepo, $loader);
+		$this->jquery->renderView($this->_getFiles()
 			->getViewGitIndex(), [
 			"repo" => $gitRepo,
 			"initializeBt" => $initializeBt,
 			"gitIgnoreBt" => $gitIgnoreBt,
 			"pushPullBts" => $pushPullBts,
-			"btRefresh" => $btRefresh
+			"btRefresh" => $btRefresh,
+			"execCmdBt" => $execCmdBt
 		]);
 	}
 
@@ -1736,5 +1734,18 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected function addCloseToMessage() {
 		$this->jquery->execAtLast('$(".message .close").on("click", function() {$(this).closest(".message").transition("fade");});');
+	}
+
+	protected function liveExecuteCommand($cmd) {
+		$proc = \popen("$cmd 2>&1", 'r');
+		$live_output = "";
+		while (! \feof($proc)) {
+			$live_output = fread($proc, 4096);
+			$live_output = mb_convert_encoding($live_output, 'UTF-8', 'UTF-8');
+			echo "$live_output";
+			flush();
+			ob_flush();
+		}
+		\pclose($proc);
 	}
 }

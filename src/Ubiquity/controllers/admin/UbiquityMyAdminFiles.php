@@ -128,6 +128,14 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/git/formGitIgnore.html";
 	}
 
+	public function getViewGitTabsRefresh() {
+		return $this->viewBase . "/git/gitTabs.html";
+	}
+
+	public function getViewGitCmdFrm() {
+		return $this->viewBase . "/git/execGitCmdFrm.html";
+	}
+
 	public function getViewThemesIndex() {
 		return $this->viewBase . "/themes/index.html";
 	}

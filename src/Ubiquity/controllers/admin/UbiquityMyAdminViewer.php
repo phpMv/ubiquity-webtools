@@ -1896,7 +1896,8 @@ class UbiquityMyAdminViewer {
 		$frm->setFields([
 			"name\n",
 			"name",
-			"remoteUrl",
+			"remoteUrl\n",
+			"baseFolder",
 			"user",
 			"password"
 		]);
@@ -1904,6 +1905,7 @@ class UbiquityMyAdminViewer {
 			"&nbsp;Git repository settings",
 			"Repository name",
 			"Remote URL",
+			"Local path",
 			"User name",
 			"password"
 		]);
@@ -1912,16 +1914,40 @@ class UbiquityMyAdminViewer {
 		]);
 		$frm->setSubmitParams($this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_updateGitParams", "#main-content");
-		$frm->fieldAsInput(1);
-		$frm->fieldAsInput(3, [
+		$frm->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		$frm->fieldAsInput('name');
+		$frm->fieldAsInput('baseFolder', [
+			'rules' => [
+				[
+					'checkDirectory',
+					'{value} directory does not exists!'
+				]
+			]
+		]);
+		$frm->fieldAsInput(2, [
+			'rules' => [
+				[
+					'checkUrl',
+					'{value} does not return a 200 status code!'
+				]
+			]
+		]);
+		$frm->fieldAsInput('user', [
 			"rules" => [
 				"empty"
 			]
 		]);
-		$frm->fieldAsInput(4, [
+		$frm->fieldAsInput('password', [
 			"inputType" => "password"
 		]);
-		$frm->addDividerBefore("user", "gitHub");
+		$frm->addDividerBefore('user', 'gitHub');
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkDirectory", $this->controller->_getFiles()
+			->getAdminBaseRoute() . "/_checkAbsoluteDirectory", "{_value:value}", "result=data.result;", "post"), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkUrl", $this->controller->_getFiles()
+			->getAdminBaseRoute() . "/_checkUrl", "{_value:value}", "result=data.result;", "post"), true);
 		return $frm;
 	}
 
