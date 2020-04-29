@@ -152,6 +152,25 @@ trait ConfigTrait {
 		});
 	}
 
+	public function _checkAbsoluteDirectory() {
+		$this->_checkCondition(function ($value) {
+			if ($value != null) {
+				return \file_exists($value);
+			}
+			return true;
+		});
+	}
+
+	public function _checkUrl() {
+		$this->_checkCondition(function ($value) {
+			$headers = @get_headers($value);
+			if ($value != null) {
+				return $headers && strpos($headers[0], '200');
+			}
+			return true;
+		});
+	}
+
 	public function _checkClass() {
 		$parent = URequest::post("_ruleValue");
 		$this->_checkCondition(function ($value) use ($parent) {

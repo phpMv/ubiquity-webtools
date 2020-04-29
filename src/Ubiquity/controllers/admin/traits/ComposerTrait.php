@@ -14,7 +14,7 @@ use Ajax\semantic\html\elements\html5\HtmlDatalist;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- *         
+ *
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  *
  */
@@ -320,18 +320,6 @@ trait ComposerTrait {
 			'partial' => "$('#partial').html(response);"
 		]);
 		echo $this->jquery->compile();
-	}
-
-	private function liveExecuteCommand($cmd) {
-		$proc = \popen("$cmd 2>&1", 'r');
-		$live_output = "";
-		while (! \feof($proc)) {
-			$live_output = fread($proc, 4096);
-			echo "$live_output";
-			flush();
-			ob_flush();
-		}
-		\pclose($proc);
 	}
 }
 
