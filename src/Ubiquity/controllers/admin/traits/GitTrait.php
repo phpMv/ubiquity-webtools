@@ -12,7 +12,6 @@ use Cz\Git\GitException;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\git\UGitRepository;
-use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 
 /**
  *
@@ -206,7 +205,8 @@ trait GitTrait {
 		$this->jquery->postFormOnClick("#validate-btn", $this->_getFiles()
 			->getAdminBaseRoute() . "/_gitIgnoreValidate", "gitignore-frm", "#frm");
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
-		$content = UFileSystem::load(Startup::getApplicationDir() . \DS . ".gitignore");
+		$gitRepo = $this->_getRepo(false);
+		$content = UFileSystem::load($gitRepo->getBaseFolder() . \DS . ".gitignore");
 		if ($content === false) {
 			$content = "#gitignorefile\n";
 		}
@@ -219,7 +219,8 @@ trait GitTrait {
 	public function _gitIgnoreValidate() {
 		if (URequest::isPost()) {
 			$content = URequest::post("content");
-			if (UFileSystem::save(Startup::getApplicationDir() . \DS . ".gitignore", $content)) {
+			$gitRepo = $this->_getRepo(false);
+			if (UFileSystem::save($gitRepo->getBaseFolder() . \DS . ".gitignore", $content)) {
 				$this->jquery->get($this->_getFiles()
 					->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
 					"attr" => "",
