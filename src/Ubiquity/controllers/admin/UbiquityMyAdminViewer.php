@@ -54,7 +54,7 @@ use Ubiquity\controllers\admin\popo\OAuthProvider;
 /**
  *
  * @author jc
- *
+ *        
  */
 class UbiquityMyAdminViewer {
 
@@ -1912,12 +1912,12 @@ class UbiquityMyAdminViewer {
 		$frm->fieldAsMessage(0, [
 			"icon" => HtmlIconGroups::corner("git", "settings")
 		]);
-		$frm->setSubmitParams($this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_updateGitParams", "#main-content");
 		$frm->setValidationParams([
 			"on" => "blur",
 			"inline" => true
 		]);
+		$frm->setSubmitParams($this->controller->_getFiles()
+			->getAdminBaseRoute() . "/_updateGitParams", "#main-content");
 		$frm->fieldAsInput('name');
 		$frm->fieldAsInput('baseFolder', [
 			'rules' => [
