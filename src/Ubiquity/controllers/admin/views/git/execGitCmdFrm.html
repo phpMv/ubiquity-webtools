@@ -1,0 +1,34 @@
+<form class="ui form" id="git-frm" name="git-frm" novalidate>
+	<div class="ui top attached secondary segment">Git commands</div>
+	<div class="ui attached segment">
+		<div class="field">
+			{{q['dd-git-macros']|raw}}
+		</div>
+		<div class="field">
+			<label>Text</label>
+			<textarea name="commands" id="commands" rows="10">{{commands}}</textarea>
+		</div>
+	</div>
+</form>
+<div class="ui segment">
+	<div class="ui grid">
+		<div class="eight wide column">
+			<button id="validate-btn" class="ui button positive">
+				<i id="icon-bt-okay" class="icon check circle"></i>
+				 Execute git commands
+			</button>
+			&nbsp;
+			<button id="cancel-btn" class="ui button">
+				<i id="icon-bt-cancel" class="icon remove circle outline"></i>
+				 Cancel
+			</button>
+		</div>
+		<div class="eight wide column">
+			<div class="ui fluid action input">
+			  <input type="text" id="macro-name" name="macro-name" placeholder="Macro name...">
+			  <button id="add-macro-btn" class="ui black button">Save these commands</button>
+			</div>
+		</div>
+	</div>
+</div>
+{{ script_foot | raw }}
