@@ -112,7 +112,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.7';
+	public const version = '2.3.8';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -148,6 +148,19 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				]
 			]
 		];
+		if (class_exists('\\Cz\\Git\\GitRepository')) {
+			$defaultConfig['git-macros'] = [
+				"Status" => "git status",
+				"commit & push" => "git+add+.%0Agit+commit+-m+%22%3Cyour+message%3E%22%0Agit+push%0A",
+				"checkout" => "git+checkout+%3Cbranch-name%3E",
+				"remove file from remote repository" => "git+rm+--cached+%3Cfilename%3E%0Agit+commit+-m+%22Removed+file+from+repository%22%0Agit+push",
+				"remove folder from remote repository" => "git+rm+--cached+-r+%3Cdir_name%3E%0Agit+commit+-m+%22Removed+folder+from+repository%22%0Agit+push",
+				"undo last commit (soft)" => "git+reset+--soft+HEAD%5E",
+				"undo last commit (hard)" => "git+reset+--hard+HEAD%5E",
+				"unstage file(s) from index" => "git+rm+--cached+%3Cfile-name%3E",
+				"stash & pull (overwrite local changes with pull)" => "git+stash%0Agit+pull%0A"
+			];
+		}
 		if (file_exists(self::$configFile)) {
 			$config = include (self::$configFile);
 			return \array_replace($defaultConfig, $config);
