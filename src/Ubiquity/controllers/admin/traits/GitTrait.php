@@ -295,6 +295,11 @@ trait GitTrait {
 		header('Content-type: text/html; charset=utf-8');
 		header('Cache-Control: no-cache');
 		$this->addCloseToMessage();
+
+		$gitRepo = $this->_getRepo(false);
+		$dir = $gitRepo->getBaseFolder();
+		chdir($dir);
+
 		if (\ob_get_length())
 			\ob_end_clean();
 		ob_end_flush();
