@@ -11,6 +11,8 @@ use Ajax\semantic\components\validation\Rule;
 use Ubiquity\orm\DAO;
 use Ajax\JsUtils;
 use Ubiquity\db\Database;
+use Ubiquity\exceptions\DBException;
+use Ubiquity\db\SqlUtils;
 
 /**
  *
@@ -192,7 +194,7 @@ trait ModelsConfigTrait {
 		$this->jquery->execAtLast('$("#yuml-tab .item").tab({onVisible:function(tab){
 				if(tab=="diagram" && $("#yuml-code").prop("_changed")==true){
 					' . $this->_yumlRefresh("/_updateYumlDiagram", "{refresh:'true',code:$('#yuml-code').val()}", "#diag-class") . '
-				}	
+				}
 			}
 		});');
 		$this->jquery->compile($this->view);
@@ -338,12 +340,32 @@ trait ModelsConfigTrait {
 		$this->models();
 	}
 
-	public function _importSQL() {
+	private function getDbInstance(string $offset) {
 		try {
-			$db = DAO::getDatabase($this->getActiveDb());
+			$db = null;
+			$config = Startup::$config;
+			if (! isset(DAO::$db[$offset])) {
+				DAO::startDatabase($config, $offset);
+			}
+			if (isset(DAO::$db[$offset])) {
+				$db = DAO::$db[$offset];
+				SqlUtils::$quote = $db->quote;
+			} else {
+				DAO::updateDatabaseParams($config, [
+					'dbName' => 'newbase'
+				], $offset);
+				DAO::startDatabase($config, $offset);
+				$db = DAO::$db[$offset];
+			}
 		} catch (\Exception $e) {
-			$db = DAO::$db[$this->getActiveDb()];
+			$db = DAO::$db[$offset];
 		}
+		return $db;
+	}
+
+	public function _importSQL() {
+		$offset = $this->getActiveDb();
+		$db = $this->getDbInstance($offset);
 		$frm = $this->jquery->semantic()->htmlForm("frm-sql-import");
 		$file = $this->jquery->semantic()->htmlInput('sqlFile');
 		$file->asFile('Select file...', 'right', 'upload', true);
@@ -383,34 +405,38 @@ trait ModelsConfigTrait {
 		if (isset($dbName) && isset($sql)) {
 			$sql = preg_replace('/(USE\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
 			$sql = preg_replace('/(CREATE\sDATABASE\s(?:IF NOT EXISTS){0,1}\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
-			try {
-				$activeDbOffset = $this->getActiveDb();
+			$activeDbOffset = $this->getActiveDb();
+
+			$db = $this->getDbInstance($activeDbOffset);
+			if (! $db->isConnected()) {
+				$db->setDbName('');
 				try {
-					$db = DAO::getDatabase($activeDbOffset);
+					$db->connect();
 				} catch (\Exception $e) {
-					$db = DAO::$db[$this->getActiveDb()];
-					$db->setDbName('');
-					try {
-						$db->connect();
-					} catch (\Exception $e) {
-						$isValid = false;
-						$this->showSimpleMessage($e->getMessage(), 'error', 'Connection to database: SQL file importation', 'warning', null, 'opMessage');
-					}
+					$isValid = false;
+					$this->showSimpleMessage($e->getMessage(), 'error', 'Connection to database: SQL file importation', 'warning', null, 'opMessage');
 				}
-				if ($isValid) {
-					if ($db->getDbName() !== $dbName) {
-						$config = Startup::$config;
-						DAO::updateDatabaseParams($config, [
-							'dbName' => $dbName
-						], $activeDbOffset);
-						Startup::saveConfig($config);
-						$this->showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
-					}
-					$db->execute($sql);
-				}
-			} catch (\Exception $e) {
-				$this->showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
 			}
+			if ($isValid) {
+				if ($db->getDbName() !== $dbName) {
+					$config = Startup::$config;
+					DAO::updateDatabaseParams($config, [
+						'dbName' => $dbName
+					], $activeDbOffset);
+					Startup::saveConfig($config);
+					Startup::reloadConfig();
+				}
+				try {
+					$db->beginTransaction();
+					$db->execute($sql);
+					$db->commit();
+					$this->showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+				} catch (\Exception $e) {
+					$db->rollBack();
+					$this->showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
+				}
+			}
+
 			$this->models();
 		}
 	}
