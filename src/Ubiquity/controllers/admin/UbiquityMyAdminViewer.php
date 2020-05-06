@@ -268,7 +268,7 @@ class UbiquityMyAdminViewer {
 			$item = $dd->getItem(0);
 			$item->addClass("_add-new-action")
 				->setProperty("data-controller", $instance->getController());
-			$bt->onClick("$(\"tr[data-ajax='" . \urlencode($instance->getController()) . "'] td:not([rowspan])\").toggle(!$(this).hasClass('active'));");
+			$bt->onClick("$(\"tr[data-ajax='" . \urlencode($instance->getController()) . "'] td:not([rowspan]):not(.rowspanned)\").toggle(!$(this).hasClass('active'));");
 			return $bts;
 		});
 		$dt->setValueFunction("action", function ($v, $instance, $index) {

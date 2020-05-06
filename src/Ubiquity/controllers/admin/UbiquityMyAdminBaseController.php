@@ -112,7 +112,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.8';
+	public const version = '2.3.9';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -631,7 +631,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 		$cacheFiles = $this->getCacheFiles($this->config['display-cache-types']);
 		$form = $this->jquery->semantic()->htmlForm('frmCache');
-		$radios = HtmlFormFields::checkeds('ctvv', 'cacheTypes[]', [
+		$cacheTypes = [
 			'controllers' => 'Controllers',
 			'models' => 'Models',
 			'views' => 'Views',
@@ -640,7 +640,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'seo' => 'SEO',
 			'contents' => 'Contents',
 			'translations' => 'Translations'
-		], 'Display cache types: ', $this->config['display-cache-types']);
+		];
+		$radios = HtmlFormFields::checkeds('ctvv', 'cacheTypes[]', $cacheTypes, 'Display cache types: ', $this->config['display-cache-types']);
 
 		$this->jquery->postFormOn('change', '#ctvv .checkbox', $this->_getFiles()
 			->getAdminBaseRoute() . "/_setCacheTypes", "frmCache", "#dtCacheFiles tbody", [
