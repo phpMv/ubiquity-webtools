@@ -256,9 +256,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"js" => $this->initializeJs()
 			]);
 		}
-		while (ob_get_level() > 0) {
-			ob_end_flush();
-		}
 	}
 
 	protected function addAdminViewPath() {

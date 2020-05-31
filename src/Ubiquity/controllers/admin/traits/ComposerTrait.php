@@ -274,7 +274,7 @@ trait ComposerTrait {
 			'jqueryDone' => 'replaceWith',
 			'hasLoader' => false
 		]);
-		echo $this->jquery->compile();
+		echo $this->jquery->compile($this->view);
 	}
 
 	public function _refreshComposer() {
@@ -314,7 +314,7 @@ trait ComposerTrait {
 			$command .= ' --dev';
 		}
 		$this->jquery->post($this->_getFiles()
-			->getAdminBaseRoute() . '/_execComposer', '{commands: "' . $command . '"}', null, [
+			->getAdminBaseRoute() . '/_execComposer', '{commands: "' . $command . '"}', '#partial', [
 			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Install dependency...') . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
