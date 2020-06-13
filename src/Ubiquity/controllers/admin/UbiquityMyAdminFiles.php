@@ -203,4 +203,8 @@ class UbiquityMyAdminFiles {
 	public function getViewAddOAuthController() {
 		return $this->viewBase . "/oauth/oauthControllerFrm.html";
 	}
+
+	public function getViewSecurityIndex() {
+		return $this->viewBase . "/security/index.html";
+	}
 }

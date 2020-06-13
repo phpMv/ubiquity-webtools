@@ -65,6 +65,8 @@ use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\client\oauth\OAuthAdmin;
 use Ajax\semantic\html\elements\HtmlLabel;
+use Ubiquity\utils\http\USession;
+use Ubiquity\utils\http\UCookie;
 
 /**
  *
@@ -186,7 +188,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$mainMenuElements = $this->_getAdminViewer()->getMainMenuElements();
 			$mainMenuElements = $this->getMenuElements($mainMenuElements);
 			$elements = [
-				"UbiquityMyadmin"
+				"Webtools"
 			];
 			$dataAjax = [
 				"index"
@@ -1737,6 +1739,132 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'response' => $response,
 			'callback' => $callback
 		]);
+	}
+
+	public function security() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$hasSecurity = \class_exists('\\Ubiquity\\security\\csrf\\CsrfManager');
+		$hasShieldon = \class_exists('\Shieldon\Container');
+		$componentsValues = [
+			'security' => $hasSecurity,
+			'shieldon' => $hasShieldon
+		];
+		$servicesValues = [];
+		if ($hasSecurity) {
+			$servicesValues['encryption'] = \Ubiquity\security\data\EncryptionManager::isStarted();
+			$hasCsrf = \Ubiquity\security\csrf\CsrfManager::isStarted();
+			$servicesValues['csrf'] = $hasCsrf;
+			if ($hasCsrf) {
+				$csrfValues = [
+					'selector' => \Ubiquity\security\csrf\CsrfManager::getSelectorClass(),
+					'validator' => \Ubiquity\security\csrf\CsrfManager::getValidatorClass(),
+					'storage' => \Ubiquity\security\csrf\CsrfManager::getStorageClass()
+				];
+			}
+		}
+		if ($hasShieldon) {
+			$servicesValues['shieldon'] = \Shieldon\Container::get('firewall') !== null;
+		}
+		$sessionValues = [];
+		if ($sessionValues['started'] = USession::isStarted()) {
+			$sessionValues['class'] = USession::getInstanceClass();
+			$sessionValues['protection'] = USession::getCsrfProtectionClass();
+			$sessionValues['visitorCount'] = USession::visitorCount();
+		}
+		$cookieValues = [
+			'transformer' => UCookie::getTransformerClass() ?? 'Nothing'
+		];
+		$deComponents = $this->jquery->semantic()->dataElement('components', $componentsValues);
+		$deComponents->setFields(array_keys($componentsValues));
+		$deComponents->setCaptions([
+			'ubiquity-security',
+			'Shieldon'
+		]);
+		$deComponents->setAttached();
+
+		$deComponents->setValueFunction('security', function ($value) {
+			if ($value) {
+				$lbl = new HtmlLabel('lbl-security', 'Installed', 'green check');
+				return $lbl;
+			} else {
+				$bt = new HtmlButton('install-security', 'Install with composer', 'teal');
+				return $bt;
+			}
+		});
+
+		$deComponents->setValueFunction('shieldon', function ($value) {
+			if ($value) {
+				$lbl = new HtmlLabel('lbl-shieldon', 'Installed', 'green check');
+				return $lbl;
+			} else {
+				$bt = new HtmlButton('install-shieldon', 'Install with composer', 'teal');
+				return $bt;
+			}
+		});
+
+		$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
+		$deServices->setFields(array_keys($servicesValues));
+		$deServices->setCaptions([
+			'Encryption manager',
+			'Csrf manager',
+			'Shieldon firewall'
+		]);
+
+		$deServices->fieldAsCheckbox('encryption', [
+			'type' => 'toggle'
+		]);
+		$deServices->fieldAsCheckbox('csrf', [
+			'type' => 'toggle'
+		]);
+		$deServices->fieldAsCheckbox('shieldon', [
+			'type' => 'toggle'
+		]);
+		$deServices->setAttached();
+
+		$deSession = $this->jquery->semantic()->dataElement('session', $sessionValues);
+		$deSession->setFields(array_keys($sessionValues));
+		$deSession->setCaptions([
+			'Started?',
+			'Instance class',
+			'Csrf protection',
+			'Session count'
+		]);
+		$deSession->fieldAsCheckbox('started', [
+			'type' => 'toggle'
+		]);
+		$deSession->fieldAsLabel('protection', 'lock');
+		$deSession->fieldAsLabel('visitorCount', null, 'circular');
+		$deSession->setAttached();
+
+		$deCookies = $this->jquery->semantic()->dataElement('cookies', $cookieValues);
+		$deCookies->setFields([
+			'transformer'
+		]);
+		$deCookies->setCaptions([
+			'Transformer'
+		]);
+		$deCookies->fieldAsLabel('transformer');
+		$deCookies->setAttached();
+
+		if ($hasSecurity && $hasCsrf) {
+			$deCsrf = $this->jquery->semantic()->dataElement('csrf', $csrfValues);
+			$deCsrf->setFields(array_keys($csrfValues));
+			$deCsrf->setCaptions([
+				'Selector',
+				'Validator',
+				'Storage'
+			]);
+			$deCsrf->fieldsAs([
+				'label',
+				'label',
+				'label'
+			]);
+			$deCsrf->setAttached();
+			$deCsrf->wrap('<div class="ui top attached orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
+		}
+		$this->getHeader('security');
+		$this->jquery->renderView($this->_getFiles()
+			->getViewSecurityIndex());
 	}
 
 	protected function getConsoleMessage_($id = 'partial', $defaultMsg = 'Composer update...') {

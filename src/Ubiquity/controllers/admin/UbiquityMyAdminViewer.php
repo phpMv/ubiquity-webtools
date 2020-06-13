@@ -54,7 +54,7 @@ use Ubiquity\controllers\admin\popo\OAuthProvider;
 /**
  *
  * @author jc
- *        
+ *
  */
 class UbiquityMyAdminViewer {
 
@@ -131,6 +131,11 @@ class UbiquityMyAdminViewer {
 				"Composer",
 				"box",
 				"Manages composer dependencies"
+			],
+			"security" => [
+				'Security',
+				'shield alternate',
+				'Manages security'
 			]
 		];
 		if (\class_exists('Cz\\Git\\GitRepository')) {
