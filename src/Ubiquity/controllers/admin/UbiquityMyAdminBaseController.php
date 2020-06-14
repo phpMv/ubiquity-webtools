@@ -65,8 +65,6 @@ use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\client\oauth\OAuthAdmin;
 use Ajax\semantic\html\elements\HtmlLabel;
-use Ubiquity\utils\http\USession;
-use Ubiquity\utils\http\UCookie;
 use Ubiquity\controllers\admin\traits\SecurityTrait;
 
 /**
@@ -115,7 +113,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.9';
+	public const version = '2.3.10';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -770,7 +768,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->_seo();
 		$this->jquery->execOn('click', '#generateRobots', '$("#frm-seoCtrls").form("submit");');
 		$this->jquery->getOnClick('.addNewSeo', $this->_getFiles()
-			->getAdminBaseRoute() . '/_newSeoController', '#seo-details');
+			->getAdminBaseRoute() . '/_newSeoController', '#seo-details', [
+			'hasLoader' => 'internal'
+		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewSeoIndex());
 	}
