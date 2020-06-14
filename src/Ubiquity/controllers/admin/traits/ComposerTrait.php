@@ -254,7 +254,7 @@ trait ComposerTrait {
 		]);
 	}
 
-	public function _execComposer() {
+	public function _execComposer($url = '_refreshComposer', $responseElement = "dtComposer") {
 		header('Content-type: text/html; charset=utf-8');
 
 		$this->addCloseToMessage();
@@ -270,7 +270,7 @@ trait ComposerTrait {
 			$this->liveExecuteCommand($cmd);
 		}
 		$this->jquery->get($this->_getFiles()
-			->getAdminBaseRoute() . '/_refreshComposer', '#dtComposer', [
+			->getAdminBaseRoute() . '/' . $url, '#' . $responseElement, [
 			'jqueryDone' => 'replaceWith',
 			'hasLoader' => false
 		]);
