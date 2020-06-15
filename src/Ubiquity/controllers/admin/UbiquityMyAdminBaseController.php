@@ -1575,7 +1575,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function maintenance() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("maintenance");
-		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/49'>github issue</a> in case of problems.", "info", "Maintenance", "info circle", null, "msgGlobal");
 
 		$maintenance = $this->config['maintenance'];
 		$active = MaintenanceMode::getActiveMaintenance($maintenance);
@@ -1744,6 +1743,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function security() {
 		$this->getHeader('security');
+		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/110'>github issue</a> in case of problems.", "info", "Security", "info circle", null, "msgGlobal");
+
 		$this->jquery->renderView($this->_getFiles()
 			->getViewSecurityIndex(), [
 			'sPart' => $this->_refreshSecurity(true)
