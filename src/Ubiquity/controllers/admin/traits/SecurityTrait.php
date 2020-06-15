@@ -11,6 +11,7 @@ use Ubiquity\utils\http\UCookie;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\USession;
 use Ubiquity\controllers\admin\ServicesChecker;
+use Ubiquity\security\data\EncryptionManager;
 
 /**
  * Ubiquity\controllers\admin\traits$SecurityTrait
@@ -81,7 +82,13 @@ trait SecurityTrait {
 		]);
 
 		$deServices->setValueFunction('encryption', function ($value) {
-			return $this->startOrStartedSecurityService($value, 'encryptionManager');
+			$res = $this->startOrStartedSecurityService($value, 'encryptionManager');
+			if ($value) {
+				$lbl = new HtmlLabel('', EncryptionManager::getEncryptionInstance()->getCipher());
+				$lbl->addClass('circular grey floated right');
+				$res->wrap('', $lbl);
+			}
+			return $res;
 		});
 		$deServices->setValueFunction('csrf', function ($value) {
 			return $this->startOrStartedSecurityService($value, 'csrfManager');

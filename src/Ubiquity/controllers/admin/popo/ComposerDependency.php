@@ -6,8 +6,8 @@ namespace Ubiquity\controllers\admin\popo;
  * This class is part of Ubiquity
  *
  * @author jcheron <myaddressmail@gmail.com>
- * @version 1.0.0
- *
+ * @version 1.0.1
+ *         
  */
 class ComposerDependency {
 
@@ -153,6 +153,16 @@ class ComposerDependency {
 			$depInstance->setVersion($version);
 			$result[] = $depInstance;
 		}
+	}
+
+	public static function getDependency($vendor, $package, $dependencies) {
+		$name = $vendor . '/' . $package;
+		foreach ($dependencies as $dependency) {
+			if ($name === $dependency->getName()) {
+				return $dependency;
+			}
+		}
+		return null;
 	}
 
 	public static function getComposer() {
