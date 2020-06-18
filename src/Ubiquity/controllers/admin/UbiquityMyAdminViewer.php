@@ -152,6 +152,13 @@ class UbiquityMyAdminViewer {
 				"Log files"
 			];
 		}
+		if (\class_exists('Ubiquity\\devtools\\cmd\\Command')) {
+			$result['commands'] = [
+				'Commands',
+				'file code',
+				'Devtools commands'
+			];
+		}
 		if (\class_exists('Ubiquity\\mailer\\MailerManager')) {
 			$result["mailer"] = [
 				"Mailer",
@@ -401,6 +408,43 @@ class UbiquityMyAdminViewer {
 		});
 		$dt->setCompact(true);
 		$dt->setEdition();
+		return $dt;
+	}
+
+	public function getCommandsDataTable($commands) {
+		$dt = $this->jquery->semantic()->dataTable("dtCommands", \Ubiquity\devtools\cmd\Command::class, $commands);
+		$dt->setFields([
+			'category',
+			'commands'
+		]);
+		$dt->setCaptions([
+			'Category',
+			'Commands'
+		]);
+		$dt->setVisibleHover(true);
+		$dt->setValueFunction('category', function ($cat, $instance) {
+			$lbl = new HtmlLabel('lbl-' . $cat, $cat, 'tag');
+			$lbl->addDetail(count($instance->getCommands()));
+			return $lbl;
+		});
+		$dt->setValueFunction('commands', function ($commands, $instance) {
+			$res = [];
+			foreach ($commands as $command) {
+				$name = $command->getName();
+				$bt = new HtmlButton("bt-" . $name, "", 'visibleover mini');
+				$bt->setProperty('style', 'visibility:hidden;');
+
+				$bt->addIcon("play");
+				$bt->addLabel($name, true, 'blue question circle icon')
+					->setPointing("right");
+				$btc = $bt->getContent()[1];
+				$btc->addClass('mini _displayCommand');
+				$btc->setProperty('data-cmd', $name);
+				$btc->getContent()[0]->setProperty('data-ajax', $name);
+				$res[] = $bt;
+			}
+			return $res;
+		});
 		return $dt;
 	}
 

@@ -1,0 +1,21 @@
+{{ q["header"] | raw }}
+{% if q["msgGlobal"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgGlobal"] | raw }}
+</div>
+{% endif %}
+<div id="command"></div>
+<div id="response"></div>
+<br>
+<div id='commandsPart'>
+		<div class="ui top attached tabular menu">
+		  <a class="item" data-tab="myCommands"><i class="stream icon"></i> My commands</a>
+		  <a class="item" data-tab="commands"><i class="tasks icon"></i> Commands</a>
+		</div>
+		<div class="ui bottom attached active tab segment" data-tab="myCommands">
+		{{q['dtCommands']|raw}}
+		</div>
+		<div class="ui bottom attached tab segment" data-tab="commands"></div>
+</div>
+
+{{ script_foot | raw }}

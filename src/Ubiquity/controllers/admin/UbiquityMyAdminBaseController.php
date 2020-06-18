@@ -65,7 +65,11 @@ use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\client\oauth\OAuthAdmin;
 use Ajax\semantic\html\elements\HtmlLabel;
+use Ubiquity\utils\http\USession;
+use Ubiquity\utils\http\UCookie;
 use Ubiquity\controllers\admin\traits\SecurityTrait;
+use Ubiquity\controllers\admin\traits\CommandsTrait;
+use Ubiquity\controllers\admin\popo\CategoryCommands;
 
 /**
  *
@@ -75,7 +79,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	use MessagesTrait,ModelsTrait,ModelsConfigTrait,RestTrait,CacheTrait,ConfigTrait,
 	ControllersTrait,RoutesTrait,DatabaseTrait,SeoTrait,GitTrait,CreateControllersTrait,
 	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait,
-	ComposerTrait,OAuthTrait,ConfigPartTrait,SecurityTrait;
+	ComposerTrait,OAuthTrait,ConfigPartTrait,SecurityTrait,CommandsTrait;
 
 	/**
 	 *
@@ -113,7 +117,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.10';
+	public const version = '2.3.9';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -1749,6 +1753,25 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->getViewSecurityIndex(), [
 			'sPart' => $this->_refreshSecurity(true)
 		]);
+	}
+
+	public function commands() {
+		$this->getHeader('commands');
+		$this->loadDevtoolsConfig();
+		\Ubiquity\devtools\cmd\Command::preloadCustomCommands($this->devtoolsConfig);
+		$commands = CategoryCommands::init([
+			'installation' => false,
+			'servers' => false
+		], \Ubiquity\devtools\cmd\Command::getCommands());
+		$this->_getAdminViewer()->getCommandsDataTable($commands);
+		$this->jquery->getOnClick('._displayCommand', $this->_getFiles()
+			->getAdminBaseRoute() . '/_displayCommand', '#command', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-cmd'
+		]);
+		$this->jquery->execAtLast("$('.menu .item').tab();");
+		$this->jquery->renderView($this->_getFiles()
+			->getViewCommandsIndex());
 	}
 
 	protected function getConsoleMessage_($id = 'partial', $defaultMsg = 'Composer update...') {

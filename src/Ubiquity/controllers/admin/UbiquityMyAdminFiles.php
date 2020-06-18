@@ -211,4 +211,12 @@ class UbiquityMyAdminFiles {
 	public function getViewSecurityPart() {
 		return $this->viewBase . "/security/securityPart.html";
 	}
+
+	public function getViewCommandsIndex() {
+		return $this->viewBase . "/commands/index.html";
+	}
+
+	public function getViewDisplayCommandForm() {
+		return $this->viewBase . "/commands/display.html";
+	}
 }
