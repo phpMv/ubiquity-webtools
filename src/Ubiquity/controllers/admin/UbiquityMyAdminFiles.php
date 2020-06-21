@@ -219,4 +219,12 @@ class UbiquityMyAdminFiles {
 	public function getViewDisplayCommandForm() {
 		return $this->viewBase . "/commands/display.html";
 	}
+
+	public function getViewDisplayMyCommands() {
+		return $this->viewBase . "/commands/myCommands.html";
+	}
+
+	public function getViewCommandSuiteFrm() {
+		return $this->viewBase . "/commands/commandSuiteFrm.html";
+	}
 }

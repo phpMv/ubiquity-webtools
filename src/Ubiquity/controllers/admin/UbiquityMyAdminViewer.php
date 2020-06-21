@@ -50,6 +50,7 @@ use Ajax\semantic\html\collections\form\HtmlFormDropdown;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\content\table\HtmlTR;
 use Ubiquity\controllers\admin\popo\OAuthProvider;
+use Ubiquity\controllers\admin\popo\CommandValues;
 
 /**
  *
@@ -446,6 +447,20 @@ class UbiquityMyAdminViewer {
 			return $res;
 		});
 		return $dt;
+	}
+
+	public function getCommandButton(CommandValues $cmd, $index, $suiteName) {
+		$name = $cmd->getCommand();
+		$bt = new HtmlButton("bt-" . $name, "", 'tiny');
+
+		$bt->addIcon("play");
+		$bt->addLabel('Ubiquity ' . $cmd->asHtml(), true, 'code icon')
+			->setPointing("right");
+		$btc = $bt->getContent()[1];
+		$btc->addClass('tiny _executeOneCommand');
+		$btc->setProperty('data-suite', $suiteName);
+		$btc->setProperty('data-index', $index);
+		return $bt;
 	}
 
 	public function getOAuthDataTable($providers, $baseRoute, $checkeds = []) {

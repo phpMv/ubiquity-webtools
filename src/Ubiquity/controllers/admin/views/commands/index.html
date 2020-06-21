@@ -8,14 +8,20 @@
 <div id="response"></div>
 <br>
 <div id='commandsPart'>
-		<div class="ui top attached tabular menu">
+		<div class="ui secondary menu">
+			<button id="add-suite-btn" class="ui button teal _menu">
+			  <i class="icon plus"></i>
+			  Add command suite...
+			</button>
+		</div>
+		<div id="command-tab" class="ui top attached tabular menu">
 		  <a class="item" data-tab="myCommands"><i class="stream icon"></i> My commands</a>
 		  <a class="item" data-tab="commands"><i class="tasks icon"></i> Commands</a>
 		</div>
-		<div class="ui bottom attached active tab segment" data-tab="myCommands">
-		{{q['dtCommands']|raw}}
+		<div id='command-suites' class="ui bottom attached active tab segment" data-tab="myCommands">
+		{{myCommands|raw}}
 		</div>
-		<div class="ui bottom attached tab segment" data-tab="commands"></div>
+		<div class="ui bottom attached tab segment" data-tab="commands">{{q['dtCommands']|raw}}</div>
 </div>
 
 {{ script_foot | raw }}

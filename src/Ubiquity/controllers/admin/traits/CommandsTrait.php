@@ -5,6 +5,12 @@ use Ubiquity\devtools\cmd\Command;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\controllers\Startup;
 use Ubiquity\utils\http\URequest;
+use Ubiquity\controllers\admin\popo\CommandList;
+use Ubiquity\controllers\admin\popo\CommandValues;
+use Ajax\semantic\html\elements\HtmlLabel;
+use Ajax\semantic\html\collections\form\HtmlForm;
+use Ajax\common\html\html5\HtmlInput;
+use Ajax\semantic\html\collections\HtmlMessage;
 
 /**
  * Ubiquity\controllers\admin\traits$CommandsTrait
@@ -15,6 +21,8 @@ use Ubiquity\utils\http\URequest;
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  */
 trait CommandsTrait {
+
+	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	protected $devtoolsConfig;
 
@@ -30,6 +38,279 @@ trait CommandsTrait {
 		return current($infos)['cmd'] ?? null;
 	}
 
+	protected function getAvailableCommands() {
+		$this->loadDevtoolsConfig();
+		\Ubiquity\devtools\cmd\Command::preloadCustomCommands($this->devtoolsConfig);
+		return Command::getCommandsWithExclusions();
+	}
+
+	public function _myCommands(bool $asString = true) {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$myCommands = CommandList::initFromArray($this->config['commands'] ?? []);
+		$dt = $this->jquery->semantic()->dataTable('myCommands', CommandList::class, $myCommands);
+		$dt->setFields([
+			'name',
+			'commandValues'
+		]);
+		$dt->setValueFunction('commandValues', function ($commands, $commandList) {
+			$result = [];
+			foreach ($commands as $index => $commandValues) {
+				$result[] = $this->_getAdminViewer()
+					->getCommandButton($commandValues, $index, $commandList->getName());
+			}
+			return $result;
+		});
+		$dt->addEditDeleteButtons();
+		$dt->insertDefaultButtonIn(2, 'play', '_executeCommandSuite', true, function ($elm, $commandList) {
+			$elm->setProperty('data-suite', \urlencode($commandList->getName()));
+		});
+		$dt->setIdentifierFunction(function ($i, $o) {
+			return \urlencode($o->getName());
+		});
+		$dt->setUrls([
+			'refresh' => '',
+			'delete' => $baseRoute . '/_deleteCommandSuite',
+			'edit' => $baseRoute . '/_myCommandsFrm'
+		]);
+
+		$dt->setTargetSelector('#command');
+		return $this->jquery->renderView($this->_getFiles()
+			->getViewDisplayMyCommands(), [], true);
+	}
+
+	protected function addMyCommandsBehavior($baseRoute) {
+		$this->jquery->postOnClick('._executeOneCommand', $baseRoute . '/_executeOneCommand', '{index:$(this).attr("data-index"),suite:$(this).attr("data-suite")}', '#response', [
+			'hasLoader' => 'internal'
+		]);
+		$this->jquery->postOnClick('._executeCommandSuite', $baseRoute . '/_executeCommandSuite', '{suite:$(this).attr("data-suite")}', '#response', [
+			'hasLoader' => 'internal'
+		]);
+	}
+
+	public function _executeOneCommand() {
+		$index = $_POST['index'];
+		$suite = $_POST['suite'];
+		if (isset($this->config['commands'][$suite][$index])) {
+			$commandValues = CommandValues::initFromArray($this->config['commands'][$suite][$index]);
+			$this->sendExecCommand('Ubiquity ' . $commandValues->__toString());
+		}
+	}
+
+	public function _executeCommandSuite() {
+		$suite = urldecode($_POST['suite']);
+
+		if (isset($this->config['commands'][$suite])) {
+			$resultCommands = [];
+			$commandValuesList = $this->config['commands'][$suite];
+			foreach ($commandValuesList as $commandValues) {
+				$resultCommands[] = 'Ubiquity ' . CommandValues::initFromArray($commandValues);
+			}
+			$this->sendExecCommand(implode("\n", $resultCommands));
+		}
+	}
+
+	public function _deleteCommandSuite($name, $conf = true) {
+		$dname = urldecode($name);
+		$name = urlencode($name);
+		if ($conf) {
+			$msg = $this->showConfMessage("Do you want to delete the command suite <b>{$dname}</b>?", 'error', 'Suite deleting', 'remove circle', $this->_getFiles()
+				->getAdminBaseRoute() . "/_deleteCommandSuite/{$name}/0", '#command', '');
+			$this->loadViewCompo($msg);
+		} else {
+			if (isset($this->config['commands'][$dname])) {
+				unset($this->config['commands'][$dname]);
+				$this->_saveConfig();
+				echo $this->toast("Suite $dname deleted!", 'Suite deleting', 'info', true);
+				$this->jquery->execAtLast("$('tr[data-ajax=\"{$name}\"]').remove();");
+				echo $this->jquery->compile($this->view);
+			}
+		}
+	}
+
+	public function _saveInMyCommands($name) {
+		$suitename = 'suite #' . \count($this->config['commands'] ?? []);
+		$this->config['commands'][$suitename][] = [
+			'command' => $name,
+			'values' => URequest::getRealPOST()
+		];
+		$this->_myCommandsFrm($suitename);
+	}
+
+	public function _newCommandSuite() {
+		$name = 'suite #' . \count($this->config['commands'] ?? []);
+		$this->_myCommandsFrm($name);
+	}
+
+	public function _myCommandsFrm($name) {
+		$name = urldecode($name);
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		$list = [
+			$name => $this->config['commands'][$name] ?? []
+		];
+		$suite = current(CommandList::initFromArray($list, $names));
+		$frm = $this->jquery->semantic()->htmlForm('frm-suite');
+		$commandNames = Command::getCommandNames([
+			'installation' => false,
+			'servers' => false
+		], $names);
+		$input = $frm->addInput('cmd-add');
+		$input->setName('');
+		$input->getField()->addDataList($commandNames);
+		$input->addAction('Add command', 'right', 'plus', true);
+		$input->setPlaceholder('New command name');
+		$frm->addInput('name', 'Name', 'text', $name);
+		$models = CacheManager::getModels(Startup::$config, true);
+		foreach ($suite->getCommandValues() as $index => $commandValues) {
+			$this->addCommandForm($frm, $name, $commandValues, $models, $index);
+		}
+		$this->jquery->execOn('drag', '._drag', '$(event.currentTarget).addClass("inverted")');
+		$this->jquery->execOn('dragend', '._drag', '$(event.currentTarget).removeClass("inverted")');
+		$this->jquery->execOn('dragover', '._drag', 'if(!$(event.currentTarget).hasClass("inverted")) $(event.currentTarget).addClass("blue");');
+		$this->jquery->execOn('dragleave', '._drag', '$(event.currentTarget).removeClass("blue")', [
+			'stopPropagation' => true
+		]);
+		$this->jquery->postOnClick('#action-field-cmd-add', $baseRoute . '/addNewCommandForm', '{commandName: $("#cmd-add").val(), index: $("#frm-suite").find("._drag").length}', '#frm-suite', [
+			'hasLoader' => false,
+			'jqueryDone' => 'append'
+		]);
+		$this->jquery->setDraggable('._drag');
+		$this->jquery->asDropZone('._drag', 'var dElm=$("#"+_data.id);var tElm=$(event.target).closest("._drag");if(tElm.length && dElm.attr("id")!=tElm.attr("id")){if(tElm.next("._drag").length && tElm.next("._drag").attr("id")==dElm.attr("id")){dElm.detach().insertBefore(tElm);}else{dElm.detach().insertAfter(tElm);
+}									$(event.target).closest("form").find("._pos").each(function( index, element ) {
+									$(element).val(index);
+								});}', [
+			'jqueryDone' => null
+		]);
+		$frm->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		$frm->addExtraFieldRule('name', 'empty');
+		$frm->setSubmitParams($baseRoute . '/_validateCommandSuite/' . $name, '#command-suites', [
+			'hasLoader' => 'internal',
+			'jsCallback' => '$("#command").html("");'
+		]);
+
+		$this->jquery->click('#cancel-btn', '$("#command").html("");');
+		$this->jquery->click('#validate-btn', '$("#frm-suite").form("submit");');
+		$this->jquery->click('._close', '$(this).closest(".ui.message._drag").remove();');
+		$this->jquery->renderView($this->_getFiles()
+			->getViewCommandSuiteFrm(), [
+			'suite' => $suite
+		]);
+	}
+
+	protected function saveCommandSuite($oldName = '') {
+		$elements = $_POST['elm'] ?? [];
+		$name = $_POST['name'] ?? 'no name';
+		unset($_POST['name']);
+		if ($oldName != null && $name !== $oldName) {
+			unset($this->config['commands'][$oldName]);
+		}
+		$result = [];
+		$positions = $_POST['pos'] ?? [];
+		unset($_POST['elm']);
+		unset($_POST['pos']);
+		foreach ($elements as $elm) {
+			$pos = $positions[$elm];
+
+			$result[$pos]['command'] = $_POST['command'][$elm];
+			unset($_POST['command'][$elm]);
+
+			if (isset($_POST['value'][$elm])) {
+				$result[$pos]['values'] = [
+					'value' => $_POST['value'][$elm]
+				];
+				unset($_POST['value'][$elm]);
+			}
+
+			foreach ($_POST as $k => $v) {
+				if (isset($v[$elm]) && $v[$elm] != null && isset($_POST[$k][$elm])) {
+					if (array_search($k, [
+						'command',
+						'value'
+					]) === false) {
+						$result[$pos]['values'][$k] = $v[$elm];
+					}
+				}
+			}
+		}
+		$this->config['commands'][$name] = $result;
+		$this->_saveConfig();
+		echo $this->_myCommands(false);
+		$this->jquery->execAtLast("$('[data-tab=myCommands]').click();");
+		$this->addMyCommandsBehavior($this->_getFiles()
+			->getAdminBaseRoute());
+		echo $this->jquery->compile($this->view);
+	}
+
+	public function _validateCommandSuite($name = '') {
+		$this->saveCommandSuite($name);
+	}
+
+	public function addCommandForm(HtmlForm $form, string $suiteName, $commandValues, $models, $index = 0) {
+		$cmd = $commandValues->getCommandObject();
+		$values = $commandValues->getValues();
+		$cForm = new HtmlForm('frm-command-' . $index);
+		$this->getCommandForm($cForm, $cmd, $index, $suiteName, $models, $values);
+		$form->addItem($cForm);
+	}
+
+	public function addNewCommandForm() {
+		$index = $_POST['index'];
+		$commandName = $_POST['commandName'];
+		$cForm = $this->jquery->semantic()->htmlForm('frm-command-' . $index);
+		$cmd = $this->getCommandByName($commandName);
+		$models = CacheManager::getModels(Startup::$config, true);
+		$this->getCommandForm($cForm, $cmd, $index, '', $models, []);
+		$this->jquery->execAtLast('$("#cmd-add").val("");$("html, body").animate({ scrollTop: $("#frm-command-' . $index . '").offset().top}, 1000);');
+		$this->jquery->click('#frm-command-' . $index . ' ._close', '$(this).closest(".ui.message._drag").remove();');
+		$this->loadViewCompo($cForm);
+	}
+
+	private function getCommandForm(HtmlForm $cForm, Command $cmd, $index, $suite, $models, $values = []) {
+		$cForm->addContent(new HtmlInput("elm[$index]", 'hidden', $index));
+		$input = $cForm->addContent(new HtmlInput("pos[$index]", 'hidden', $index));
+		$input->addClass('_pos');
+		$cForm->setTagName('div');
+		$cForm->setClass('ui small positive message _drag');
+		$cForm->setProperty('draggable', 'true');
+		$cForm->addContent("<i class='icon close _close' data-index='$index' data-suite='$suite'></i>");
+		$fields = $cForm->addFields();
+		$lbl = new HtmlLabel("", 'Ubiquity <span class="ui blue text">' . $cmd->getName() . '</span>');
+		$lbl->addClass('large pointing below');
+		$lbl->addIcon('code');
+		$fields->addItem($lbl);
+		$cForm->addContent(new HtmlInput("command[$index]", 'hidden', $cmd->getName()));
+		if ($cmd->hasValue()) {
+			$fields->addInput("value[$index]", null, 'text', $values['value'] ?? '', $cmd->getValue());
+			unset($values['value']);
+		}
+		if ($cmd->hasParameters()) {
+			$this->getCommandFormParameters($cmd, $cForm, $models, $values, $index);
+		}
+	}
+
+	private function getCommandFormParameters(Command $cmd, HtmlForm $form, array $models, array $existingValues, $index = null) {
+		if ($cmd->hasParameters()) {
+			$fields = $form->addFields([], 'Parameters');
+			foreach ($cmd->getParameters() as $pname => $param) {
+				$id = ($index !== null) ? $pname . "[$index]" : $pname;
+				$dValue = $param->getDefaultValue() ?? '';
+				$values = $param->getValues();
+				if ($param->getName() === 'model') {
+					$values = $models;
+				}
+				if (is_array($values) && count($values) > 0) {
+
+					$dd = $fields->addDropdown($id, array_combine($values, $values), $param->getName() . '(' . $pname . ')', $existingValues[$pname] ?? $dValue, strpos($dValue, ',') !== false);
+					$dd->getField()->setProperty('style', 'min-width: 200px!important;');
+				} else {
+					$fields->addInput($id, $param->getName() . '(' . $pname . ')', 'text', $existingValues[$pname] ?? $dValue, $pname);
+				}
+			}
+		}
+	}
+
 	public function _displayCommand($name = 'version') {
 		$cmd = $this->getCommandByName($name);
 		if (isset($cmd)) {
@@ -41,19 +322,8 @@ trait CommandsTrait {
 					$form->addInput('value', 'value', 'text', '', $cmd->getValue());
 				}
 				if ($cmd->hasParameters()) {
-					$fields = $form->addFields([], 'Parameters');
-					foreach ($cmd->getParameters() as $pname => $param) {
-						$values = $param->getValues();
-						if ($param->getName() === 'model') {
-							$values = CacheManager::getModels(Startup::$config, true);
-						}
-						if (is_array($values) && count($values) > 0) {
-							$dd = $fields->addDropdown($pname, array_combine($values, $values), $param->getName() . '(' . $pname . ')', $param->getDefaultValue());
-							$dd->getField()->setProperty('style', 'min-width: 200px!important;');
-						} else {
-							$fields->addInput($pname, $param->getName() . '(' . $pname . ')', 'text', $param->getDefaultValue(), $pname);
-						}
-					}
+					$models = CacheManager::getModels(Startup::$config, true);
+					$this->getCommandFormParameters($cmd, $form, $models, []);
 				}
 				$form->setSubmitParams($this->_getFiles()
 					->getAdminBaseRoute() . '/_sendCommand/' . $name, '#response', [
@@ -61,6 +331,10 @@ trait CommandsTrait {
 				]);
 				$this->jquery->click('#validate-btn', '$("#frm-command").form("submit");');
 				$this->jquery->click('#cancel-btn', '$("#command").html("");');
+				$this->jquery->postFormOnClick('#save-btn', $this->_getFiles()
+					->getAdminBaseRoute() . '/_saveInMyCommands/' . $name, 'frm-command', '#command', [
+					'hasLoader' => 'internal'
+				]);
 				$this->jquery->renderView($this->_getFiles()
 					->getViewDisplayCommandForm(), [
 					'cmd' => $cmd
@@ -92,6 +366,7 @@ trait CommandsTrait {
 
 	protected function sendExecCommand($command) {
 		$command = str_replace('\\', '\\\\', $command);
+		$command = str_replace("\n", '%nl%', $command);
 		$this->jquery->post($this->_getFiles()
 			->getAdminBaseRoute() . '/_execCommand', '{commands: "' . $command . '"}', '#partial', [
 			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Execute devtools...') . ');',
@@ -105,8 +380,9 @@ trait CommandsTrait {
 		header('Content-type: text/html; charset=utf-8');
 		$post = URequest::getRealPOST();
 		$this->addCloseToMessage();
+		$postCommands = str_replace('%nl%', "\n", $post['commands']);
+		$commands = \explode("\n", $postCommands);
 
-		$commands = \explode("\n", $post['commands']);
 		if (\ob_get_length())
 			\ob_end_clean();
 		ob_end_flush();

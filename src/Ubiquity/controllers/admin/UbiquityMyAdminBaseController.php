@@ -1637,7 +1637,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 	}
 
-	private function toast($message, $title, $class = 'info', $showIcon = false) {
+	protected function toast($message, $title, $class = 'info', $showIcon = false) {
 		$this->jquery->semantic()->toast('body', \compact('message', 'title', 'class', 'showIcon'));
 	}
 
@@ -1756,6 +1756,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function commands() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader('commands');
 		$this->loadDevtoolsConfig();
 		\Ubiquity\devtools\cmd\Command::preloadCustomCommands($this->devtoolsConfig);
@@ -1763,15 +1764,21 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'installation' => false,
 			'servers' => false
 		], \Ubiquity\devtools\cmd\Command::getCommands());
+		$myCommands = $this->_myCommands();
 		$this->_getAdminViewer()->getCommandsDataTable($commands);
-		$this->jquery->getOnClick('._displayCommand', $this->_getFiles()
-			->getAdminBaseRoute() . '/_displayCommand', '#command', [
+		$this->jquery->getOnClick('._displayCommand', $baseRoute . '/_displayCommand', '#command', [
 			'hasLoader' => 'internal',
 			'attr' => 'data-cmd'
 		]);
+		$this->addMyCommandsBehavior($baseRoute);
 		$this->jquery->execAtLast("$('.menu .item').tab();");
+		$this->jquery->getOnClick('#add-suite-btn', $baseRoute . '/_newCommandSuite', '#command', [
+			'hasLoader' => 'internal'
+		]);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewCommandsIndex());
+			->getViewCommandsIndex(), [
+			'myCommands' => $myCommands
+		]);
 	}
 
 	protected function getConsoleMessage_($id = 'partial', $defaultMsg = 'Composer update...') {

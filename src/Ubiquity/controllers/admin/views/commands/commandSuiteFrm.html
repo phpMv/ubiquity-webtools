@@ -1,19 +1,14 @@
 <div class="ui teal top attached secondary segment">
-<i class="ui blue question circle icon _help" data-name="{{cmd.name}}"></i> {{cmd.name}}
+<i class="ui blue question circle icon _help" data-name="{{suite.name}}"></i> {{suite.name}}
 </div>
 <div class="ui attached segment">
-	{{q['frm-command']|raw}}
+	{{q['frm-suite']|raw}}
 </div>
 <div class="ui segment">
   <button id="validate-btn" class="ui button positive">
   	<i id="icon-bt-okay" class="icon check circle"></i>
   	 Validate
   </button>
-  &nbsp;
-  <a href='#' id="save-btn" class="ui teal button">
-  	<i id="icon-bt-save" class="icon save"></i>
-  	 Save in My commands
-  </a>
   &nbsp;
   <button id="cancel-btn" class="ui button">
   	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
