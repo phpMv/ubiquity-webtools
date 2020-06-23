@@ -1775,6 +1775,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->getOnClick('#add-suite-btn', $baseRoute . '/_newCommandSuite', '#command', [
 			'hasLoader' => 'internal'
 		]);
+		$this->jquery->getOnClick('._displayHelp', $baseRoute . '/_displayHelp', '$(self).closest("tr").find("._help")', [
+			'hasLoader' => false,
+			'attr' => 'data-ajax'
+		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandsIndex(), [
 			'myCommands' => $myCommands

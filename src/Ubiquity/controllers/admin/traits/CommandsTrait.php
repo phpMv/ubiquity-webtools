@@ -11,6 +11,10 @@ use Ajax\semantic\html\elements\HtmlLabel;
 use Ajax\semantic\html\collections\form\HtmlForm;
 use Ajax\common\html\html5\HtmlInput;
 use Ajax\semantic\html\collections\HtmlMessage;
+use Ajax\semantic\widgets\datatable\DataTable;
+use Ubiquity\devtools\cmd\Parameter;
+use Ajax\semantic\html\elements\HtmlDivider;
+use Ubiquity\utils\base\UArray;
 
 /**
  * Ubiquity\controllers\admin\traits$CommandsTrait
@@ -169,7 +173,7 @@ trait CommandsTrait {
 		$this->jquery->execOn('dragleave', '._drag', '$(event.currentTarget).removeClass("blue")', [
 			'stopPropagation' => true
 		]);
-		$this->jquery->postOnClick('#action-field-cmd-add', $baseRoute . '/addNewCommandForm', '{commandName: $("#cmd-add").val(), index: $("#frm-suite").find("._drag").length}', '#frm-suite', [
+		$this->jquery->postOnClick('#action-field-cmd-add', $baseRoute . '/_addNewCommandForm', '{commandName: $("#cmd-add").val(), index: $("#frm-suite").find("._drag").length}', '#frm-suite', [
 			'hasLoader' => false,
 			'jqueryDone' => 'append'
 		]);
@@ -193,6 +197,8 @@ trait CommandsTrait {
 		$this->jquery->click('#cancel-btn', '$("#command").html("");');
 		$this->jquery->click('#validate-btn', '$("#frm-suite").form("submit");');
 		$this->jquery->click('._close', '$(this).closest(".ui.message._drag").remove();');
+
+		$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#command").offset().top}, 1000);');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandSuiteFrm(), [
 			'suite' => $suite
@@ -247,7 +253,7 @@ trait CommandsTrait {
 		$this->saveCommandSuite($name);
 	}
 
-	public function addCommandForm(HtmlForm $form, string $suiteName, $commandValues, $models, $index = 0) {
+	protected function addCommandForm(HtmlForm $form, string $suiteName, $commandValues, $models, $index = 0) {
 		$cmd = $commandValues->getCommandObject();
 		$values = $commandValues->getValues();
 		$cForm = new HtmlForm('frm-command-' . $index);
@@ -255,7 +261,7 @@ trait CommandsTrait {
 		$form->addItem($cForm);
 	}
 
-	public function addNewCommandForm() {
+	public function _addNewCommandForm() {
 		$index = $_POST['index'];
 		$commandName = $_POST['commandName'];
 		$cForm = $this->jquery->semantic()->htmlForm('frm-command-' . $index);
@@ -297,21 +303,29 @@ trait CommandsTrait {
 				$id = ($index !== null) ? $pname . "[$index]" : $pname;
 				$dValue = $param->getDefaultValue() ?? '';
 				$values = $param->getValues();
-				if ($param->getName() === 'model') {
+				$name = $param->getName();
+				if ($name === 'model') {
 					$values = $models;
 				}
 				if (is_array($values) && count($values) > 0) {
-
-					$dd = $fields->addDropdown($id, array_combine($values, $values), $param->getName() . '(' . $pname . ')', $existingValues[$pname] ?? $dValue, strpos($dValue, ',') !== false);
-					$dd->getField()->setProperty('style', 'min-width: 200px!important;');
+					if ($values == [
+						'true',
+						'false'
+					]) {
+						$fields->addCheckbox($id, $name . " ($pname)", 'true');
+					} else {
+						$dd = $fields->addDropdown($id, array_combine($values, $values), $name . "( $pname)", $existingValues[$pname] ?? $dValue, strpos($dValue, ',') !== false);
+						$dd->getField()->setProperty('style', 'min-width: 200px!important;');
+					}
 				} else {
-					$fields->addInput($id, $param->getName() . '(' . $pname . ')', 'text', $existingValues[$pname] ?? $dValue, $pname);
+					$fields->addInput($id, $name . "( $pname)", 'text', $existingValues[$pname] ?? $dValue, $pname);
 				}
 			}
 		}
 	}
 
 	public function _displayCommand($name = 'version') {
+		Command::preloadCustomCommands($this->config);
 		$cmd = $this->getCommandByName($name);
 		if (isset($cmd)) {
 			if ($cmd->isImmediate()) {
@@ -335,11 +349,75 @@ trait CommandsTrait {
 					->getAdminBaseRoute() . '/_saveInMyCommands/' . $name, 'frm-command', '#command', [
 					'hasLoader' => 'internal'
 				]);
+				$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#command").offset().top}, 1000);');
+
 				$this->jquery->renderView($this->_getFiles()
 					->getViewDisplayCommandForm(), [
 					'cmd' => $cmd
 				]);
 			}
+		}
+	}
+
+	public function _displayHelp($commandName) {
+		$cmd = $this->getCommandByName($commandName);
+		if (isset($cmd)) {
+			$msg = $this->jquery->semantic()->htmlMessage('help-' . $commandName);
+			$msg->addClass('visibleover olive');
+			$msg->setIcon('circle question');
+			$v = "";
+			if ($cmd->hasValue()) {
+				$v = "<span class='ui green text'>{$cmd->getValue()}</span>";
+			}
+			$msg->addHeader("<div><b><span class='ui black text'>{$commandName}</span></b> {$v}</div>");
+			$msg->addContent('<div><span class="ui blue text">' . $cmd->getDescription() . '</span></div>');
+
+			$aliases = $cmd->getAliases();
+			if (count($aliases) > 0) {
+				$msg->addContent('<h5>Aliases</h5>');
+				$msg->addContent("<div><b><span class='ui black text'>" . \implode(', ', $aliases) . "</span></b></div>");
+			}
+			if ($cmd->hasParameters()) {
+				$msg->addContent('<h5>Parameters</h5>');
+				$parameters = $cmd->getParameters();
+				$dt = new DataTable('dt-' . $commandName, Parameter::class, $parameters);
+				$dt->setFields([
+					'name',
+					'description',
+					'values',
+					'defaultValue'
+				]);
+				$dt->setValueFunction('name', function ($v) {
+					return "<span class='ui brown text'>$v</div>";
+				});
+				$dt->setValueFunction('values', function ($v) {
+					return "<pre>" . json_encode($v, (count($v) > 3) ? JSON_PRETTY_PRINT : null) . "</pre>";
+				});
+				$dt->setValueFunction('defaultValue', function ($v) {
+					return "<pre>$v</pre>";
+				});
+				$dt->addClass('compact');
+				$dt->setVisibleHover(false);
+				$msg->addContent($dt);
+			}
+
+			$examples = $cmd->getExamples();
+			if (count($examples) > 0) {
+				$msg->addContent('<h5>Samples</h5><ul>');
+				if (UArray::isAssociative($examples)) {
+					foreach ($cmd->getExamples() as $desc => $sample) {
+						$msg->addContent("<li>$sample <span class='ui black text'><br>$desc</span></li>");
+					}
+				} else {
+					foreach ($cmd->getExamples() as $sample) {
+						$msg->addContent("<li>$sample</li>");
+					}
+				}
+				$msg->addContent('</ul>');
+			}
+			$msg->setDismissable();
+			$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#help-' . $commandName . '").offset().top}, 1000);$("#help-' . $commandName . '").closest("tr").mouseover();');
+			$this->loadViewCompo($msg);
 		}
 	}
 
