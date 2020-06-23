@@ -436,16 +436,20 @@ class UbiquityMyAdminViewer {
 				$bt->setProperty('style', 'visibility:hidden;');
 
 				$bt->addIcon("play");
-				$bt->addLabel($name, true, 'blue question circle icon')
+				$lbl = $bt->addLabel($name, true, 'blue question circle icon')
 					->setPointing("right");
+				$lbl->setProperty('data-ajax', $name);
+				$lbl->addClass('_displayHelp');
 				$btc = $bt->getContent()[1];
 				$btc->addClass('mini _displayCommand');
 				$btc->setProperty('data-cmd', $name);
 				$btc->getContent()[0]->setProperty('data-ajax', $name);
 				$res[] = $bt;
 			}
+			$res[] = '<div class="_help"></div>';
 			return $res;
 		});
+
 		return $dt;
 	}
 
@@ -454,8 +458,10 @@ class UbiquityMyAdminViewer {
 		$bt = new HtmlButton("bt-" . $name, "", 'tiny');
 
 		$bt->addIcon("play");
-		$bt->addLabel('Ubiquity ' . $cmd->asHtml(), true, 'code icon')
+		$lbl = $bt->addLabel('Ubiquity ' . $cmd->asHtml(), true, 'code')
 			->setPointing("right");
+		$lbl->setProperty('data-command', $name);
+		$lbl->addClass('_displayMyHelp');
 		$btc = $bt->getContent()[1];
 		$btc->addClass('tiny _executeOneCommand');
 		$btc->setProperty('data-suite', $suiteName);

@@ -13,8 +13,8 @@ use Ajax\common\html\html5\HtmlInput;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ajax\semantic\widgets\datatable\DataTable;
 use Ubiquity\devtools\cmd\Parameter;
-use Ajax\semantic\html\elements\HtmlDivider;
 use Ubiquity\utils\base\UArray;
+use Ubiquity\utils\base\UString;
 
 /**
  * Ubiquity\controllers\admin\traits$CommandsTrait
@@ -62,6 +62,7 @@ trait CommandsTrait {
 				$result[] = $this->_getAdminViewer()
 					->getCommandButton($commandValues, $index, $commandList->getName());
 			}
+			$result[] = '<div class="_help"></div>';
 			return $result;
 		});
 		$dt->addEditDeleteButtons();
@@ -88,6 +89,10 @@ trait CommandsTrait {
 		]);
 		$this->jquery->postOnClick('._executeCommandSuite', $baseRoute . '/_executeCommandSuite', '{suite:$(this).attr("data-suite")}', '#response', [
 			'hasLoader' => 'internal'
+		]);
+		$this->jquery->getOnClick('._displayMyHelp', $baseRoute . '/_displayHelp', '$(self).closest("tr").find("._help")', [
+			'hasLoader' => false,
+			'attr' => 'data-command'
 		]);
 	}
 
@@ -312,7 +317,8 @@ trait CommandsTrait {
 						'true',
 						'false'
 					]) {
-						$fields->addCheckbox($id, $name . " ($pname)", 'true');
+						$ck = $fields->addCheckbox($id, $name . " ($pname)", 'true');
+						$ck->setChecked(UString::isBooleanTrue($dValue));
 					} else {
 						$dd = $fields->addDropdown($id, array_combine($values, $values), $name . "( $pname)", $existingValues[$pname] ?? $dValue, strpos($dValue, ',') !== false);
 						$dd->getField()->setProperty('style', 'min-width: 200px!important;');
