@@ -339,7 +339,13 @@ trait CommandsTrait {
 			} else {
 				$form = $this->jquery->semantic()->htmlForm('frm-command');
 				if ($cmd->hasValue()) {
-					$form->addInput('value', 'value', 'text', '', $cmd->getValue());
+					$form->setValidationParams([
+						"on" => "blur",
+						"inline" => true
+					]);
+					$value = $cmd->getValue();
+					$form->addInput('value', $value, 'text', '', $value);
+					$form->addFieldRule(0, 'empty', "$value must have a value");
 				}
 				if ($cmd->hasParameters()) {
 					$models = CacheManager::getModels(Startup::$config, true);
@@ -366,6 +372,7 @@ trait CommandsTrait {
 	}
 
 	public function _displayHelp($commandName) {
+		Command::preloadCustomCommands($this->config);
 		$cmd = $this->getCommandByName($commandName);
 		if (isset($cmd)) {
 			$msg = $this->jquery->semantic()->htmlMessage('help-' . $commandName);
@@ -428,6 +435,7 @@ trait CommandsTrait {
 	}
 
 	public function _sendCommand($name) {
+		Command::preloadCustomCommands($this->config);
 		$cmd = $this->getCommandByName($name);
 		$cmdString = 'Ubiquity ' . $name;
 		if (isset($cmd)) {
@@ -471,7 +479,7 @@ trait CommandsTrait {
 			\ob_end_clean();
 		ob_end_flush();
 		foreach ($commands as $cmd) {
-			echo "<span class='ui teal text'>$cmd</span>\n<pre>";
+			echo "<span class='ui teal text'>$cmd</span>\n<pre style='line-height: 1.25em;'>";
 			flush();
 			ob_flush();
 			$this->liveExecuteCommand($cmd);
