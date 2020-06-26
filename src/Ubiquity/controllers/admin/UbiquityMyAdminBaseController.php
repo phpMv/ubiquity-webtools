@@ -65,8 +65,6 @@ use Ubiquity\utils\yuml\ClassToYuml;
 use Ubiquity\utils\yuml\ClassesToYuml;
 use Ubiquity\client\oauth\OAuthAdmin;
 use Ajax\semantic\html\elements\HtmlLabel;
-use Ubiquity\utils\http\USession;
-use Ubiquity\utils\http\UCookie;
 use Ubiquity\controllers\admin\traits\SecurityTrait;
 use Ubiquity\controllers\admin\traits\CommandsTrait;
 use Ubiquity\controllers\admin\popo\CategoryCommands;
@@ -117,7 +115,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.9';
+	public const version = '2.3.10';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
