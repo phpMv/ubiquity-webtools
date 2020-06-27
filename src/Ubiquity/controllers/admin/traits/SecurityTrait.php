@@ -72,63 +72,64 @@ trait SecurityTrait {
 		$deComponents->setValueFunction('shieldon', function ($value) use ($dependencies) {
 			return $this->installOrInstalledSecurityCompo($value, 'shieldon', 'shieldon', 'shieldon', $dependencies);
 		});
+		if (count($servicesValues) > 0) {
+			$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
+			$deServices->setFields(array_keys($servicesValues));
+			$deServices->setCaptions([
+				'Encryption manager',
+				'Csrf manager',
+				'Shieldon firewall'
+			]);
 
-		$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
-		$deServices->setFields(array_keys($servicesValues));
-		$deServices->setCaptions([
-			'Encryption manager',
-			'Csrf manager',
-			'Shieldon firewall'
-		]);
-
-		$deServices->setValueFunction('encryption', function ($value) {
-			$res = $this->startOrStartedSecurityService($value, 'encryptionManager');
-			if ($value) {
-				$lbl = new HtmlLabel('', EncryptionManager::getEncryptionInstance()->getCipher());
-				$lbl->addClass('circular grey floated right');
-				$res->wrap('', $lbl);
-			}
-			return $res;
-		});
-		$deServices->setValueFunction('csrf', function ($value) {
-			return $this->startOrStartedSecurityService($value, 'csrfManager');
-		});
-		$deServices->setValueFunction('shieldon', function ($value) use ($baseRoute) {
-			$elm = $this->startOrStartedSecurityService($value, 'shieldon');
-			$bts = [];
-			if ($value) {
-				$validUrl = false;
-				if (isset($this->config['shieldon-url'])) {
-					$bt = new HtmlButton('bt-shieldon-url', 'Shieldon firewall panel');
-					if (Startup::isValidUrl($this->config['shieldon-url'])) {
-						$bt->asLink('/' . $this->config['shieldon-url'], 'shieldon');
-						$bt->addIcon('shield alternate');
-						$bt->addClass('blue');
-						$validUrl = true;
-					} else {
-						$bt->addIcon('warning circle');
-						$bt->addClass('red disabled');
+			$deServices->setValueFunction('encryption', function ($value) {
+				$res = $this->startOrStartedSecurityService($value, 'encryptionManager');
+				if ($value) {
+					$lbl = new HtmlLabel('', EncryptionManager::getEncryptionInstance()->getCipher());
+					$lbl->addClass('circular grey floated right');
+					$res->wrap('', $lbl);
+				}
+				return $res;
+			});
+			$deServices->setValueFunction('csrf', function ($value) {
+				return $this->startOrStartedSecurityService($value, 'csrfManager');
+			});
+			$deServices->setValueFunction('shieldon', function ($value) use ($baseRoute) {
+				$elm = $this->startOrStartedSecurityService($value, 'shieldon');
+				$bts = [];
+				if ($value) {
+					$validUrl = false;
+					if (isset($this->config['shieldon-url'])) {
+						$bt = new HtmlButton('bt-shieldon-url', 'Shieldon firewall panel');
+						if (Startup::isValidUrl($this->config['shieldon-url'])) {
+							$bt->asLink('/' . $this->config['shieldon-url'], 'shieldon');
+							$bt->addIcon('shield alternate');
+							$bt->addClass('blue');
+							$validUrl = true;
+						} else {
+							$bt->addIcon('warning circle');
+							$bt->addClass('red disabled');
+						}
+						$bt->addClass('tiny right floated ');
+						$bts[] = $bt;
 					}
-					$bt->addClass('tiny right floated ');
-					$bts[] = $bt;
-				}
 
-				if (! $validUrl) {
-					$bt = new HtmlButton('bt-shieldon', 'Add shieldon controller');
-					$bt->addIcon('plus');
-					$bt->addClass('tiny right floated teal');
-					$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/_addSieldonControllerFrm', '#response', [
-						'hasLoader' => 'internal'
-					]);
-					$bts[] = $bt;
-				}
+					if (! $validUrl) {
+						$bt = new HtmlButton('bt-shieldon', 'Add shieldon controller');
+						$bt->addIcon('plus');
+						$bt->addClass('tiny right floated teal');
+						$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/_addSieldonControllerFrm', '#response', [
+							'hasLoader' => 'internal'
+						]);
+						$bts[] = $bt;
+					}
 
-				$elm->wrap('', $bts);
+					$elm->wrap('', $bts);
+					return $elm;
+				}
 				return $elm;
-			}
-			return $elm;
-		});
-		$deServices->setAttached();
+			});
+			$deServices->setAttached();
+		}
 
 		$deSession = $this->jquery->semantic()->dataElement('session', $sessionValues);
 		$deSession->setFields(array_keys($sessionValues));
