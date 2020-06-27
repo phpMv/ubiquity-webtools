@@ -172,10 +172,10 @@ trait CommandsTrait {
 		foreach ($suite->getCommandValues() as $index => $commandValues) {
 			$this->addCommandForm($frm, $name, $commandValues, $models, $index);
 		}
-		$this->jquery->execOn('drag', '._drag', '$(event.currentTarget).addClass("inverted")');
-		$this->jquery->execOn('dragend', '._drag', '$(event.currentTarget).removeClass("inverted")');
+		$this->jquery->execOn('drag', '._drag', '$(event.currentTarget).addClass("inverted");');
+		$this->jquery->execOn('dragend', '._drag', '$(event.currentTarget).removeClass("inverted");');
 		$this->jquery->execOn('dragover', '._drag', 'if(!$(event.currentTarget).hasClass("inverted")) $(event.currentTarget).addClass("blue");');
-		$this->jquery->execOn('dragleave', '._drag', '$(event.currentTarget).removeClass("blue")', [
+		$this->jquery->execOn('dragleave', '._drag', '$(event.currentTarget).removeClass("blue");', [
 			'stopPropagation' => true
 		]);
 		$this->jquery->postOnClick('#action-field-cmd-add', $baseRoute . '/_addNewCommandForm', '{commandName: $("#cmd-add").val(), index: $("#frm-suite").find("._drag").length}', '#frm-suite', [
