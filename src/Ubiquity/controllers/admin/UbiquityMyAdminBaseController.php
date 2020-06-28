@@ -1779,7 +1779,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$this->jquery->getOnClick('._displayHelp', $baseRoute . '/_displayHelp', '$(self).closest("tr").find("._help")', [
 			'hasLoader' => false,
-			'attr' => 'data-ajax'
+			'attr' => 'data-ajax',
+			'jsCallback' => $this->activateHelpLabel()
 		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandsIndex(), [

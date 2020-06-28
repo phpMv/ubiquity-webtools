@@ -15,6 +15,7 @@ use Ajax\semantic\widgets\datatable\DataTable;
 use Ubiquity\devtools\cmd\Parameter;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\base\UString;
+use Ajax\service\JString;
 
 /**
  * Ubiquity\controllers\admin\traits$CommandsTrait
@@ -92,8 +93,13 @@ trait CommandsTrait {
 		]);
 		$this->jquery->getOnClick('._displayMyHelp', $baseRoute . '/_displayHelp', '$(self).closest("tr").find("._help")', [
 			'hasLoader' => false,
-			'attr' => 'data-command'
+			'attr' => 'data-command',
+			'jsCallback' => $this->activateHelpLabel()
 		]);
+	}
+
+	protected function activateHelpLabel() {
+		return 'var ct=$(event.currentTarget);ct.closest("tr").find(".ui.label.inverted.olive").removeClass("inverted olive").addClass("basic");ct.removeClass("basic").addClass("olive inverted");';
 	}
 
 	public function _executeOneCommand() {
@@ -401,10 +407,10 @@ trait CommandsTrait {
 					'defaultValue'
 				]);
 				$dt->setValueFunction('name', function ($v) {
-					return "<span class='ui brown text'>$v</div>";
+					return "<b><span class='ui brown text'>$v</span></b>";
 				});
 				$dt->setValueFunction('values', function ($v) {
-					return "<pre>" . json_encode($v, (count($v) > 3) ? JSON_PRETTY_PRINT : null) . "</pre>";
+					return "<pre>" . \json_encode($v, (\count($v) > 3) ? JSON_PRETTY_PRINT : null) . "</pre>";
 				});
 				$dt->setValueFunction('defaultValue', function ($v) {
 					return "<pre>$v</pre>";
@@ -429,7 +435,9 @@ trait CommandsTrait {
 				$msg->addContent('</ul>');
 			}
 			$msg->setDismissable();
-			$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#help-' . $commandName . '").offset().top}, 1000);$("#help-' . $commandName . '").closest("tr").mouseover();');
+			$msg->addEvent('close-message', 'var ct=$(event.currentTarget);ct.closest("tr").find(".ui.label.inverted.olive").removeClass("inverted olive").addClass("basic");');
+			$id = JString::cleanIdentifier($commandName);
+			$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#help-' . $id . '").offset().top}, 1000);$("#help-' . $id . '").closest("tr").mouseover();');
 			$this->loadViewCompo($msg);
 		}
 	}
