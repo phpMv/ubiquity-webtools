@@ -447,7 +447,7 @@ trait CommandsTrait {
 			if ($cmd->hasParameters()) {
 				foreach ($cmd->getParameters() as $pname => $param) {
 					if (isset($post[$pname]) && $post[$pname] != null) {
-						$cmdString .= " -$pname=" . $post[$pname];
+						$cmdString .= " -$pname=" . $this->safeValue($post[$pname]);
 					}
 				}
 			}
@@ -456,11 +456,18 @@ trait CommandsTrait {
 		}
 	}
 
+	protected function safeValue($v) {
+		if (\strpos($v, ' ') !== false && \trim($v, '"') === $v) {
+			return '"' . $v . '"';
+		}
+		return $v;
+	}
+
 	protected function sendExecCommand($command) {
 		$command = str_replace('\\', '\\\\', $command);
 		$command = str_replace("\n", '%nl%', $command);
 		$this->jquery->post($this->_getFiles()
-			->getAdminBaseRoute() . '/_execCommand', '{commands: "' . $command . '"}', '#partial', [
+			->getAdminBaseRoute() . '/_execCommand', '{commands: "' . \addslashes($command) . '"}', '#partial', [
 			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Execute devtools...') . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
