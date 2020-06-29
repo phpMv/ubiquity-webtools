@@ -158,6 +158,7 @@ trait CommandsTrait {
 
 	public function _myCommandsFrm($name) {
 		$name = urldecode($name);
+		Command::preloadCustomCommands($this->config);
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$list = [
 			$name => $this->config['commands'][$name] ?? []
@@ -351,7 +352,9 @@ trait CommandsTrait {
 					]);
 					$value = $cmd->getValue();
 					$form->addInput('value', $value, 'text', '', $value);
-					$form->addFieldRule(0, 'empty', "$value must have a value");
+					if ($cmd->hasRequiredValue()) {
+						$form->addFieldRule(0, 'empty', "$value must have a value");
+					}
 				}
 				if ($cmd->hasParameters()) {
 					$models = CacheManager::getModels(Startup::$config, true);
