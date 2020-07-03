@@ -113,9 +113,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected $config;
 
+	protected $devtoolsPath;
+
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.10';
+	public const version = '2.3.11';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -177,6 +179,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		DAO::$transformerOp = 'toView';
 		$this->_insertJquerySemantic();
 		$this->config = self::_getConfigFile();
+		$this->devtoolsPath = $this->config['devtools-path'] ?? 'Ubiquity';
 	}
 
 	public function initialize() {
@@ -909,10 +912,19 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			"hasLoader" => "internal"
 		]);
 
-		$this->jquery->getOnClick("._installTheme", $baseRoute . "/_installTheme", "#refresh-theme", [
-			"attr" => "data-ajax",
-			"hasLoader" => "internal"
+		/*
+		 * $this->jquery->getOnClick("._installTheme", $baseRoute . "/_installTheme", "#refresh-theme", [
+		 * "attr" => "data-ajax",
+		 * "hasLoader" => "internal"
+		 * ]);
+		 */
+		$this->jquery->postOnClick('._installTheme', $this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer/_refreshTheme/refresh-theme/html', '{commands: "echo n | ' . $devtoolsPath . ' install-theme "+$(this).attr("data-ajax")}', '#partial', [
+			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Theme installation...') . ');',
+			'hasLoader' => false,
+			'partial' => "$('#partial').html(response);"
 		]);
+
 		$this->jquery->postOnClick("._saveConfig", $baseRoute . "/_setDevtoolsPath", "{path:$('#devtools-path').val()}", "#devtools-message", [
 			"hasLoader" => "internal"
 		]);
@@ -1757,6 +1769,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader('commands');
 		$this->loadDevtoolsConfig();
+
 		\Ubiquity\devtools\cmd\Command::preloadCustomCommands($this->devtoolsConfig);
 		$commands = CategoryCommands::init([
 			'installation' => false,
@@ -1782,9 +1795,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'attr' => 'data-ajax',
 			'jsCallback' => $this->activateHelpLabel()
 		]);
+		$checkDevtools = $this->_checkDevtoolsPath($this->devtoolsPath);
+		$this->jquery->postOnClick("._saveConfig", $baseRoute . "/_setDevtoolsPath", "{path:$('#devtools-path').val()}", "#response", [
+			"hasLoader" => "internal"
+		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandsIndex(), [
-			'myCommands' => $myCommands
+			'myCommands' => $myCommands,
+			'devtoolsPath' => $this->devtoolsPath,
+			'checkDevtools' => $checkDevtools
 		]);
 	}
 

@@ -191,7 +191,7 @@ trait ModelsTrait {
 		$_SESSION["instance"] = $instance;
 		$modal = ($modal == "modal");
 		$formName = "frmEdit-" . UString::cleanAttribute(get_class($instance));
-		$form = $this->_getModelViewer()->getForm($formName, $instance);
+		$form = $this->_getModelViewer()->getForm($formName, $instance, '_updateModel');
 		$this->jquery->click("#action-modal-" . $formName . "-0", "$('#" . $formName . "').form('submit');", false);
 		if (! $modal) {
 			$this->jquery->click("#bt-cancel", "$('#form-container').transition('drop');");
@@ -413,7 +413,7 @@ trait ModelsTrait {
 		$_SESSION["instance"] = $instance;
 		$_SESSION["model"] = get_class($instance);
 		$instance->_new = false;
-		$form = $this->_getModelViewer()->getMemberForm("frm-member-" . $member, $instance, $member, $td, $part);
+		$form = $this->_getModelViewer()->getMemberForm("frm-member-" . $member, $instance, $member, $td, $part, '_updateMember');
 		$this->loadViewCompo($form);
 	}
 
