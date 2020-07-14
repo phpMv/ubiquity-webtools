@@ -110,10 +110,17 @@ trait ModelsTrait {
 	public function _refreshTable($id = null) {
 		$model = $_SESSION["model"];
 		$compo = $this->showModel_($model, $id);
+		$this->updateModelCount($model);
 		$this->jquery->execAtLast('$("#table-details").html("");');
 		$this->jquery->renderView("@admin/main/elements.html", [
 			"compo" => $compo
 		]);
+	}
+
+	protected function updateModelCount($model) {
+		$dataModel = str_replace("\\", ".", $model);
+		$count = DAO::count($model);
+		$this->jquery->execAtLast("$('a.active.item[data-model=\"{$dataModel}\"] .label').html('{$count}')");
 	}
 
 	public function _showModelClick($modelAndId) {
@@ -211,8 +218,7 @@ trait ModelsTrait {
 			$btOkay = $form->getAction(0);
 			$btOkay->addClass("green")->setValue("Validate modifications");
 			$form->onHidden("$('#modal-" . $formName . "').remove();");
-			echo $form->compile($this->jquery, $this->view);
-			echo $this->jquery->compile($this->view);
+			$this->loadViewCompo($form);
 		}
 	}
 
@@ -273,14 +279,15 @@ trait ModelsTrait {
 
 	public function _deleteModel($ids) {
 		$instance = $this->getModelInstance($ids);
-		if (method_exists($instance, "__toString"))
+		if (\method_exists($instance, "__toString"))
 			$instanceString = $instance . "";
 		else
 			$instanceString = get_class($instance);
-		if (sizeof($_POST) > 0) {
+		if (\count($_POST) > 0) {
 			if (DAO::remove($instance)) {
 				$message = $this->showSimpleMessage("Deletion of `<b>" . $instanceString . "</b>`", "info", "Deletion", "info", null, null, null, true);
 				$this->jquery->exec("$('tr[data-ajax={$ids}]').remove();", true);
+				$this->updateModelCount(\get_class($instance));
 			} else {
 				$message = $this->showSimpleMessage("Can not delete `" . $instanceString . "`", "warning", "Error", "warning");
 			}
@@ -288,8 +295,7 @@ trait ModelsTrait {
 			$message = $this->showConfMessage("Do you confirm the deletion of `<b>" . $instanceString . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
 				->getAdminBaseRoute() . "/_deleteModel/{$ids}", "#table-messages", $ids);
 		}
-		echo $message;
-		echo $this->jquery->compile($this->view);
+		$this->loadViewCompo($message);
 	}
 
 	private function getFKMethods($model) {
