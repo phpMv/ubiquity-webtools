@@ -218,7 +218,8 @@ trait ModelsTrait {
 			$btOkay = $form->getAction(0);
 			$btOkay->addClass("green")->setValue("Validate modifications");
 			$form->onHidden("$('#modal-" . $formName . "').remove();");
-			$this->loadViewCompo($form);
+			echo $form->compile($this->jquery, $this->view);
+			echo $this->jquery->compile($this->view);
 		}
 	}
 
