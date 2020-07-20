@@ -5,7 +5,6 @@
 </div>
 {% endif %}
 <div id="command"></div>
-<div id="response"></div>
 <br>
 <div id='commandsPart'>
 		<div class="ui secondary menu">
@@ -17,7 +16,15 @@
 			  <i class="icon magic"></i>
 			  Create devtools command...
 			</button>
+			<div class="item">
+				<div class="ui left labeled action input">
+					<div class="ui basic teal label">Check devtools command</div>
+					<input type="text" placeholder="Ubiquity command location" value="{{devtoolsPath}}" id="devtools-path">
+					<a class="ui labeled icon button _saveConfig"><i class="ui check square icon _checkDevtools"></i>Save</a>
+				</div>
+			</div>
 		</div>
+		<div id="response">{{ checkDevtools | raw }}</div>
 		<div id="command-tab" class="ui top attached tabular menu">
 		  <a class="item" data-tab="myCommands"><i class="stream icon"></i> My commands</a>
 		  <a class="item" data-tab="commands"><i class="code icon"></i> Commands</a>

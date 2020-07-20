@@ -10,7 +10,7 @@ use Ubiquity\utils\http\URequest;
  *
  * @property \Ajax\JsUtils $jquery
  * @author jcheron <myaddressmail@gmail.com>
- *        
+ *
  */
 trait ThemesTrait {
 
@@ -18,14 +18,22 @@ trait ThemesTrait {
 
 	abstract public function _saveConfig();
 
-	protected function refreshTheme($partial = true) {
+	public function _refreshTheme($partial = true) {
 		$activeTheme = ThemesManager::getActiveTheme() ?? 'no theme';
 		$themes = ThemesManager::getAvailableThemes();
 		$notInstalled = ThemesManager::getNotInstalledThemes();
-		$this->jquery->getOnClick("._installTheme", $this->_getFiles()
-			->getAdminBaseRoute() . "/_installTheme", "#refresh-theme", [
-			"attr" => "data-ajax"
-		]);
+		$ubiquityCmd = $this->config["devtools-path"] ?? 'Ubiquity';
+		$this->jquery->postOnClick('._installTheme', $this->_getFiles()
+			->getAdminBaseRoute() . '/_execComposer/_refreshTheme/refresh-theme/html', '{commands: "echo n | ' . $ubiquityCmd . ' install-theme "+$(this).attr("data-ajax")}', '#partial', [
+			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Theme installation...') . ');',
+			'hasLoader' => false,
+			'partial' => "$('#partial').html(response);"
+		]); /*
+		     * $this->jquery->getOnClick("._installTheme", $this->_getFiles()
+		     * ->getAdminBaseRoute() . "/_installTheme", "#refresh-theme", [
+		     * "attr" => "data-ajax"
+		     * ]);
+		     */
 		$this->loadView('@admin/themes/refreshTheme.html', compact('activeTheme', 'themes', 'notInstalled', 'partial'));
 	}
 
@@ -53,7 +61,7 @@ trait ThemesTrait {
 
 		$this->jquery->getHref("._setTheme", "#refresh-theme");
 		$this->jquery->compile($this->view);
-		$this->refreshTheme();
+		$this->_refreshTheme();
 	}
 
 	public function _installTheme($themeName) {
@@ -74,7 +82,7 @@ trait ThemesTrait {
 		}
 		$this->jquery->getHref("._setTheme", "#refresh-theme");
 		$this->jquery->compile($this->view);
-		$this->refreshTheme();
+		$this->_refreshTheme();
 	}
 
 	public function _setTheme($theme) {
@@ -85,7 +93,7 @@ trait ThemesTrait {
 		}
 		$this->jquery->getHref("._setTheme", "#refresh-theme");
 		$this->jquery->compile($this->view);
-		$this->refreshTheme();
+		$this->_refreshTheme();
 	}
 
 	public function _setDevtoolsPath() {

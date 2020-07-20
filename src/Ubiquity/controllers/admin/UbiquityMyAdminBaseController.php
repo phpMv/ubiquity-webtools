@@ -912,12 +912,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			"hasLoader" => "internal"
 		]);
 
-		/*
-		 * $this->jquery->getOnClick("._installTheme", $baseRoute . "/_installTheme", "#refresh-theme", [
-		 * "attr" => "data-ajax",
-		 * "hasLoader" => "internal"
-		 * ]);
-		 */
 		$this->jquery->postOnClick('._installTheme', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer/_refreshTheme/refresh-theme/html', '{commands: "echo n | ' . $devtoolsPath . ' install-theme "+$(this).attr("data-ajax")}', '#partial', [
 			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Theme installation...') . ');',
@@ -925,16 +919,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'partial' => "$('#partial').html(response);"
 		]);
 
-		$this->jquery->postOnClick("._saveConfig", $baseRoute . "/_setDevtoolsPath", "{path:$('#devtools-path').val()}", "#devtools-message", [
-			"hasLoader" => "internal"
-		]);
 		$this->jquery->getHref("._setTheme", "#refresh-theme");
 
-		$checkDevtools = $this->_checkDevtoolsPath($devtoolsPath);
 		$this->jquery->compile($this->view);
 
 		$this->loadView($this->_getFiles()
-			->getViewThemesIndex(), compact('activeTheme', 'themes', 'notInstalled', 'devtoolsPath', 'checkDevtools'));
+			->getViewThemesIndex(), compact('activeTheme', 'themes', 'notInstalled'));
 	}
 
 	protected function getHeader($key) {

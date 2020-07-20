@@ -1,15 +1,5 @@
 {{ q["header"] | raw }}
-
-<div class="ui secondary menu">
-	 <div class="item">
-	    <div class="ui left labeled action input">
-	    <div class="ui basic teal label">Check devtools command</div>
-	      <input type="text" placeholder="Ubiquity command location" value="{{devtoolsPath}}" id="devtools-path">
-	      <a class="ui labeled icon button _saveConfig"><i class="ui check square icon _checkDevtools"></i>Save</a>
-	    </div>
-	  </div>
-</div>
-{{ checkDevtools | raw }}
+<div id="response"></div>
 <div id="devtools-message"></div>
 <div class="ui segment">
 	<div id="refresh-theme">
