@@ -92,7 +92,7 @@ trait GitTrait {
 	}
 
 	public function _updateGitParams() {
-		CacheManager::$cache->store(RepositoryGit::$GIT_SETTINGS, "return " . UArray::asPhpArray($_POST, "array") . ";", true);
+		CacheManager::$cache->store(RepositoryGit::$GIT_SETTINGS, $_POST);
 		$gitRepo = $this->_getRepo(false);
 		$activeRemoteUrl = $gitRepo->getRemoteUrl();
 		$newRemoteUrl = URequest::post("remoteUrl");
