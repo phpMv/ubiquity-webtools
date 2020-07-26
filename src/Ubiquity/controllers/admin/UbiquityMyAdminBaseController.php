@@ -127,6 +127,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'controllers',
 				'models'
 			],
+			'first-use' => true,
 			'maintenance' => [
 				'on' => false,
 				'modes' => [
@@ -153,7 +154,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				]
 			]
 		];
-		if (class_exists('\\Cz\\Git\\GitRepository')) {
+		if (\class_exists('\\Cz\\Git\\GitRepository')) {
 			$defaultConfig['git-macros'] = [
 				"Status" => "git status",
 				"commit & push" => "git+add+.%0Agit+commit+-m+%22%3Cyour+message%3E%22%0Agit+push%0A",
@@ -166,7 +167,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"stash & pull (overwrite local changes with pull)" => "git+stash%0Agit+pull%0A"
 			];
 		}
-		if (file_exists(self::$configFile)) {
+		if (\file_exists(self::$configFile)) {
+			unset($defaultConfig['first-use']);
 			$config = include (self::$configFile);
 			return \array_replace($defaultConfig, $config);
 		}
@@ -197,13 +199,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$dataAjax = [
 				"index"
 			];
+			$siteUrl = \rtrim(Startup::$config['siteUrl'], '/') . '/';
+			$baseRoute = \trim($this->_getFiles()->getAdminBaseRoute(), '/');
 			$hrefs = [
-				$this->_getFiles()->getAdminBaseRoute() . "/index"
+				$siteUrl . $baseRoute . "/index"
 			];
 			foreach ($mainMenuElements as $elm => $values) {
 				$elements[] = $elm;
 				$dataAjax[] = $values[0];
-				$hrefs[] = $this->_getFiles()->getAdminBaseRoute() . "/" . $values[0];
+				$hrefs[] = $siteUrl . $baseRoute . "/" . $values[0];
 			}
 			$mn = $semantic->htmlMenu("mainMenu", $elements);
 			$mn->getItem(0)
@@ -213,7 +217,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$mn->setPropertyValues("href", $hrefs);
 			$mn->setActiveItem(0);
 			$mn->setSecondary();
-			$mn->getOnClick("Admin", "#main-content", [
+			$mn->getOnClick($baseRoute, "#main-content", [
 				"attr" => "data-ajax",
 				"historize" => true
 			]);
@@ -279,7 +283,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected function _checkModelsUpdates(&$config, $onMainPage) {
 		$models = CacheManager::modelsCacheUpdated($config);
-		if (is_array($models) && sizeof($models) > 0) {
+		if (\is_array($models) && \count($models) > 0) {
 			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'small inverted compact', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#models-refresh' : '#main-content');
 		}
 	}
@@ -360,6 +364,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$this->jquery->mouseenter("#admin-elements .item", '$(this).children("i").addClass("green").removeClass("circular");$(this).find(".description").css("color","#21ba45");$(this).transition("pulse","400ms");');
 		$this->jquery->mouseleave("#admin-elements .item", '$(this).children("i").removeClass("green").addClass("circular");$(this).find(".description").css("color","");');
+		if ($this->config['first-use'] ?? false) {
+			echo $this->showSimpleMessage('This is your first use of devtools. You can select the tools you want to display.', 'info', 'Tools displaying', 'info circle', null, 'msgGlobal');
+			$this->jquery->trigger('#bt-customize', 'click', true);
+		}
 		$this->jquery->compile($this->view);
 		$this->loadView($this->_getFiles()
 			->getViewIndex());
@@ -398,13 +406,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function _indexCustomizing() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$array = $this->_getAdminViewer()->getMainMenuElements();
-		$keys = array_keys($array);
+		$keys = \array_keys($array);
 
-		$selectedElements1 = array_keys($this->getMenuElements($array, 'part1'));
-		$selectedElements2 = array_keys($this->getMenuElements($array, 'part2'));
-		$elements1 = array_diff($keys, $selectedElements2);
-		$elements2 = array_diff($keys, $selectedElements1);
-		$selectedValue1 = implode(",", $selectedElements1);
+		$selectedElements1 = \array_keys($this->getMenuElements($array, 'part1'));
+		$selectedElements2 = \array_keys($this->getMenuElements($array, 'part2'));
+		$elements1 = \array_diff($keys, $selectedElements2);
+		$elements2 = \array_diff($keys, $selectedElements1);
+		$selectedValue1 = \implode(",", $selectedElements1);
 		$dd1 = $this->jquery->semantic()->htmlDropdown('part1', $selectedValue1, $this->_preserveArraySort($selectedElements1, $elements1));
 		$dd1->asSearch('t-part1', true);
 
@@ -1572,7 +1580,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function _saveConfig() {
-		$content = "<?php\nreturn " . UArray::asPhpArray($this->config, "array", 1, true) . ";";
+		if (isset($this->config['first-use'])) {
+			unset($this->config['first-use']);
+		}
+		$content = "<?php\nreturn " . UArray::asPhpArray($this->config, 'array', 1, true) . ";";
 		return UFileSystem::save(self::$configFile, $content);
 	}
 
