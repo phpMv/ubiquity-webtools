@@ -99,8 +99,14 @@ trait ComposerTrait {
 			[
 				'name' => 'phpmv/ubiquity-oauth',
 				'optional' => true,
-				'category' => 'authentification',
+				'category' => 'security',
 				'class' => 'Ubiquity\\client\\oauth\\OAuthManager'
+			],
+			[
+				'name' => 'phpmv/ubiquity-security',
+				'optional' => true,
+				'category' => 'security',
+				'class' => 'Ubiquity\\security\\csrf\\CsrfManager'
 			]
 		],
 		'require-dev' => [
@@ -133,6 +139,12 @@ trait ComposerTrait {
 				'optional' => false,
 				'category' => 'core',
 				'class' => 'Ubiquity\\controllers\\admin\\popo\\Route'
+			],
+			[
+				'name' => 'phpmv/ubiquity-commands',
+				'optional' => true,
+				'category' => 'tools',
+				'class' => 'Ubiquity\\devtools\\cmd\\Command'
 			]
 		]
 	];
