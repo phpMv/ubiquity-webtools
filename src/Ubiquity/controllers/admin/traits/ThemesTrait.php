@@ -103,7 +103,7 @@ trait ThemesTrait {
 	public function _checkDevtoolsPath($path) {
 		$res = $this->runSilent($path . ' version', $return_var);
 		if (UString::contains('Ubiquity devtools', $return_var)) {
-			$res = $this->showConsoleMessage($return_var, "Ubiquity devtools", $hasError, "success", "check square");
+			$res = $this->showConsoleMessage(\nl2br(\str_replace("\n\n", "\n", $return_var)), "Ubiquity devtools", $hasError, "success", "check square");
 			$this->jquery->exec('$("._checkDevtools").toggleClass("green check square",true);$("._checkDevtools").toggleClass("red warning circle",false);$(".devtools-related").dimmer("hide");', true);
 		} else {
 			$res = $this->showSimpleMessage(sprintf("Devtools are not available at %s", $path), "error", 'Devtools command path', 'warning circle');
