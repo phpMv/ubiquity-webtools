@@ -28,12 +28,8 @@ trait ThemesTrait {
 			'before' => '$("#response").html(' . $this->getConsoleMessage_('partial', 'Theme installation...') . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
-		]); /*
-		     * $this->jquery->getOnClick("._installTheme", $this->_getFiles()
-		     * ->getAdminBaseRoute() . "/_installTheme", "#refresh-theme", [
-		     * "attr" => "data-ajax"
-		     * ]);
-		     */
+		]);
+
 		$this->loadView('@admin/themes/refreshTheme.html', compact('activeTheme', 'themes', 'notInstalled', 'partial'));
 	}
 
@@ -116,18 +112,6 @@ trait ThemesTrait {
 		return $res;
 	}
 
-	private function getConsoleMessage($originalMessage) {
-		$messages = explode("\n", $originalMessage);
-		$result = [];
-		foreach ($messages as $msg) {
-			$msg = trim($msg);
-			if (UString::startswith($msg, "·")) {
-				$result[] = $msg;
-			}
-		}
-		return implode("<br>", $result);
-	}
-
 	private function showConsoleMessage($originalMessage, $title, &$hasError, $type = 'info', $icon = 'info circle') {
 		$hasError = false;
 		if ($originalMessage != null) {
@@ -136,7 +120,7 @@ trait ThemesTrait {
 				$icon = "warning circle";
 				$hasError = true;
 			}
-			return $this->showSimpleMessage($this->getConsoleMessage($originalMessage), $type, $title, $icon);
+			return $this->showSimpleMessage($originalMessage, $type, $title, $icon);
 		}
 	}
 

@@ -242,7 +242,7 @@ trait ComposerTrait {
 		}
 
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
-			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', null, [
+			->getAdminBaseRoute() . '/_execComposer', 'composer-update-frm', '#partial', [
 			'before' => '$("#response").html(' . $this->getConsoleMessage_() . ');',
 			'hasLoader' => false,
 			'partial' => "$('#partial').html(response);"
@@ -264,10 +264,11 @@ trait ComposerTrait {
 			\ob_end_clean();
 		ob_end_flush();
 		foreach ($commands as $cmd) {
-			echo "<span class='ui teal text'>$cmd</span>\n";
+			echo "<span class='ui teal text'>$cmd</span>\n<pre style='line-height: 1.25em;'>";
 			flush();
 			ob_flush();
 			$this->liveExecuteCommand($cmd);
+			echo "</pre>";
 		}
 		$this->jquery->get($this->_getFiles()
 			->getAdminBaseRoute() . '/' . $url, '#' . $responseElement, [
