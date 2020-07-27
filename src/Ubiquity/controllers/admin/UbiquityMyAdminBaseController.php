@@ -117,7 +117,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.11';
+	public const version = '2.3.12';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -1692,7 +1692,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->getHeader("composer");
 		$this->getComposerDataTable();
 
-		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response');
+		$this->jquery->postFormOnClick('#submit-composer-bt', $baseRoute . '/_updateComposer', 'composer-frm', '#response', [
+			'hasLoader' => 'internal'
+		]);
 
 		$this->jquery->postOnClick('#opt-composer-bt', $this->_getFiles()
 			->getAdminBaseRoute() . '/_execComposer', "{commands:'composer install --optimize-autoloader --classmap-authoritative'}", null, [
