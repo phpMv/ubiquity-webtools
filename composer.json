@@ -13,7 +13,7 @@
 	"require" : {
 		"php" : "^7.4",
 		"phpmv/php-mv-ui": "^2.2.19",
-		"phpmv/ubiquity-dev": "^0.0"
+		"phpmv/ubiquity-dev": "dev-nosql-prepare"
 	},
 	"license" : "Apache-2.0",
 	"authors" : [{
