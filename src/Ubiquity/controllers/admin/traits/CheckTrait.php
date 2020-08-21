@@ -120,8 +120,7 @@ trait CheckTrait {
 			try {
 				if ($db["dbName"] !== "") {
 					$this->_addInfoMessage($infoIcon, "Attempt to connect to the database <b>" . $db["dbName"] . "</b> ...");
-					$db = new Database($db['wrapper'] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $db["type"], $db["dbName"], @$db["serverName"], @$db["port"], @$db["user"], @$db["password"], @$db["options"], @$db["cache"]);
-					$db->connect();
+					DAO::getSqlOrNosqlDatabase($offset);
 				}
 			} catch (\Exception $e) {
 				$this->_addErrorMessage("warning", $e->getMessage());
@@ -161,7 +160,7 @@ trait CheckTrait {
 
 	protected function getTablesWithoutModel($config, $offset = 'default') {
 		$models = CacheManager::getModels($config, true, $offset);
-		$tables = DAO::getDatabase($offset)->getTablesName();
+		$tables = DAO::getSqlOrNosqlDatabase($config, $offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
 		$tables = array_diff($tables, $allJoinTables);
 		foreach ($models as $model) {
@@ -176,7 +175,7 @@ trait CheckTrait {
 	protected function getModelsWithoutTable($config, $offset = 'default') {
 		$models = CacheManager::getModels($config, true, $offset);
 		$result = $models;
-		$tables = DAO::getDatabase($offset)->getTablesName();
+		$tables = DAO::getSqlOrNosqlDatabase($config, $offset)->getTablesName();
 		$allJoinTables = Reflexion::getAllJoinTables($models);
 		$tables = array_diff($tables, $allJoinTables);
 		foreach ($models as $model) {
