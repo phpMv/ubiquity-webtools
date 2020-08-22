@@ -329,8 +329,9 @@ trait ModelsTrait {
 				$models = CacheManager::getModels($config, true, $databaseOffset);
 				$menu = $semantic->htmlMenu("menuDbs");
 				$menu->setVertical()->setInverted();
+				$daoClass = DAO::getDAOClass($config, $databaseOffset);
 				foreach ($models as $model) {
-					$count = DAO::count($model);
+					$count = $daoClass::count($model);
 					$item = $menu->addItem(ClassUtils::getClassSimpleName($model));
 					$item->addLabel($count);
 					$tbl = OrmUtils::getTableName($model);

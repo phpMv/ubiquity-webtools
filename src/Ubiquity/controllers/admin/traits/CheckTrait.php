@@ -120,7 +120,7 @@ trait CheckTrait {
 			try {
 				if ($db["dbName"] !== "") {
 					$this->_addInfoMessage($infoIcon, "Attempt to connect to the database <b>" . $db["dbName"] . "</b> ...");
-					DAO::getSqlOrNosqlDatabase($offset);
+					DAO::getSqlOrNosqlDatabase($config, $offset);
 				}
 			} catch (\Exception $e) {
 				$this->_addErrorMessage("warning", $e->getMessage());
