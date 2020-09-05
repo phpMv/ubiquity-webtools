@@ -27,7 +27,6 @@ class ControllerAction {
 		"initialize",
 		"finalize",
 		"onInvalidControl",
-		"onError",
 		"loadView",
 		"forward",
 		"redirectToRoute",
