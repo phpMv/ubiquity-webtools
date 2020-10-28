@@ -19,7 +19,7 @@ use Ubiquity\security\data\EncryptionManager;
  *
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  * @author jc
- * @version 1.0.0
+ * @version 1.0.1
  *
  */
 trait SecurityTrait {
@@ -28,16 +28,22 @@ trait SecurityTrait {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$hasSecurity = ServicesChecker::hasSecurity();
 		$hasShieldon = ServicesChecker::hasShieldon();
+		$hasAcl = ServicesChecker::hasAcl();
 		$componentsValues = [
 			'security' => $hasSecurity,
+			'acl' => $hasAcl,
 			'shieldon' => $hasShieldon
 		];
 		$servicesValues = [];
+		$servicesNames = [];
 		if ($hasSecurity) {
 			$servicesValues['encryption'] = \Ubiquity\security\data\EncryptionManager::isStarted();
+			$servicesNames[] = 'Encryption manager';
+
 			$hasCsrf = \Ubiquity\security\csrf\CsrfManager::isStarted();
-			$servicesValues['csrf'] = $hasCsrf;
 			if ($hasCsrf) {
+				$servicesNames[] = 'Csrf manager';
+				$servicesValues['csrf'] = $hasCsrf;
 				$csrfValues = [
 					'selector' => \Ubiquity\security\csrf\CsrfManager::getSelectorClass(),
 					'validator' => \Ubiquity\security\csrf\CsrfManager::getValidatorClass(),
@@ -46,7 +52,13 @@ trait SecurityTrait {
 			}
 		}
 		if ($hasShieldon) {
-			$servicesValues['shieldon'] = \Shieldon\Container::get('firewall') !== null;
+
+			$servicesValues['shieldon'] = (\Shieldon\Container::get('firewall') !== null);
+			$servicesNames[] = 'Shieldon firewall';
+		}
+		if ($hasAcl) {
+			$servicesValues['acl'] = (\Ubiquity\security\acl\AclManager::getAclList() !== null);
+			$servicesNames[] = 'Acl Manager';
 		}
 		$sessionValues = [];
 		if ($sessionValues['started'] = USession::isStarted()) {
@@ -61,6 +73,7 @@ trait SecurityTrait {
 		$deComponents->setFields(array_keys($componentsValues));
 		$deComponents->setCaptions([
 			'ubiquity-security',
+			'ubiquity-acl',
 			'Shieldon'
 		]);
 		$deComponents->setAttached();
@@ -69,17 +82,17 @@ trait SecurityTrait {
 			return $this->installOrInstalledSecurityCompo($value, 'security', 'phpmv', 'ubiquity-security', $dependencies);
 		});
 
+		$deComponents->setValueFunction('acl', function ($value) use ($dependencies) {
+			return $this->installOrInstalledSecurityCompo($value, 'acl', 'phpmv', 'ubiquity-acl', $dependencies);
+		});
+
 		$deComponents->setValueFunction('shieldon', function ($value) use ($dependencies) {
 			return $this->installOrInstalledSecurityCompo($value, 'shieldon', 'shieldon', 'shieldon', $dependencies);
 		});
 		if (count($servicesValues) > 0) {
 			$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
-			$deServices->setFields(array_keys($servicesValues));
-			$deServices->setCaptions([
-				'Encryption manager',
-				'Csrf manager',
-				'Shieldon firewall'
-			]);
+			$deServices->setFields(\array_keys($servicesValues));
+			$deServices->setCaptions($servicesNames);
 
 			$deServices->setValueFunction('encryption', function ($value) {
 				$res = $this->startOrStartedSecurityService($value, 'encryptionManager');
@@ -92,6 +105,10 @@ trait SecurityTrait {
 			});
 			$deServices->setValueFunction('csrf', function ($value) {
 				return $this->startOrStartedSecurityService($value, 'csrfManager');
+			});
+
+			$deServices->setValueFunction('acl', function ($value) {
+				return $this->startOrStartedSecurityService($value, 'aclManager');
 			});
 			$deServices->setValueFunction('shieldon', function ($value) use ($baseRoute) {
 				$elm = $this->startOrStartedSecurityService($value, 'shieldon');
