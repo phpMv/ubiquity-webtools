@@ -1,0 +1,14 @@
+{{ q["header"] | raw }}
+{% if q["msgGlobal"] is defined %}
+<div style="padding: 10px 0px;" id="messages">
+	{{ q["msgGlobal"] | raw }}
+</div>
+{% endif %}
+
+<div id="response"></div>
+<br>
+<div id='aclsPart'>
+	{{aclsPart|raw}}
+</div>
+
+{{ script_foot | raw }}

@@ -227,4 +227,8 @@ class UbiquityMyAdminFiles {
 	public function getViewCommandSuiteFrm() {
 		return $this->viewBase . "/commands/commandSuiteFrm.html";
 	}
+
+	public function getViewAclsIndex() {
+		return $this->viewBase . "/acls/index.html";
+	}
 }

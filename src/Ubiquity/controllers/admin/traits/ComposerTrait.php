@@ -61,6 +61,12 @@ trait ComposerTrait {
 				'class' => 'Ubiquity\\servers\\react\\ReactServer'
 			],
 			[
+				'name' => 'phpmv/ubiquity-ngx',
+				'optional' => true,
+				'category' => 'servers',
+				'class' => 'Ubiquity\\servers\\ngx\\NgxServer'
+			],
+			[
 				'name' => 'phpmv/ubiquity-php-pm',
 				'optional' => true,
 				'category' => 'servers',
@@ -85,6 +91,12 @@ trait ComposerTrait {
 				'class' => 'Ubiquity\\db\\providers\\mysqli\\MysqliWrapper'
 			],
 			[
+				'name' => 'phpmv/ubiquity-nosql',
+				'optional' => true,
+				'category' => 'database',
+				'class' => 'Ubiquity\\orm\\DAONosql'
+			],
+			[
 				'name' => 'phpmv/ubiquity-swoole',
 				'optional' => true,
 				'category' => 'servers',
@@ -107,6 +119,12 @@ trait ComposerTrait {
 				'optional' => true,
 				'category' => 'security',
 				'class' => 'Ubiquity\\security\\csrf\\CsrfManager'
+			],
+			[
+				'name' => 'phpmv/ubiquity-acl',
+				'optional' => true,
+				'category' => 'security',
+				'class' => 'Ubiquity\\security\\acl\\AclManager'
 			]
 		],
 		'require-dev' => [

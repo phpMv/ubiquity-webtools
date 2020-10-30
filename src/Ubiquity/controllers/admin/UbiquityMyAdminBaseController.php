@@ -117,7 +117,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	public const version = '2.3.12';
+	public const version = '2.3.12+';
 
 	public static function _getConfigFile() {
 		$defaultConfig = [
@@ -1765,6 +1765,25 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->renderView($this->_getFiles()
 			->getViewSecurityIndex(), [
 			'sPart' => $this->_refreshSecurity(true)
+		]);
+	}
+
+	public function acls() {
+		$this->getHeader('acls');
+		$providers = [
+			'controllers' => 'Controllers',
+			'models' => 'Models',
+			'views' => 'Views',
+			'queries' => 'Queries',
+			'annotations' => 'Annotations',
+			'seo' => 'SEO',
+			'contents' => 'Contents',
+			'translations' => 'Translations'
+		];
+		$radios = HtmlFormFields::checkeds('ckProviders', 'providers[]', $providers, 'Display cache types: ', $this->config['display-cache-types']);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewAclsIndex(), [
+			'aclsPart' => $radios
 		]);
 	}
 

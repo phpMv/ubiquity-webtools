@@ -107,8 +107,18 @@ trait SecurityTrait {
 				return $this->startOrStartedSecurityService($value, 'csrfManager');
 			});
 
-			$deServices->setValueFunction('acl', function ($value) {
-				return $this->startOrStartedSecurityService($value, 'aclManager');
+			$deServices->setValueFunction('acl', function ($value) use ($baseRoute) {
+				$elm = $this->startOrStartedSecurityService($value, 'aclManager');
+				if ($value) {
+					$bt = new HtmlButton('bt-acl', 'Manage Acls');
+					$bt->addIcon("users");
+					$bt->addClass('tiny black right floated ');
+					$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/acls', '#response', [
+						'hasLoader' => 'internal'
+					]);
+					$elm->wrap('', $bt);
+				}
+				return $elm;
 			});
 			$deServices->setValueFunction('shieldon', function ($value) use ($baseRoute) {
 				$elm = $this->startOrStartedSecurityService($value, 'shieldon');
