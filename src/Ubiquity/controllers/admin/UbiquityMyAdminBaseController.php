@@ -68,6 +68,9 @@ use Ajax\semantic\html\elements\HtmlLabel;
 use Ubiquity\controllers\admin\traits\SecurityTrait;
 use Ubiquity\controllers\admin\traits\CommandsTrait;
 use Ubiquity\controllers\admin\popo\CategoryCommands;
+use Ubiquity\security\acl\AclManager;
+use Ubiquity\display\traits\DisplayAcls;
+use Ubiquity\controllers\admin\traits\AclsTrait;
 
 /**
  *
@@ -77,7 +80,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	use MessagesTrait,ModelsTrait,ModelsConfigTrait,RestTrait,CacheTrait,ConfigTrait,
 	ControllersTrait,RoutesTrait,DatabaseTrait,SeoTrait,GitTrait,CreateControllersTrait,
 	LogsTrait,InsertJqueryTrait,ThemesTrait,TranslateTrait,MaintenanceTrait,MailerTrait,
-	ComposerTrait,OAuthTrait,ConfigPartTrait,SecurityTrait,CommandsTrait;
+	ComposerTrait,OAuthTrait,ConfigPartTrait,SecurityTrait,CommandsTrait,DisplayAcls,AclsTrait;
 
 	/**
 	 *
@@ -1770,21 +1773,35 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function acls() {
 		$this->getHeader('acls');
-		$providers = [
-			'controllers' => 'Controllers',
-			'models' => 'Models',
-			'views' => 'Views',
-			'queries' => 'Queries',
-			'annotations' => 'Annotations',
-			'seo' => 'SEO',
-			'contents' => 'Contents',
-			'translations' => 'Translations'
-		];
-		$radios = HtmlFormFields::checkeds('ckProviders', 'providers[]', $providers, 'Display cache types: ', $this->config['display-cache-types']);
-		$this->jquery->renderView($this->_getFiles()
-			->getViewAclsIndex(), [
-			'aclsPart' => $radios
+		$providers = AclManager::getAclList()->getProviders();
+		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
+		$cards = $this->jquery->semantic()->htmlCardGroups('providers');
+		foreach ($providers as $prov) {
+			$r = new \ReflectionClass($prov);
+			$sn = $r->getShortName();
+			$card = $cards->newItem($sn);
+			$card->addItemHeaderContent($r->getShortName(), $metas = [], new HtmlList('', $prov->getDetails()), $extra = []);
+			$bt = new HtmlButton('bt-' . $sn, 'active', 'fluid _activate');
+			$bt->setProperty('data-class', urlencode($r->getName()));
+			$active = '';
+			if ($selectedProviders === '*' || \array_search($r->getName(), $selectedProviders) !== false) {
+				$active = 'active';
+			}
+			$bt->setToggle($active);
+
+			$card->addExtraContent($bt);
+			$cards->addItem($card);
+		}
+		AclManager::reloadFromSelectedProviders($selectedProviders);
+		$this->_getAclTabs();
+
+		$this->jquery->getOnClick('._activate', $this->_getFiles()
+			->getAdminBaseRoute() . '/_activateProvider', '#aclsPart', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-class'
 		]);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewAclsIndex());
 	}
 
 	public function commands() {

@@ -7,8 +7,9 @@
 
 <div id="response"></div>
 <br>
+<div class='ui segment'>{{ q["providers"] | raw }}</div>
 <div id='aclsPart'>
-	{{aclsPart|raw}}
+	{{ q["acls"] | raw }}
 </div>
 
 {{ script_foot | raw }}
