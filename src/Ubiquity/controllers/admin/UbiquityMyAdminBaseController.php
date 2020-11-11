@@ -1800,6 +1800,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'hasLoader' => 'internal',
 			'attr' => 'data-class'
 		]);
+		$this->jquery->getOnClick('.addNewAclController', $this->_getFiles()
+			->getAdminBaseRoute() . '/_newAclController', '#response', [
+			'hasLoader' => 'internal'
+		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAclsIndex());
 	}

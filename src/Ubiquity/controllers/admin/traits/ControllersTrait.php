@@ -211,9 +211,9 @@ trait ControllersTrait {
 			$result = [];
 			header('Content-type: application/json');
 
-			$controller = $_POST["controller"];
-			$action = $_POST["action"];
-			$parameters = $_POST["parameters"];
+			$controller = $_POST["controller"] ?? $_POST['controllerName'] ?? null;
+			$action = $_POST["action"] ?? null;
+			$parameters = $_POST["parameters"] ?? null;
 			$parameters = CodeUtils::getParametersForRoute($parameters);
 			$controller = ClassUtils::getClassSimpleName($controller);
 

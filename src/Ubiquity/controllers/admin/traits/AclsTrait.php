@@ -1,12 +1,15 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\collections\HtmlMessage;
-use Ubiquity\security\acl\models\AclElement;
+use Ubiquity\controllers\Startup;
 use Ubiquity\security\acl\AclManager;
-use Ubiquity\security\acl\models\Role;
-use Ubiquity\security\acl\models\Resource;
+use Ubiquity\security\acl\models\AclElement;
 use Ubiquity\security\acl\models\Permission;
+use Ubiquity\security\acl\models\Resource;
+use Ubiquity\security\acl\models\Role;
+use Ubiquity\utils\http\URequest;
 
 /**
  *
@@ -17,6 +20,8 @@ use Ubiquity\security\acl\models\Permission;
 trait AclsTrait {
 
 	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+
+	abstract protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "");
 
 	protected function _getAclTabs() {
 		$tab = $this->jquery->semantic()->htmlTab('acls');
@@ -79,6 +84,82 @@ trait AclsTrait {
 		$this->_refreshAcls();
 		$this->config['selected-acl-providers'] = $selectedProviders;
 		$this->_saveConfig();
+	}
+
+	public function _newAclController() {
+		$modal = $this->jquery->semantic()->htmlModal("modalNewAcl", "Creating a new Acl controller");
+		$modal->setInverted();
+		$frm = $this->jquery->semantic()->htmlForm("frmNewAcl");
+		$fc = $frm->addField('controllerName')->addRules([
+			'empty',
+			[
+				"checkController",
+				"Controller {value} already exists!"
+			]
+		]);
+		$fc->labeled(Startup::getNS());
+
+		$frm->addCheckbox("ck-add-route", "Add route...");
+
+		$frm->addContent("<div id='div-new-route' style='display: none;'>");
+		$frm->addDivider();
+		$frm->addInput("path", "", "text", "")->addRule([
+			"checkRoute",
+			"Route {value} already exists!"
+		]);
+		$frm->addContent("</div>");
+
+		$frm->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		$frm->setSubmitParams($this->_getFiles()
+			->getAdminBaseRoute() . "/_createAclController", "#response", [
+			"hasLoader" => false
+		]);
+		$modal->setContent($frm);
+		$modal->addAction("Validate");
+		$this->jquery->click("#action-modalNewAcl-0", "$('#frmNewAcl').form('submit');", false, false);
+		$modal->addAction("Close");
+		$this->jquery->change('#controllerName', 'if($("#ck-add-route").is(":checked")){$("#path").val($(this).val());}');
+		$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAcl').modal('show');", true);
+		$this->jquery->jsonOn("change", "#ck-add-route", $this->_getFiles()
+			->getAdminBaseRoute() . "/_addRouteWithNewAction", "post", [
+			"context" => "$('#frmNewAcl')",
+			"params" => "$('#frmNewAcl').serialize()",
+			"jsCondition" => "$('#ck-add-route').is(':checked')"
+		]);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkRoute", $this->_getFiles()
+			->getAdminBaseRoute() . "/_checkRoute", "{}", "result=data.result;", "postForm", [
+			"form" => "frmNewAcl"
+		]), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkController", $this->_getFiles()
+			->getAdminBaseRoute() . "/_checkController", "{}", "result=data.result;", "postForm", [
+			"form" => "frmNewAcl"
+		]), true);
+		$this->jquery->change("#ck-add-route", '$("#div-new-route").toggle($(this).is(":checked"));if($(this).is(":checked")){$("#path").val($("#controllerName").val());}');
+		$this->loadViewCompo($modal);
+	}
+
+	public function _createAclController() {
+		if (URequest::isPost()) {
+			$variables = [];
+			$path = URequest::post("path", null);
+			$variables["%path%"] = $path;
+			if (isset($path)) {
+				$variables["%route%"] = '@route("' . $path . '","automated"=>true)';
+				$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
+					->getAdminBaseRoute() . "/_initCacheRouter/0", "#response", [
+					"dataType" => "html",
+					"attr" => "",
+					"hasLoader" => "internal"
+				]);
+			}
+
+			$resp = $this->_createController($_POST["controllerName"], $variables, 'aclController.tpl');
+
+			$this->loadViewCompo($resp);
+		}
 	}
 }
 

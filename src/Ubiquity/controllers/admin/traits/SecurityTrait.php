@@ -113,7 +113,7 @@ trait SecurityTrait {
 					$bt = new HtmlButton('bt-acl', 'Manage Acls');
 					$bt->addIcon("users");
 					$bt->addClass('tiny black right floated ');
-					$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/acls', '#response', [
+					$this->jquery->getOnClick('#bt-acl', $baseRoute . '/acls', '#main-content', [
 						'hasLoader' => 'internal'
 					]);
 					$elm->wrap('', $bt);

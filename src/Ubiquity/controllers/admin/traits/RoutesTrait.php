@@ -28,7 +28,7 @@ trait RoutesTrait {
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function _initCacheRouter() {
+	public function _initCacheRouter($displayRoutes = true) {
 		$config = Startup::getConfig();
 		\ob_start();
 		try {
@@ -42,9 +42,11 @@ trait RoutesTrait {
 		} catch (RestException $e) {}
 		$message = \ob_get_clean();
 		echo $this->showSimpleMessage(\nl2br($message), "info", "Router cache", "info", 4000, null, true);
-		$routes = CacheManager::getRoutes();
-		echo $this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
-		$this->addNavigationTesting();
+		if ($displayRoutes === true) {
+			$routes = CacheManager::getRoutes();
+			echo $this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
+			$this->addNavigationTesting();
+		}
 		echo $this->jquery->compile($this->view);
 	}
 
