@@ -69,8 +69,8 @@ use Ubiquity\controllers\admin\traits\SecurityTrait;
 use Ubiquity\controllers\admin\traits\CommandsTrait;
 use Ubiquity\controllers\admin\popo\CategoryCommands;
 use Ubiquity\security\acl\AclManager;
-use Ubiquity\display\traits\DisplayAcls;
 use Ubiquity\controllers\admin\traits\AclsTrait;
+use Ubiquity\controllers\admin\traits\acls\DisplayAcls;
 
 /**
  *
