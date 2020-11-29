@@ -1776,20 +1776,32 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$providers = AclManager::getAclList()->getProviders();
 		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
 		$cards = $this->jquery->semantic()->htmlCardGroups('providers');
+
 		foreach ($providers as $prov) {
+			$bts = new HtmlButtonGroups('bt-providers');
 			$r = new \ReflectionClass($prov);
 			$sn = $r->getShortName();
 			$card = $cards->newItem($sn);
-			$card->addItemHeaderContent($r->getShortName(), $metas = [], new HtmlList('', $prov->getDetails()), $extra = []);
-			$bt = new HtmlButton('bt-' . $sn, 'active', 'fluid _activate');
-			$bt->setProperty('data-class', urlencode($r->getName()));
+			$card->addItemHeaderContent($r->getShortName(), [], new HtmlList('', $prov->getDetails()), []);
+			$bt = new HtmlButton('bt-' . $sn, 'active', 'item _activate');
+			$bt->setProperty('data-class', \urlencode($r->getName()));
+			$bts->addElement($bt);
+			if ($prov instanceof \Ubiquity\security\acl\persistence\AclCacheProvider) {
+				$bt2 = new HtmlButton('bt-cache-' . $sn, 'Re-init cache', 'orange item _cache');
+				$bt2->setProperty('data-class', \urlencode($r->getName()));
+				$bt2->addIcon('refresh');
+				$bts->addElement($bt2);
+			}
 			$active = '';
 			if ($selectedProviders === '*' || \array_search($r->getName(), $selectedProviders) !== false) {
 				$active = 'active';
+			} else {
+				if (isset($bt2)) {
+					$bt2->setProperty('style', 'display:none');
+				}
 			}
 			$bt->setToggle($active);
-
-			$card->addExtraContent($bt);
+			$card->addExtraContent($bts);
 			$cards->addItem($card);
 		}
 		AclManager::reloadFromSelectedProviders($selectedProviders);
@@ -1803,6 +1815,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->getOnClick('.addNewAclController', $this->_getFiles()
 			->getAdminBaseRoute() . '/_newAclController', '#response', [
 			'hasLoader' => 'internal'
+		]);
+		$this->jquery->getOnClick('._cache', $this->_getFiles()
+			->getAdminBaseRoute() . '/_refreshAclCache', '#aclsPart', [
+			'hasLoader' => 'internal',
+			'attr' => 'data-class'
 		]);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAclsIndex());

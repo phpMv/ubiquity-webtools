@@ -6,6 +6,8 @@ use Ubiquity\security\acl\models\Permission;
 use Ubiquity\security\acl\models\Resource;
 use Ubiquity\security\acl\models\AclElement;
 use Ajax\semantic\html\modules\HtmlTab;
+use Ubiquity\security\acl\cache\PermissionsMap;
+use Ubiquity\security\acl\cache\PermissionMapObject;
 
 /**
  *
@@ -100,6 +102,30 @@ trait DisplayAcls {
 			'Roles',
 			'Resources',
 			'Permissions',
+			''
+		]);
+		return $dt;
+	}
+
+	/**
+	 *
+	 * @param PermissionMapObject[] $elements
+	 */
+	public function _getPermissionMapDatatable($name, $elements) {
+		$dt = $this->getAbstractAclPart($name, $elements, PermissionMapObject::class, [
+			'controllerAction',
+			'resource',
+			'permission',
+			'roles'
+		]);
+		$dt->fieldAsLabel('role', 'user');
+		$dt->fieldAsLabel('resource', 'archive');
+		$dt->fieldAsLabel('permission', 'unlock alternate');
+		$dt->setCaptions([
+			'Controller.action',
+			'Resource',
+			'Permission',
+			'Roles',
 			''
 		]);
 		return $dt;

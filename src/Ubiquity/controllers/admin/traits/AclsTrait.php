@@ -26,6 +26,7 @@ trait AclsTrait {
 	protected function _getAclTabs() {
 		$tab = $this->jquery->semantic()->htmlTab('acls');
 		$this->addTab($tab, AclManager::getAcls(), 'Acls', '_getAclElementsDatatable');
+		$this->addTab($tab, AclManager::getPermissionMap()->getObjectMap(), 'Map', '_getPermissionMapDatatable');
 		$this->addTab($tab, AclManager::getRoles(), 'Roles', '_getRolesDatatable');
 		$this->addTab($tab, AclManager::getResources(), 'Resources', '_getResourcesDatatable');
 		$this->addTab($tab, AclManager::getPermissions(), 'Permissions', '_getPermissionsDatatable');
@@ -72,18 +73,29 @@ trait AclsTrait {
 		$this->loadViewCompo($tab);
 	}
 
-	public function _activateProvider($providerClass) {
-		$providerClass = urldecode($providerClass);
+	public function _activateProvider($eProviderClass) {
+		$providerClass = \urldecode($eProviderClass);
+		$eProviderClass = \urlencode($providerClass);
 		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
 		if (($index = \array_search($providerClass, $selectedProviders)) !== false) {
 			unset($selectedProviders[$index]);
+			$this->jquery->hide('._cache[data-class="' . $eProviderClass . '"]', '', '', true);
 		} else {
 			$selectedProviders[] = $providerClass;
+			$this->jquery->show('._cache[data-class="' . $eProviderClass . '"]', '', '', true);
 		}
 		AclManager::reloadFromSelectedProviders($selectedProviders);
 		$this->_refreshAcls();
 		$this->config['selected-acl-providers'] = $selectedProviders;
 		$this->_saveConfig();
+	}
+
+	public function _refreshAclCache($providerClass) {
+		$config = Startup::$config;
+		AclManager::initCache($config);
+		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
+		AclManager::reloadFromSelectedProviders($selectedProviders);
+		$this->_refreshAcls();
 	}
 
 	public function _newAclController() {
