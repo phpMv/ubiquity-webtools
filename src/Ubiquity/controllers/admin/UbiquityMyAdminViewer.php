@@ -174,6 +174,13 @@ class UbiquityMyAdminViewer {
 				"Authentification OAuth or OpenID"
 			];
 		}
+		if (\class_exists('Ubiquity\\security\\acl\\AclManager')) {
+			$result["acls"] = [
+				"Acls",
+				"users",
+				"Access Control Lists Manager"
+			];
+		}
 		return $result;
 	}
 
