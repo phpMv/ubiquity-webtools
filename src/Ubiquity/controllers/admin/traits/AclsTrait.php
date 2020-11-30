@@ -10,6 +10,7 @@ use Ubiquity\security\acl\models\Permission;
 use Ubiquity\security\acl\models\Resource;
 use Ubiquity\security\acl\models\Role;
 use Ubiquity\utils\http\URequest;
+use Ubiquity\security\acl\persistence\AclDAOProvider;
 
 /**
  *
@@ -41,29 +42,46 @@ trait AclsTrait {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		if (isset($_POST['data'])) {
 			$datas = \json_decode($_POST['data'], true);
-			$class = urldecode($datas['class']) ?? null;
+			$class = $datas['class'] ?? null;
 			$elmId = $datas['id'] ?? null;
-			if (isset($elmId)) {
+			if (isset($elmId) && isset($class)) {
 				if (is_subclass_of($class, AclElement::class)) {
 					$acl = AclManager::getAclList()->getAclById_($datas['id']);
 					if ($acl != null) {
-						AclManager::removeAcl($acl->getRole()->getName(), $acl->getResource()->getName(), $acl->getPermission()->getName());
+						$permission = $acl->getPermission()->getName();
+						$role = $acl->getRole()->getName();
+						$resource = $acl->getResource()->getName();
+						AclManager::removeAcl($role, $resource, $permission);
+						$msg = $this->toast("Permission $permission removed to $role on $resource!", 'ACL Deletion', 'info', true);
 					}
 				} else {
-					if (is_subclass_of($class, Role::class)) {
+					if (\is_subclass_of($class, Role::class)) {
 						AclManager::removeRole($elmId);
-					} elseif (is_subclass_of($class, Resource::class)) {
+						$msg = $this->toast("Role $elmId removed!", 'Role Deletion', 'info', true);
+					} elseif (\is_subclass_of($class, Resource::class)) {
 						AclManager::removeResource($elmId);
-					} elseif (is_subclass_of($class, Permission::class)) {
+						$msg = $this->toast("resource $elmId removed!", 'resource Deletion', 'info', true);
+					} elseif (\is_subclass_of($class, Permission::class)) {
 						AclManager::removePermission($elmId);
+						$msg = $this->toast("Permission $elmId removed!", 'Permission Deletion', 'info', true);
 					}
 				}
-				$this->jquery->get($baseRoute . '/_refreshAcls', '#aclsPart');
+				if (isset($msg)) {
+					echo $msg;
+				}
+				$this->jquery->get($baseRoute . '/_refreshAclsFromAjax', '#aclsPart', [
+					'hasLoader' => false
+				]);
 				echo $this->jquery->compile();
 			}
 		} else {
-			$class = urldecode($_POST["class"]);
-			$conf = $this->showConfMessage('Do you want to delete the instance <b>' . $_POST['id'] . '</b> of ' . $class, 'error', 'Acl removing confirmation', 'alert', $baseRoute . '/_removeAcl', "#response", \json_encode($_POST));
+			$class = \urldecode($_POST["class"]);
+			$conf = $this->showConfMessage('Do you want to delete the instance <b>' . \urldecode($_POST['id']) . '</b> of ' . $class, 'error', 'Acl removing confirmation', 'alert', $baseRoute . '/_removeAcl', "#response", \json_encode([
+				'id' => \urldecode($_POST['id']),
+				'class' => \str_replace('\\', '\\\\', \urldecode($_POST['class']))
+			]), [
+				'hasLoader' => 'internal'
+			]);
 			$this->loadViewCompo($conf);
 		}
 	}
@@ -71,6 +89,12 @@ trait AclsTrait {
 	public function _refreshAcls() {
 		$tab = $this->_getAclTabs();
 		$this->loadViewCompo($tab);
+	}
+
+	public function _refreshAclsFromAjax() {
+		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
+		AclManager::reloadFromSelectedProviders($selectedProviders);
+		$this->_refreshAcls();
 	}
 
 	public function _activateProvider($eProviderClass) {
@@ -172,6 +196,35 @@ trait AclsTrait {
 
 			$this->loadViewCompo($resp);
 		}
+	}
+
+	public function _aclElementAdd() {
+		$form = $this->_aclElementForm();
+		$form->fieldAsSubmit('submit', 'green fluid', $this->_getFiles()
+			->getAdminBaseRoute() . '/_aclElementSubmit', '#form', [
+			'ajax' => [
+				'hasLoader' => 'internal'
+			]
+		]);
+		$this->jquery->click('#frm-aclelement-cancel-0', '$("#form").html("");');
+		$this->loadViewCompo($form);
+	}
+
+	public function _aclElementSubmit() {
+		AclManager::reloadFromSelectedProviders([
+			AclDAOProvider::class
+		]);
+		AclManager::filterProviders(AclDAOProvider::class);
+		extract($_POST);
+		$aclList = AclManager::getAclList();
+		$aclList->addAndAllow($role, $resource, $permission);
+		echo $this->toast("Permission $permission granted to $role on $resource!", 'ACL Creation', 'info', true);
+		$this->jquery->get($this->_getFiles()
+			->getAdminBaseRoute() . '/_refreshAclsFromAjax', '#aclsPart', [
+			'hasLoader' => false,
+			'jsCallback' => '$("#form").html("");'
+		]);
+		echo $this->jquery->compile($this->view);
 	}
 }
 

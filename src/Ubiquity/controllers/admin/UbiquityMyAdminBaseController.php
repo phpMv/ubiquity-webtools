@@ -71,6 +71,7 @@ use Ubiquity\controllers\admin\popo\CategoryCommands;
 use Ubiquity\security\acl\AclManager;
 use Ubiquity\controllers\admin\traits\AclsTrait;
 use Ubiquity\controllers\admin\traits\acls\DisplayAcls;
+use Ubiquity\security\acl\persistence\AclDAOProvider;
 
 /**
  *
@@ -1791,6 +1792,24 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$bt2->setProperty('data-class', \urlencode($r->getName()));
 				$bt2->addIcon('refresh');
 				$bts->addElement($bt2);
+			}
+			if ($prov instanceof AclDAOProvider) {
+				$bt2 = new HtmlDropdown("new-acl-bt", 'Add new...', [
+					"_roleAdd" => "Role",
+					'_resourceAdd' => 'Resource',
+					'_permissionAdd' => 'Permission',
+					"_aclElementAdd" => "ACL element"
+				]);
+				$bt2->asButton();
+				$bt2->addIcon("plus");
+				$bt2->addClass('_cache');
+				$bts->addElement($bt2);
+				$this->jquery->getOnClick('#new-acl-bt .menu .item', $this->_getFiles()
+					->getAdminBaseRoute(), '#form', [
+					'hasLoader' => false,
+					'attr' => 'data-value',
+					'historize' => false
+				]);
 			}
 			$active = '';
 			if ($selectedProviders === '*' || \array_search($r->getName(), $selectedProviders) !== false) {
