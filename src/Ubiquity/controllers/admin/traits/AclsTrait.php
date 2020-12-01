@@ -11,6 +11,7 @@ use Ubiquity\security\acl\models\Resource;
 use Ubiquity\security\acl\models\Role;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\security\acl\persistence\AclDAOProvider;
+use Ubiquity\scaffolding\starter\ServiceStarter;
 
 /**
  *
@@ -89,6 +90,15 @@ trait AclsTrait {
 	public function _refreshAcls() {
 		$tab = $this->_getAclTabs();
 		$this->loadViewCompo($tab);
+	}
+
+	public function _startAclService() {
+		$sStarter = new ServiceStarter();
+		$sStarter->addService('aclManager');
+		$sStarter->save();
+		Startup::reloadServices();
+		$this->showSimpleMessage("Service <b>aclManager</b> successfully started!", "success", "Services", "info circle", null, "msgInfo");
+		$this->acls();
 	}
 
 	public function _refreshAclsFromAjax() {
@@ -182,7 +192,7 @@ trait AclsTrait {
 			$variables = [];
 			$path = URequest::post("path", null);
 			$variables["%path%"] = $path;
-			if (isset($path)) {
+			if (isset($path) && $path != null) {
 				$variables["%route%"] = '@route("' . $path . '","automated"=>true)';
 				$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
 					->getAdminBaseRoute() . "/_initCacheRouter/0", "#response", [

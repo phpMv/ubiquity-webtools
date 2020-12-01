@@ -1774,74 +1774,83 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function acls() {
 		$this->getHeader('acls');
-		$providers = AclManager::getAclList()->getProviders();
-		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
-		$cards = $this->jquery->semantic()->htmlCardGroups('providers');
+		if (AclManager::isStarted()) {
+			$providers = AclManager::getAclList()->getProviders();
+			if (\count($providers) > 0) {
+				$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
+				$cards = $this->jquery->semantic()->htmlCardGroups('providers');
 
-		foreach ($providers as $prov) {
-			$bts = new HtmlButtonGroups('bt-providers');
-			$r = new \ReflectionClass($prov);
-			$sn = $r->getShortName();
-			$card = $cards->newItem($sn);
-			$card->addItemHeaderContent($r->getShortName(), [], new HtmlList('', $prov->getDetails()), []);
-			$bt = new HtmlButton('bt-' . $sn, 'active', 'item _activate');
-			$bt->setProperty('data-class', \urlencode($r->getName()));
-			$bts->addElement($bt);
-			if ($prov instanceof \Ubiquity\security\acl\persistence\AclCacheProvider) {
-				$bt2 = new HtmlButton('bt-cache-' . $sn, 'Re-init cache', 'orange item _cache');
-				$bt2->setProperty('data-class', \urlencode($r->getName()));
-				$bt2->addIcon('refresh');
-				$bts->addElement($bt2);
-			}
-			if ($prov instanceof AclDAOProvider) {
-				$bt2 = new HtmlDropdown("new-acl-bt", 'Add new...', [
-					"_roleAdd" => "Role",
-					'_resourceAdd' => 'Resource',
-					'_permissionAdd' => 'Permission',
-					"_aclElementAdd" => "ACL element"
-				]);
-				$bt2->asButton();
-				$bt2->addIcon("plus");
-				$bt2->addClass('_cache');
-				$bts->addElement($bt2);
-				$this->jquery->getOnClick('#new-acl-bt .menu .item', $this->_getFiles()
-					->getAdminBaseRoute(), '#form', [
-					'hasLoader' => false,
-					'attr' => 'data-value',
-					'historize' => false
-				]);
-			}
-			$active = '';
-			if ($selectedProviders === '*' || \array_search($r->getName(), $selectedProviders) !== false) {
-				$active = 'active';
-			} else {
-				if (isset($bt2)) {
-					$bt2->setProperty('style', 'display:none');
+				foreach ($providers as $prov) {
+					$bts = new HtmlButtonGroups('bt-providers');
+					$r = new \ReflectionClass($prov);
+					$sn = $r->getShortName();
+					$card = $cards->newItem($sn);
+					$card->addItemHeaderContent($r->getShortName(), [], new HtmlList('', $prov->getDetails()), []);
+					$bt = new HtmlButton('bt-' . $sn, 'active', 'item _activate');
+					$bt->setProperty('data-class', \urlencode($r->getName()));
+					$bts->addElement($bt);
+					if ($prov instanceof \Ubiquity\security\acl\persistence\AclCacheProvider) {
+						$bt2 = new HtmlButton('bt-cache-' . $sn, 'Re-init cache', 'orange item _cache');
+						$bt2->setProperty('data-class', \urlencode($r->getName()));
+						$bt2->addIcon('refresh');
+						$bts->addElement($bt2);
+					}
+					if ($prov instanceof AclDAOProvider) {
+						$bt2 = new HtmlDropdown("new-acl-bt", 'Add new...', [
+							"_roleAdd" => "Role",
+							'_resourceAdd' => 'Resource',
+							'_permissionAdd' => 'Permission',
+							"_aclElementAdd" => "ACL element"
+						]);
+						$bt2->asButton();
+						$bt2->addIcon("plus");
+						$bt2->addClass('_DAO');
+						$bts->addElement($bt2);
+						$this->jquery->getOnClick('#new-acl-bt a.item', $this->_getFiles()
+							->getAdminBaseRoute(), '#form', [
+							'hasLoader' => false,
+							'attr' => 'data-value',
+							'historize' => false
+						]);
+					}
+					$active = '';
+					if ($selectedProviders === '*' || \array_search($r->getName(), $selectedProviders) !== false) {
+						$active = 'active';
+					} else {
+						if (isset($bt2)) {
+							$bt2->setProperty('style', 'display:none');
+						}
+					}
+					$bt->setToggle($active);
+					$card->addExtraContent($bts);
+					$cards->addItem($card);
 				}
-			}
-			$bt->setToggle($active);
-			$card->addExtraContent($bts);
-			$cards->addItem($card);
-		}
-		AclManager::reloadFromSelectedProviders($selectedProviders);
-		$this->_getAclTabs();
+				AclManager::reloadFromSelectedProviders($selectedProviders);
+				$this->_getAclTabs();
 
-		$this->jquery->getOnClick('._activate', $this->_getFiles()
-			->getAdminBaseRoute() . '/_activateProvider', '#aclsPart', [
-			'hasLoader' => 'internal',
-			'attr' => 'data-class'
-		]);
-		$this->jquery->getOnClick('.addNewAclController', $this->_getFiles()
-			->getAdminBaseRoute() . '/_newAclController', '#response', [
-			'hasLoader' => 'internal'
-		]);
-		$this->jquery->getOnClick('._cache', $this->_getFiles()
-			->getAdminBaseRoute() . '/_refreshAclCache', '#aclsPart', [
-			'hasLoader' => 'internal',
-			'attr' => 'data-class'
-		]);
-		$this->jquery->renderView($this->_getFiles()
-			->getViewAclsIndex());
+				$this->jquery->getOnClick('._activate', $this->_getFiles()
+					->getAdminBaseRoute() . '/_activateProvider', '#aclsPart', [
+					'hasLoader' => 'internal',
+					'attr' => 'data-class'
+				]);
+				$this->jquery->getOnClick('.addNewAclController', $this->_getFiles()
+					->getAdminBaseRoute() . '/_newAclController', '#response', [
+					'hasLoader' => 'internal'
+				]);
+				$this->jquery->getOnClick('._cache', $this->_getFiles()
+					->getAdminBaseRoute() . '/_refreshAclCache', '#aclsPart', [
+					'hasLoader' => 'internal',
+					'attr' => 'data-class'
+				]);
+				$this->jquery->renderView($this->_getFiles()
+					->getViewAclsIndex());
+			} else {}
+		} else {
+			$button = "<div class='ui divider'></div>Or you can do it automatically:<br><div class='ui orange button'><i class='ui icon play'></i>Start AclManager service</div>";
+			$msg = $this->showSimpleMessage('AclManager is not started. You have to add <div class="ui inverted segment"><pre>AclManager::start(/*providers*/)</pre></div> in <b>app/config/services.php</b>' . $button, 'warning', 'Acls management', 'warning circle');
+
+			$this->loadViewCompo($msg);
+		}
 	}
 
 	public function commands() {
