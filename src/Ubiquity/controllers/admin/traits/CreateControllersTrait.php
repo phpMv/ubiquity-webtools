@@ -62,6 +62,7 @@ trait CreateControllersTrait {
 		$this->jquery->click("#validate-btn", '$("#crud-controller-frm").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->exec("$('#crud-datas-ck').checkbox();", true);
+		$this->jquery->exec('$("._views").checkbox({onChange:function(){ $("#ck-view-inheritance").show();}});', true);
 
 		$this->jquery->exec("$('#crud-viewer-ck').checkbox();", true);
 		$this->jquery->exec("$('#crud-events-ck').checkbox();", true);
@@ -96,7 +97,7 @@ trait CreateControllersTrait {
 			if (isset($_POST["ck-add-route"])) {
 				$route = $_POST["route-path"] ?? '';
 			}
-			$this->scaffold->addCrudController(ucfirst(trim($_POST["crud-name"])), UString::doubleBackSlashes($_POST["crud-model"]), $_POST["crud-datas"] ?? null, $_POST["crud-viewer"] ?? null, $_POST["crud-events"] ?? null, $views, $route);
+			$this->scaffold->addCrudController(\ucfirst(\trim($_POST["crud-name"])), UString::doubleBackSlashes($_POST["crud-model"]), $_POST["crud-datas"] ?? null, $_POST["crud-viewer"] ?? null, $_POST["crud-events"] ?? null, $views, $route, isset($_POST["ck-use-inheritance"]));
 			$this->jquery->get($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
 				"jqueryDone" => "replaceWith",
