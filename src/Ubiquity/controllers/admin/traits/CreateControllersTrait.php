@@ -30,7 +30,6 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["CRUD"]);
 		$viewList->asSelect("crud-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->setProperty("style", "display: none;");
 		$frm = $this->jquery->semantic()->htmlForm("crud-controller-frm");
 		$frm->addExtraFieldRule("crud-model", "exactCount[1]");
 		$frm->addExtraFieldRules("crud-name", [
@@ -62,13 +61,11 @@ trait CreateControllersTrait {
 		$this->jquery->click("#validate-btn", '$("#crud-controller-frm").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->exec("$('#crud-datas-ck').checkbox();", true);
-		$this->jquery->exec('$("._views").checkbox({onChange:function(){ $("#ck-view-inheritance").show();}});', true);
-
 		$this->jquery->exec("$('#crud-viewer-ck').checkbox();", true);
 		$this->jquery->exec("$('#crud-events-ck').checkbox();", true);
 		$this->jquery->exec("$('#ck-add-route').checkbox();", true);
 
-		$this->jquery->exec('$("#crud-files-ck").checkbox({onChange:function(){ $("#view-list").toggle($("#crud-files-ck").checkbox("is checked"));}});', true);
+		$this->jquery->exec('$("#crud-files-ck").checkbox({onChange:function(){ $("#div-view-list").toggle($("#crud-files-ck").checkbox("is checked"));}});', true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddCrudController(), [
 			"controllerNS" => Startup::getNS("controllers")

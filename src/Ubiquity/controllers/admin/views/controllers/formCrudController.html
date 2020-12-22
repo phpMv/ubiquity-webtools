@@ -18,13 +18,13 @@
 		</div>
 		<div class="two fields">
 			<div class="field">
-				<div class="ui slider checkbox _views" id="crud-datas-ck">
+				<div class="ui slider checkbox" id="crud-datas-ck">
 				  <input type="checkbox" name="crud-datas" id="crud-datas">
 				  <label for="crud-datas">Create override Datas class</label>
 				</div>
 			</div>
 			<div class="field">
-				<div class="ui slider checkbox _views" id="crud-viewer-ck">
+				<div class="ui slider checkbox" id="crud-viewer-ck">
 				  <input type="checkbox" name="crud-viewer" id="crud-viewer">
 				  <label for="crud-viewer">Create override ModelViewer class</label>
 				</div>
@@ -32,7 +32,7 @@
 		</div>
 		<div class="two fields">
 			<div class="field">
-				<div class="ui slider checkbox _views" id="crud-events-ck">
+				<div class="ui slider checkbox" id="crud-events-ck">
 				  <input type="checkbox" name="crud-events" id="crud-events">
 				  <label for="crud-events">Create override Events class</label>
 				</div>
@@ -41,18 +41,20 @@
 				<div class="ui slider checkbox _views" id="crud-files-ck">
 				  <input type="checkbox" name="crud-files" id="crud-files">
 				  <label for="crud-files">Create override CRUDFiles class (URLs and files)</label>
-				</div><p></p>
+				</div>
+				<div id="div-view-list" style="display:none;">
 				{{ q["view-list"] | raw }}
+				</div>
+				<div id='ck-view-inheritance' class="ui checkbox" style='display:none'>
+				  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
+				  <label for="ck-use-inheritance">Use inheritance on views</label>
+				</div>
 			</div>
 		</div>
 		<div class="field">
 				<div class="ui checkbox">
 				  <input type="checkbox" name="ck-add-route" id="ck-add-route">
 				  <label for="ck-add-route">Add route...</label>
-				</div>
-				<div id='ck-view-inheritance' class="ui checkbox" style='display:none'>
-				  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
-				  <label for="ck-use-inheritance">Use inheritance on views</label>
 				</div>
 		</div>
 		<div id="div-new-route" style="display: none;">
