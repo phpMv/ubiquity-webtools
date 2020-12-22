@@ -30,6 +30,7 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["CRUD"]);
 		$viewList->asSelect("crud-views", true);
 		$viewList->setDefaultText("Select views");
+		$viewList->addClass('fluid');
 		$frm = $this->jquery->semantic()->htmlForm("crud-controller-frm");
 		$frm->addExtraFieldRule("crud-model", "exactCount[1]");
 		$frm->addExtraFieldRules("crud-name", [

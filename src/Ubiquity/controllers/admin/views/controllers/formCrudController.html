@@ -42,12 +42,13 @@
 				  <input type="checkbox" name="crud-files" id="crud-files">
 				  <label for="crud-files">Create override CRUDFiles class (URLs and files)</label>
 				</div>
-				<div id="div-view-list" style="display:none;">
+				<div id="div-view-list" style="display:none;width: 100%;">
+				<br>
 				{{ q["view-list"] | raw }}
-				</div>
-				<div id='ck-view-inheritance' class="ui checkbox" style='display:none'>
-				  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
-				  <label for="ck-use-inheritance">Use inheritance on views</label>
+					<div id='ck-view-inheritance' class="ui checkbox">
+					  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
+					  <label for="ck-use-inheritance">Use inheritance on views</label>
+					</div>
 				</div>
 			</div>
 		</div>
