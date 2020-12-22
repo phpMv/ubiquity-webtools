@@ -20,8 +20,15 @@
 			<div class="ui slider checkbox" id="auth-files-ck">
 			  <input type="checkbox" name="auth-files" id="auth-files">
 			  <label for="crud-files">Create override AuthFiles class</label>
-			</div><p></p>
+			</div>
+			<div id="div-view-list" style="display:none;width: 100%;">
+			<br>
 			{{ q["view-list"] | raw }}
+				<div id='ck-view-inheritance' class="ui checkbox">
+				  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
+				  <label for="ck-use-inheritance">Use inheritance on views</label>
+				</div>
+			</div>
 		</div>
 		<div class="field">
 				<div class="ui checkbox">

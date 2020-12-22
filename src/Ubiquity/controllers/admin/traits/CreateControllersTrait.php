@@ -110,7 +110,7 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["auth"]);
 		$viewList->asSelect("auth-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->setProperty("style", "display: none;");
+		$viewList->addClass('fluid');
 		$authControllers = CacheManager::getControllers("Ubiquity\\controllers\\auth\\AuthController", false, true);
 		$authControllers = array_combine($authControllers, $authControllers);
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("ctrl-list", "Ubiquity\\controllers\\auth\\AuthController", $authControllers);
@@ -147,7 +147,7 @@ trait CreateControllersTrait {
 		$this->jquery->click("#validate-btn", '$("#auth-controller-frm").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->exec("$('#ck-add-route').checkbox();", true);
-		$this->jquery->exec('$("#auth-files-ck").checkbox({onChange:function(){ $("#view-list").toggle($("#auth-files-ck").checkbox("is checked"));}});', true);
+		$this->jquery->exec('$("#auth-files-ck").checkbox({onChange:function(){ $("#div-view-list").toggle($("#auth-files-ck").checkbox("is checked"));}});', true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddAuthController(), [
 			"controllerNS" => Startup::getNS("controllers")
@@ -168,7 +168,7 @@ trait CreateControllersTrait {
 			if (! UString::startswith($baseClass, "\\")) {
 				$baseClass = "\\" . $baseClass;
 			}
-			$this->scaffold->addAuthController(ucfirst($_POST["auth-name"]), $baseClass, $views, $route);
+			$this->scaffold->addAuthController(ucfirst($_POST["auth-name"]), $baseClass, $views, $route, isset($_POST["ck-use-inheritance"]));
 			$this->jquery->get($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
 				"jqueryDone" => "replaceWith",
