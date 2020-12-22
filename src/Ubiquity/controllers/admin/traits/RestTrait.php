@@ -198,7 +198,7 @@ trait RestTrait {
 	public function _createNewResource() {
 		if (URequest::isPost()) {
 			if (isset($_POST["ctrlName"]) && $_POST["ctrlName"] !== "") {
-				$this->scaffold->addRestController(ucfirst($_POST["ctrlName"]), $_POST["baseClass"], UString::doubleBackSlashes($_POST["resource"] ?? ''), $_POST["route"], isset($_POST["re-init"]));
+				$this->scaffold->addRestController(ucfirst($_POST["ctrlName"]), $_POST["baseClass"], $_POST["resource"] ?? '', $_POST["route"], isset($_POST["re-init"]));
 			}
 			$this->jquery->exec("$('#div-new-resource').hide();$('#divRest').show();", true);
 			echo $this->jquery->compile($this->view);
