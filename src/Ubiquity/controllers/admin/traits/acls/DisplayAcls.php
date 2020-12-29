@@ -57,11 +57,9 @@ trait DisplayAcls {
 	public function _getRolesDatatable($name, $elements) {
 		$dt = $this->getAbstractAclPart($name, $elements, Role::class, [
 			'name',
-			'parents',
-			'_fromArray'
+			'parents'
 		]);
 		$dt->fieldAsLabel('name', 'user');
-		$dt->fieldAsCheckbox('_fromArray');
 		return $dt;
 	}
 
