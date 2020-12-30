@@ -12,6 +12,7 @@ use Ubiquity\security\acl\models\Role;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\security\acl\persistence\AclDAOProvider;
 use Ubiquity\scaffolding\starter\ServiceStarter;
+use Ubiquity\cache\CacheManager;
 
 /**
  *
@@ -126,6 +127,7 @@ trait AclsTrait {
 
 	public function _refreshAclCache($providerClass) {
 		$config = Startup::$config;
+		CacheManager::start($config);
 		AclManager::initCache($config);
 		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
 		AclManager::reloadFromSelectedProviders($selectedProviders);
