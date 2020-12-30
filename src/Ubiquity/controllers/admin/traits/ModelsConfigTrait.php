@@ -13,6 +13,7 @@ use Ajax\JsUtils;
 use Ubiquity\db\Database;
 use Ubiquity\exceptions\DBException;
 use Ubiquity\db\SqlUtils;
+use Ubiquity\cache\CacheManager;
 
 /**
  *
@@ -208,6 +209,7 @@ trait ModelsConfigTrait {
 		if (URequest::isPost()) {
 			$config = Startup::getConfig();
 			$yumlGen = new YumlModelsCreator();
+			CacheManager::start($config);
 			$yumlGen->initYuml($_POST["code"]);
 			\ob_start();
 			$yumlGen->create($config);
