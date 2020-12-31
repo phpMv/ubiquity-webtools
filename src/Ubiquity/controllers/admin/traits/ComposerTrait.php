@@ -14,7 +14,7 @@ use Ajax\semantic\html\elements\html5\HtmlDatalist;
  *
  * @author jcheron <myaddressmail@gmail.com>
  * @version 1.0.0
- *
+ *         
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  *
  */
@@ -129,16 +129,16 @@ trait ComposerTrait {
 		],
 		'require-dev' => [
 			[
+				'name' => 'phpmv/ubiquity-annotations',
+				'optional' => true,
+				'category' => 'core',
+				'class' => 'Ubiquity\\annotations\\AnnotationsEngine'
+			],
+			[
 				'name' => 'czproject/git-php',
 				'optional' => true,
 				'category' => 'tools',
 				'class' => 'Cz\\Git\\GitRepository'
-			],
-			[
-				'name' => 'mindplay/annotations',
-				'optional' => false,
-				'category' => 'core',
-				'class' => 'mindplay\\annotations\\Annotation'
 			],
 			[
 				'name' => 'monolog/monolog',
@@ -167,7 +167,19 @@ trait ComposerTrait {
 		]
 	];
 
+	protected function updateLibraries() {
+		if (\version_compare(\phpversion(), '8.0.0', '>=')) {
+			$this->libraries['require-dev'][] = [
+				'name' => 'phpmv/ubiquity-attributes',
+				'optional' => true,
+				'category' => 'core',
+				'class' => 'Ubiquity\\attributes\\AttributesEngine'
+			];
+		}
+	}
+
 	protected function getComposerDataTable() {
+		$this->updateLibraries();
 		$libs = ComposerDependency::load($this->libraries);
 		\usort($libs, function ($left, $right) {
 			if ($left->getPart() == $right->getPart())
