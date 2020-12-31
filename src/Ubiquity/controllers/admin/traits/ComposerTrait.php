@@ -306,7 +306,7 @@ trait ComposerTrait {
 			\ob_end_clean();
 		ob_end_flush();
 		foreach ($commands as $cmd) {
-			echo "<span class='ui teal text'>$cmd</span>\n<pre style='line-height: 1.25em;'>";
+			echo "<span class='ui teal text'>$cmd</span>\n<pre style='line-height: 1.25em;white-space: pre-wrap;'>";
 			flush();
 			ob_flush();
 			$this->liveExecuteCommand($cmd);
