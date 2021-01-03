@@ -41,9 +41,9 @@ trait SecurityTrait {
 			$servicesNames[] = 'Encryption manager';
 
 			$hasCsrf = \Ubiquity\security\csrf\CsrfManager::isStarted();
+			$servicesNames[] = 'Csrf manager';
+			$servicesValues['csrf'] = $hasCsrf;
 			if ($hasCsrf) {
-				$servicesNames[] = 'Csrf manager';
-				$servicesValues['csrf'] = $hasCsrf;
 				$csrfValues = [
 					'selector' => \Ubiquity\security\csrf\CsrfManager::getSelectorClass(),
 					'validator' => \Ubiquity\security\csrf\CsrfManager::getValidatorClass(),
