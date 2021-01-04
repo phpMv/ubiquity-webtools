@@ -12,6 +12,8 @@ use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\USession;
 use Ubiquity\controllers\admin\ServicesChecker;
 use Ubiquity\security\data\EncryptionManager;
+use Ubiquity\controllers\admin\traits\acls\AclUses;
+use Ubiquity\cache\CacheManager;
 
 /**
  * Ubiquity\controllers\admin\traits$SecurityTrait
@@ -327,9 +329,11 @@ trait SecurityTrait {
 		if (URequest::isPost()) {
 			$variables = [];
 			$path = URequest::post("path");
-			$variables["%path%"] = $path;
 			if (isset($path)) {
-				$variables["%route%"] = '@route("' . $path . '")';
+				$uses=new AclUses();
+				$variables["%routePath%"]=$path;
+				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', ['path' => $path])->asAnnotation();
+				$variables['%uses%']=$uses->getUsesStr();
 				$this->config['shieldon-url'] = $path;
 				$this->_saveConfig();
 			}

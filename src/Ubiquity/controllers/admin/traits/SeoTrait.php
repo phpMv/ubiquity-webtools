@@ -16,6 +16,7 @@ use Ubiquity\utils\base\UString;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\http\USession;
+use Ubiquity\controllers\admin\traits\acls\AclUses;
 
 /**
  *
@@ -307,7 +308,10 @@ trait SeoTrait {
 			$path = URequest::post("path");
 			$variables["%path%"] = $path;
 			if (isset($path)) {
-				$variables["%route%"] = '@route("' . $path . '")';
+				$uses=new AclUses();
+				$variables["%routePath%"]=$path;
+				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', ['path' => $path])->asAnnotation();
+				$variables['%uses%']=$uses->getUsesStr();
 			}
 			$variables["%urlsFile%"] = URequest::post("urlsFile", "urls");
 			$variables["%sitemapTemplate%"] = URequest::post("sitemapTemplate", "@framework/Seo/sitemap.xml.html");

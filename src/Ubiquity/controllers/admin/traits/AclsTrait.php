@@ -13,6 +13,8 @@ use Ubiquity\utils\http\URequest;
 use Ubiquity\security\acl\persistence\AclDAOProvider;
 use Ubiquity\scaffolding\starter\ServiceStarter;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\creator\HasUsesTrait;
+use Ubiquity\controllers\admin\traits\acls\AclUses;
 
 /**
  *
@@ -146,7 +148,7 @@ trait AclsTrait {
 			]
 		]);
 		$fc->labeled(Startup::getNS());
-
+		$frm->addCheckbox("ck-add-view", "Add default view");
 		$frm->addCheckbox("ck-add-route", "Add route...");
 
 		$frm->addContent("<div id='div-new-route' style='display: none;'>");
@@ -195,7 +197,13 @@ trait AclsTrait {
 			$path = URequest::post("path", null);
 			$variables["%path%"] = $path;
 			if (isset($path) && $path != null) {
-				$variables["%route%"] = '@route("' . $path . '","automated"=>true)';
+				$uses=new AclUses();
+				$variables["%routePath%"]=$path;
+				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', [
+					'path' => $path,
+					'automated' => true
+				])->asAnnotation();
+				$variables['%uses%']=$uses->getUsesStr();
 				$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
 					->getAdminBaseRoute() . "/_initCacheRouter/0", "#response", [
 					"dataType" => "html",
@@ -204,7 +212,7 @@ trait AclsTrait {
 				]);
 			}
 
-			$resp = $this->_createController($_POST["controllerName"], $variables, 'aclController.tpl');
+			$resp = $this->_createController($_POST["controllerName"], $variables, 'aclController.tpl',isset($_POST['ck-add-view']));
 
 			$this->loadViewCompo($resp);
 		}

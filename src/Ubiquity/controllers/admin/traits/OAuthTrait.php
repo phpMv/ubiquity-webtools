@@ -9,6 +9,7 @@ use Ubiquity\cache\CacheManager;
 use Ajax\semantic\components\validation\Rule;
 use Ubiquity\controllers\Startup;
 use Ubiquity\utils\http\URequest;
+use Ubiquity\controllers\admin\traits\acls\AclUses;
 
 /**
  * Ubiquity\controllers\admin\traits$OAuthTrait
@@ -273,10 +274,14 @@ trait OAuthTrait {
 
 	public function _addOAuthController() {
 		if (URequest::isPost()) {
-			$msg = $this->_createController($_POST['auth-name'], [
-				"%baseClass%" => '\\' . ltrim($_POST['baseClass'], '\\'),
-				'%route%' => $_POST['route-path']
-			], 'oauthController.tpl', false);
+			$uses=new AclUses();
+			$path=$_POST['route-path'];
+			$variables=['%baseClass%' => '\\' . \ltrim($_POST['baseClass'], '\\'),'%routePath%'=>$path];
+			$variables['%route%'] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'get', [
+				'path' => $path.'/{name}'
+			])->asAnnotation();
+			$variables['%uses%']=$uses->getUsesStr();
+			$msg = $this->_createController($_POST['auth-name'], $variables, 'oauthController.tpl', false);
 			$this->loadViewCompo($msg);
 		}
 	}
