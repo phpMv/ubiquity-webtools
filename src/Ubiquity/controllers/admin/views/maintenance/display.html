@@ -6,10 +6,10 @@
 			<div class="sub header">{{maintenance.title}}</div>
 		</div>
 	</h3>
-	<div class="ui attached {{selectedColor}} segment">
+	<div class="ui attached {{selectedColor}} {{inverted}} segment">
 		<div class="ui grid">
 			<div class="ui four wide column">
-				<h4 class="ui header">
+				<h4 class="ui {{inverted}} header">
 					<i class="ban icon"></i>
 					<div class="content">Excluded</div>
 				</h4>
@@ -37,12 +37,12 @@
 				</ul>
 			</div>
 			<div class="ui eight wide column">
-				<div class="ui large label">
+				<div class="ui large {{inverted}} label">
 					<i class="heart beat icon"></i>
 					{{maintenance.controller}}
 					<a class="detail">{{maintenance.action}}</a>
 				</div>
-				<div class="ui blurring dimmable dimmed segment" style="height: 150px;">
+				<div class="ui blurring dimmable dimmed {{inverted}} segment" style="height: 150px;">
 					<div class="ui simple dimmer">
 						<div class="content">
 							<h5 class="ui inverted icon header">

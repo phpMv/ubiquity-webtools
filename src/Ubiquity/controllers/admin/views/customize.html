@@ -1,7 +1,7 @@
-<form class="ui form" id="customize-frm" name="customize-frm" novalidate>
-	<div class="ui top attached secondary segment">Ordering and selecting tools</div>
-	<div class="ui attached segment">
-	<div class="ui icon info message">
+<form class="ui {{inverted}} form" id="customize-frm" name="customize-frm" novalidate>
+	<div class="ui {{inverted}} top attached secondary segment">Ordering and selecting tools</div>
+	<div class="ui {{inverted}} attached segment">
+	<div class="ui {{inverted}} icon info message">
 		<i class="circle info icon"></i>
 		<div class="content">
 			<div class="header">Customizing</div>
@@ -19,16 +19,32 @@
 			{{q['part2'] | raw}}
 		</div>
 		</div>
+		<div class="ui divider"></div>
+		{%if inverted%}
+			<div class="ui compact segment">
+				<div class="ui toggle checkbox _ckTheme">
+					<input type="checkbox" id="ck-theme" name="ck-theme">
+					<label style="color: black;">Light theme</label>
+				</div>
+			</div>
+		{%else%}
+			<div class="ui compact inverted segment">
+				<div class="ui toggle inverted checkbox _ckTheme">
+					<input type="checkbox" id="ck-theme" name="ck-theme">
+					<label style="color: black;">Dark theme</label>
+				</div>
+			</div>
+		{%endif%}
 		<div class='ui divider'></div>
-		<div id="reset-conf-btn" class='ui basic red button'>Reset configuration parameters</div>
+		<div id="reset-conf-btn" class='ui {{inverted}} basic red button'>Reset configuration parameters</div>
 	</div>
-	<div class="ui segment">
-	  <button id="validate-btn" class="ui button positive">
+	<div class="ui {{inverted}} segment">
+	  <button id="validate-btn" class="ui {{inverted}} button positive">
 	  	<i id="icon-bt-okay" class="icon check circle"></i>
 	  	 Validate
 	  </button>
 	  &nbsp;
-	  <button id="cancel-btn" class="ui button">
+	  <button id="cancel-btn" class="ui {{inverted}} button">
 	  	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
 	  	 Cancel
 	  </button>

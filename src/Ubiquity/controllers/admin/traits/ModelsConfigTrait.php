@@ -113,6 +113,7 @@ trait ModelsConfigTrait {
 		$stepper->setActiveStep($this->activeStep);
 		$_SESSION["step"] = $this->activeStep;
 		$stepper->asLinks();
+		$stepper->addClass($this->style);
 		$this->jquery->getOnClick(".step:not(._noStep)", $this->_getFiles()
 			->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/", "#models-main", [
 			"attr" => "data-ajax"

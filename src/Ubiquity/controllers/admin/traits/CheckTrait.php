@@ -274,21 +274,21 @@ trait CheckTrait {
 			case "Connexion":
 			case "Database":
 				if ($this->engineering === "reverse")
-					$buttons->addItem("(Re-)Create database")
+					$buttons->addItem("(Re-)Create database")->addClass($this->style)
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/_showDatabaseCreation", "#main-content")
 						->addIcon("database");
 			case "Conf":
-				$buttons->addItem("Show config file")
+				$buttons->addItem("Show config file")->addClass($this->style)
 					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_config", "#action-response")
 					->addIcon("settings");
-				$buttons->addItem("Edit config file")
+				$buttons->addItem("Edit config file")->addClass($this->style)
 					->addClass("orange")
 					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_formConfig/check", "#action-response")
 					->addIcon("edit");
-				$buttons->addItem('Import from SQL file')
+				$buttons->addItem('Import from SQL file')->addClass($this->style)
 					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_importSQL", "#action-response")
 					->addIcon("file code");
@@ -298,27 +298,27 @@ trait CheckTrait {
 					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton();
-						$ddBtn->getOnClick($this->_getFiles()
+						$ddBtn->getOnClick($this->_getFiles()->addClass($this->style)
 							->getAdminBaseRoute() . "/_createModels", "#main-content", [
 							"attr" => "data-value"
 						]);
 						$buttons->addItem($ddBtn);
 					}
-					$buttons->addItem("(Re-)Create all models")
+					$buttons->addItem("(Re-)Create all models")->addClass($this->style)
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/_createModels", "#main-content", [
 						"attr" => ""
 					])
 						->addIcon("sticky note");
 				} else {
-					$buttons->addItem("Import from Yuml")
+					$buttons->addItem("Import from Yuml")->addClass($this->style)
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/_importFromYuml", "#models-main", [
 						"attr" => ""
 					])
 						->addIcon("sticky note");
 				}
-				$bt = $buttons->addItem("Classes diagram")->getOnClick($this->_getFiles()
+				$bt = $buttons->addItem("Classes diagram")->addClass($this->style)->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_showAllClassesDiagram", "#action-response", [
 					"attr" => "",
 					"ajaxTransition" => "random"
@@ -328,7 +328,7 @@ trait CheckTrait {
 					$bt->addClass("disabled");
 				break;
 			case "Cache":
-				$buttons->addItem("(Re-)Init all models cache")
+				$buttons->addItem("(Re-)Init all models cache")->addClass($this->style)
 					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_initCache/models/models", "#main-content")
 					->addIcon("lightning");
@@ -339,7 +339,7 @@ trait CheckTrait {
 			$bt = $buttons->addItem($nextStep[1]);
 			$bt->addIcon("angle double right", false);
 			$bt->addLabel($nextStep[2], true, $nextStep[0]);
-			$bt->getContent()[1]->addClass("green");
+			$bt->getContent()[1]->addClass("green ".$this->style);
 			if ($this->hasNoError()) {
 				$bt->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/" . ($this->activeStep + 1), "#models-main");
@@ -348,7 +348,7 @@ trait CheckTrait {
 			}
 			$this->jquery->execAtLast('$("#btNewConnection").hide();');
 		} else {
-			$bt = $buttons->addItem("See datas")->addClass("black");
+			$bt = $buttons->addItem("See datas")->addClass("black ".$this->style);
 			$bt->addIcon("unhide");
 			if ($this->hasNoError()) {
 				$bt->getOnClick($this->_getFiles()
@@ -413,7 +413,7 @@ trait CheckTrait {
 		}
 		$list = $messagesElm->addList($messages);
 		$list->addClass('relaxed divided');
-		$messagesElm->addClass($type);
+		$messagesElm->addClass($type.' '.$this->style);
 		return $messagesElm;
 	}
 }

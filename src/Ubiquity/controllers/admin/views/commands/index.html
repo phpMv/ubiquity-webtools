@@ -7,32 +7,32 @@
 <div id="command"></div>
 <br>
 <div id='commandsPart'>
-		<div class="ui secondary menu">
-			<button id="add-suite-btn" class="ui button teal _menu">
+		<div class="ui {{inverted}} secondary menu">
+			<button id="add-suite-btn" class="ui {{inverted}} button teal _menu">
 			  <i class="icon plus"></i>
 			  Add command suite...
 			</button>
-			<button id="add-command-btn" class="ui button black _menu">
+			<button id="add-command-btn" class="ui {{inverted}} button black _menu">
 			  <i class="icon magic"></i>
 			  Create devtools command...
 			</button>
 			<div class="item">
-				<div class="ui left labeled action input">
-					<div class="ui basic teal label">Check devtools command</div>
+				<div class="ui left labeled action {{inverted}} input">
+					<div class="ui basic {{inverted}} label">Check devtools command</div>
 					<input type="text" placeholder="Ubiquity command location" value="{{devtoolsPath}}" id="devtools-path">
-					<a class="ui labeled icon button _saveConfig"><i class="ui check square icon _checkDevtools"></i>Save</a>
+					<a class="ui labeled icon {{inverted}} button _saveConfig"><i class="ui check square icon _checkDevtools"></i>Save</a>
 				</div>
 			</div>
 		</div>
 		<div id="response">{{ checkDevtools | raw }}</div>
-		<div id="command-tab" class="ui top attached tabular menu">
+		<div id="command-tab" class="ui top attached tabular {{inverted}} menu">
 		  <a class="item" data-tab="myCommands"><i class="stream icon"></i> My commands</a>
 		  <a class="item" data-tab="commands"><i class="code icon"></i> Commands</a>
 		</div>
-		<div id='command-suites' class="ui bottom attached active tab segment" data-tab="myCommands">
+		<div id='command-suites' class="ui bottom attached active tab {{inverted}} segment" data-tab="myCommands">
 		{{myCommands|raw}}
 		</div>
-		<div class="ui bottom attached tab segment" data-tab="commands">{{q['dtCommands']|raw}}</div>
+		<div class="ui bottom attached tab {{inverted}} segment" data-tab="commands">{{q['dtCommands']|raw}}</div>
 </div>
 
 {{ script_foot | raw }}

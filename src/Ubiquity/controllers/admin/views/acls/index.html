@@ -1,5 +1,5 @@
 {{ q["header"] | raw }}
-<a class="ui teal button addNewAclController">
+<a class="ui teal button {{inverted}} addNewAclController">
 	<i class="ui car circular icon"></i>
 	Add new Acl controller...
 </a>
@@ -11,7 +11,7 @@
 <br>
 <div id="response"></div>
 <br>
-<div class='ui segment'>{{ q["providers"] | raw }}</div>
+<div class='ui {{inverted}} segment'>{{ q["providers"] | raw }}</div>
 <div id="form"></div>
 <div id='aclsPart'>
 	{{ q["acls"] | raw }}

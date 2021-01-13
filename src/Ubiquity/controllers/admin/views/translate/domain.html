@@ -1,16 +1,16 @@
-<div class="ui secondary inverted menu">
+<div class="ui secondary {{inverted}} menu">
 	<div>
-		<div class="ui left labeled button" tabindex="0">
+		<div class="ui left labeled {{inverted}} button" tabindex="0">
 			<a id='domain-name-{{locale}}{{domain}}' class="ui basic right pointing label" data-value="{{domain}}">
 			{{domain}}
 			</a>
-			<div id='return-{{locale}}' class="ui grey button _return" data-locale="{{locale}}">
+			<div id='return-{{locale}}' class="ui grey {{inverted}} button _return" data-locale="{{locale}}">
 				<i class="arrow alternate circle left icon"></i> Back to domains
 			</div>
 		</div>
 		
 		<div class="ui buttons">
-			<div id='compare-to-{{locale}}' class="ui disabled right labeled icon button">
+			<div id='compare-to-{{locale}}' class="ui disabled right labeled icon {{inverted}} button">
 				<i class="arrows alternate horizontal icon"></i>
 				Compare {{locale}} to
 			</div>
@@ -19,7 +19,7 @@
 	</div>
 	<div id='update-{{locale}}{{domain}}'>{{ q['bt-save'] | raw }}{{ q['bt-cancel-updates'] | raw }}</div>
 	<div>
-		<div class="ui icon dropdown button _ddAddMessages">
+		<div class="ui icon dropdown {{inverted}} button _ddAddMessages">
 			<i class="plus icon"></i>
 			<div class="menu">
 				<div class="item _addMessages">Add multiple messages...</div>

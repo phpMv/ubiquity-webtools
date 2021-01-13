@@ -277,7 +277,7 @@ trait ControllersTrait {
 		]);
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->renderView($this->_getFiles()
-			->getViewControllersFiltering());
+			->getViewControllersFiltering(),['inverted'=>$this->style]);
 	}
 
 	public function _filterControllers() {

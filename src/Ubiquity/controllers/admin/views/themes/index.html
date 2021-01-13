@@ -1,14 +1,14 @@
 {{ q["header"] | raw }}
 <div id="response"></div>
 <div id="devtools-message"></div>
-<div class="ui segment">
+<div class="ui {{inverted}} segment">
 	<div id="refresh-theme">
 	{% include('@admin/themes/refreshTheme.html') %}
 	</div>
 	<div class="devtools-related">
 		<div class="ui inverted dimmer"></div>
 		<div class="ui divider"></div>
-		<h5 class="ui header">
+		<h5 class="ui {{inverted}} header">
 			<i class="ui magic icon"></i>
 			<div class="content">
 				Create a new theme

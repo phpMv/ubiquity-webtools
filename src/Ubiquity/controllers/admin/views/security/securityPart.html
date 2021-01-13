@@ -3,15 +3,15 @@
 	{{ q["msgInfo"] | raw }}
 </div>
 {% endif %}
-<div class="ui top attached inverted segment"><i class='ui box icon'></i> Components</div>
+<div class="ui top attached {{inverted}} segment"><i class='ui box icon'></i> Components</div>
 {{q['components']|raw}}
 <div class="ui horizontal divider"></div>
-<div class="ui top attached grey segment"><i class='ui hand holding medical icon'></i> Services</div>
+<div class="ui top attached grey {{inverted}} segment"><i class='ui hand holding medical icon'></i> Services</div>
 {{q['services']|raw}}
 <div class="ui horizontal divider"></div>
 <div class="ui two column grid">
 	<div class="column">
-		<div class="ui top attached teal segment"><i class='ui user shield icon'></i> Session</div>
+		<div class="ui top attached {{inverted}} teal segment"><i class='ui user shield icon'></i> Session</div>
 		{{q['session']|raw}}
 		
 	</div>
@@ -19,7 +19,7 @@
 		{{q['csrf']|raw}}
 	</div>
 	<div class="column">
-		<div class="ui top attached brown segment"><i class='ui cookie icon'></i> Cookies</div>
+		<div class="ui top attached {{inverted}} brown segment"><i class='ui cookie icon'></i> Cookies</div>
 		{{q['cookies']|raw}}
 	</div>
 	<div class="column">

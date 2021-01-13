@@ -110,7 +110,8 @@ trait OAuthTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getProviderFrm(), [
 			'provider' => $name,
-			'icon' => strtolower($name)
+			'icon' => strtolower($name),
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -178,7 +179,7 @@ trait OAuthTrait {
 		]);
 
 		$this->jquery->renderView($this->_getFiles()
-			->getOAuthConfigFrm());
+			->getOAuthConfigFrm(),['inverted'=>$this->style]);
 	}
 
 	public function _getGlobalConfigSource() {
@@ -212,8 +213,10 @@ trait OAuthTrait {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$providers = OAuthAdmin::getAvailableProviders();
 		$frm = $this->jquery->semantic()->htmlForm('frm-provider');
-		$frm->addDropdown('providers', $providers, 'Select a Provider...', 'provider...');
-		$frm->wrap('<div class="ui olive segment">', '</div>');
+		$frm->addClass($this->style);
+		$dd=$frm->addDropdown('providers', $providers, 'Select a Provider...', 'provider...');
+		$dd->getField()->addClass($this->style);
+		$frm->wrap('<div class="ui olive '.$this->style.' segment">', '</div>');
 		$this->jquery->getOn('change', '#input-dropdown-providers', $baseRoute . '/_newOAuthProviderFrm/', '#response', [
 			'attr' => 'value'
 		]);
@@ -267,8 +270,9 @@ trait OAuthTrait {
 		$this->jquery->execOn("click", "#cancel-btn", '$("#response").html("");');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddOAuthController(), [
-			"controllerNS" => Startup::getNS("controllers"),
-			"route" => OAuthAdmin::getRedirectRoute($GLOBALS["config"]["siteUrl"])
+			'controllerNS' => Startup::getNS("controllers"),
+			'route' => OAuthAdmin::getRedirectRoute($GLOBALS["config"]["siteUrl"]),
+			'inverted'=>$this->style
 		]);
 	}
 

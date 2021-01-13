@@ -43,7 +43,8 @@ trait TranslateTrait {
 		foreach ($locales as $locale) {
 			$tabs->addTab($locale, $this->loadLocale($locale));
 		}
-		$tabs->activate(array_search($loc, $locales));
+		$this->_setStyle($tabs);
+		$tabs->activate(\array_search($loc, $locales));
 
 		$frm = $this->jquery->semantic()->htmlForm("frmLocale");
 		$frm->setValidationParams([
@@ -65,7 +66,7 @@ trait TranslateTrait {
 		])
 			->setWidth(8);
 		$input->addAction("Add locale", true, "plus", true)
-			->addClass("teal")
+			->addClass("teal ".$this->style)
 			->asSubmit();
 		$bt = $fields->addButton('bt-delete-translations-cache', 'Remove cache', 'basic red');
 		$bt->setTagName('div')->addIcon('remove');
@@ -117,9 +118,10 @@ trait TranslateTrait {
 			->setWidth(8);
 		$input->setName('domainName');
 		$ck = $input->labeledCheckbox(Direction::LEFT, "Add in all locales", "all-locales");
+		$ck->addClass($this->style);
 		$ck->getField()->setProperty('name', 'ck-all-locales');
 		$input->addAction("Add domain", true, "plus", true)
-			->addClass("teal")
+			->addClass("teal ".$this->style)
 			->asSubmit();
 		$frm->setSubmitParams($baseRoute . "/_addDomain/" . $locale, "#translations-refresh");
 		if (TranslatorManager::cacheExist($locale)) {
@@ -148,14 +150,15 @@ trait TranslateTrait {
 			if (is_array($value)) {
 				$nb = count($value);
 			}
-			return new HtmlLabel('', $nb, 'mail');
+			$lbl= new HtmlLabel('', $nb, 'mail');
+			return $lbl->addClass($this->style);
 		});
 		$dt->setIdentifierFunction('getDomain');
 		$dt->addEditButton(false, [], function ($bt) use ($locale) {
-			$bt->addClass($locale);
+			$bt->addClass($locale.' '.$this->style);
 		});
 		$dt->setActiveRowSelector();
-
+		$this->_setStyle($dt);
 		$this->jquery->getOnClick('._edit.' . $locale, $baseRoute . "/_loadDomain/" . $locale . "/", '#domain-' . $locale, [
 			'attr' => 'data-ajax',
 			'hasLoader' => 'internal'
@@ -195,14 +198,14 @@ trait TranslateTrait {
 		if (isset($localeCompare)) {
 			$dt->setValueFunction('mvalue', function ($value, $instance) {
 				$txt = new HtmlFormTextarea('', '', $value);
-				$txt->wrap(new HtmlLabel('', $instance->getCompare()));
+				$txt->wrap((new HtmlLabel('', $instance->getCompare()))->addClass($this->style));
 				$txt->setRows(1);
 				$this->addDatasAttr($txt, $instance->getMkey(), $value, 'value', $instance->getNewKey());
 				return $txt;
 			});
 			$dt->setValueFunction('mkey', function ($key, $instance) use ($localeCompare) {
 				$txt = new HtmlFormInput('', null, 'text', $key);
-				$txt->wrap(new HtmlLabel('', $localeCompare));
+				$txt->wrap((new HtmlLabel('', $localeCompare))->addClass($this->style));
 				$this->addDatasAttr($txt, $key, $instance->getMvalue(), 'key', $instance->getNewKey());
 				return $txt;
 			});
@@ -220,8 +223,8 @@ trait TranslateTrait {
 			});
 		}
 
-		$dt->addDeleteButton();
-		$dt->insertDefaultButtonIn(2, 'list', 'basic _multi');
+		$dt->addDeleteButton(true,[],function($bt){return $bt->addClass($this->style);});
+		$dt->insertDefaultButtonIn(2, 'list', 'basic _multi '.$this->style);
 		$dt->setEdition(true);
 		$dt->setUrls([
 			'refresh' => $baseRoute . '/_refreshDomain/' . $locale . '/' . $domain
@@ -291,16 +294,17 @@ trait TranslateTrait {
 		TranslatorManager::start();
 		$locales = TranslatorManager::getLocales();
 		$locales = UArray::removeOne($locales, $locale);
-		$dd = $this->jquery->semantic()->htmlDropdown('dd-locales-' . $locale, 'Compare to...', array_combine($locales, $locales));
+		$dd = $this->jquery->semantic()->htmlDropdown('dd-locales-' . $locale, 'Compare to...', \array_combine($locales, $locales));
 		$dd->addInput('compareTo');
 		$dd->asButton();
-		$dd->addClass('basic');
+		$dd->addClass('basic '.$this->style);
 		$dd->onClick('$("#compare-to-' . $locale . '").removeClass("disabled");');
 		$dd->setLibraryId('dd-locales');
 		$messages = $this->getMessagesDomain($locale, $domain);
 		$dt = $this->getDtDomain($messages, $locale, $domain);
 		$dt->asForm();
 		$dt->autoPaginate(1, 50, 9);
+		$this->_setStyle($dt);
 		$dtId = '#' . $dt->getIdentifier();
 		$this->jquery->postOnClick('#compare-to-' . $locale, $baseRoute . '/_compareToLocale/' . $domain . '/' . $locale, '{p: $("' . $dtId . ' .item.active").first().attr("data-page"),ol: $("#input-' . $dd->getIdentifier() . '").val()}', $dtId . ' tbody', [
 			'jqueryDone' => 'replaceWith',
@@ -339,7 +343,8 @@ trait TranslateTrait {
 		$this->loadLocaleDomain_($locale, $domain);
 		$this->jquery->renderView('@admin/translate/domain.html', [
 			'locale' => $locale,
-			'domain' => $domain
+			'domain' => $domain,
+			'inverted'=>$this->style
 		]);
 	}
 

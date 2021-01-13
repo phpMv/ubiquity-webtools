@@ -42,8 +42,7 @@ trait ConfigTrait {
 		}
 		$this->_getAdminViewer()->getConfigDataForm($config, $hasHeader);
 		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
-		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
+		$this->jquery->renderView($this->_getFiles()
 			->getViewConfigForm());
 	}
 

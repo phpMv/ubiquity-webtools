@@ -20,7 +20,7 @@ use Ubiquity\security\acl\persistence\AclDAOProvider;
  */
 trait DisplayAcls {
 
-	private function getAbstractAclPart($name, $elements, $class, $fields) {
+	private function getAbstractAclPart($name, $elements, $class, $fields,$style='') {
 		$dt = new DataTable($name, $class, $elements);
 		$dt->setFields($fields);
 		$dt->setCompact(true);
@@ -42,24 +42,26 @@ trait DisplayAcls {
 					->setContent('');
 			}
 		});
+		$dt->addClass($style);
 		return $dt;
 	}
 
-	private function addTab(HtmlTab $tab, array $array, $title, $method) {
+	private function addTab(HtmlTab $tab, array $array, $title, $method,$style='') {
 		$caption = "$title <span class='ui tiny circular teal label'>" . \count($array) . "</span>";
-		$tab->addTab($caption, $this->$method("dt$title", $array));
+		$item=$tab->addTab($caption, $this->$method("dt$title", $array,$style));
+		$item->addClass($style);
 	}
 
 	/**
 	 *
 	 * @param Role[] $elements
 	 */
-	public function _getRolesDatatable($name, $elements) {
+	public function _getRolesDatatable($name, $elements,$style='') {
 		$dt = $this->getAbstractAclPart($name, $elements, Role::class, [
 			'name',
 			'parents'
-		]);
-		$dt->fieldAsLabel('name', 'user');
+		],$style);
+		$dt->fieldAsLabel('name', 'user',['class'=>'ui label '.$style]);
 		return $dt;
 	}
 
@@ -67,15 +69,15 @@ trait DisplayAcls {
 	 *
 	 * @param Permission[] $elements
 	 */
-	public function _getPermissionsDatatable($name, $elements) {
+	public function _getPermissionsDatatable($name, $elements,$style='') {
 		usort($elements, function ($elm1, $elm2) {
 			return $elm1->getLevel() <=> $elm2->getLevel();
 		});
 		$dt = $this->getAbstractAclPart($name, $elements, Permission::class, [
 			'name',
 			'level'
-		]);
-		$dt->fieldAsLabel('name', 'unlock alternate');
+		],$style);
+		$dt->fieldAsLabel('name', 'unlock alternate',['class'=>'ui label '.$style]);
 		return $dt;
 	}
 
@@ -83,12 +85,12 @@ trait DisplayAcls {
 	 *
 	 * @param Resource[] $elements
 	 */
-	public function _getResourcesDatatable($name, $elements) {
+	public function _getResourcesDatatable($name, $elements,$style='') {
 		$dt = $this->getAbstractAclPart($name, $elements, Resource::class, [
 			'name',
 			'value'
-		]);
-		$dt->fieldAsLabel('name', 'archive');
+		],$style);
+		$dt->fieldAsLabel('name', 'archive',['class'=>'ui label '.$style]);
 		return $dt;
 	}
 
@@ -96,15 +98,15 @@ trait DisplayAcls {
 	 *
 	 * @param AclElement[] $elements
 	 */
-	public function _getAclElementsDatatable($name, $elements) {
+	public function _getAclElementsDatatable($name, $elements,$style='') {
 		$dt = $this->getAbstractAclPart($name, $elements, AclElement::class, [
 			'role',
 			'resource',
 			'permission'
-		]);
-		$dt->fieldAsLabel('role', 'user');
-		$dt->fieldAsLabel('resource', 'archive');
-		$dt->fieldAsLabel('permission', 'unlock alternate');
+		],$style);
+		$dt->fieldAsLabel('role', 'user',['class'=>'ui label '.$style]);
+		$dt->fieldAsLabel('resource', 'archive',['class'=>'ui label '.$style]);
+		$dt->fieldAsLabel('permission', 'unlock alternate',['class'=>'ui label '.$style]);
 		$dt->setCaptions([
 			'Roles',
 			'Resources',
@@ -118,16 +120,16 @@ trait DisplayAcls {
 	 *
 	 * @param PermissionMapObject[] $elements
 	 */
-	public function _getPermissionMapDatatable($name, $elements) {
+	public function _getPermissionMapDatatable($name, $elements,$style='') {
 		$dt = $this->getAbstractAclPart($name, $elements, PermissionMapObject::class, [
 			'controllerAction',
 			'resource',
 			'permission',
 			'roles'
-		]);
-		$dt->fieldAsLabel('role', 'user');
-		$dt->fieldAsLabel('resource', 'archive');
-		$dt->fieldAsLabel('permission', 'unlock alternate');
+		],$style);
+		$dt->fieldAsLabel('role', 'user',['class'=>'ui label '.$style]);
+		$dt->fieldAsLabel('resource', 'archive',['class'=>'ui label '.$style]);
+		$dt->fieldAsLabel('permission', 'unlock alternate',['class'=>'ui label '.$style]);
 		$dt->setCaptions([
 			'Controller.action',
 			'Resource',

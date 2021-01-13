@@ -30,11 +30,12 @@ trait AclsTrait {
 
 	protected function _getAclTabs() {
 		$tab = $this->jquery->semantic()->htmlTab('acls');
-		$this->addTab($tab, AclManager::getAcls(), 'Acls', '_getAclElementsDatatable');
-		$this->addTab($tab, AclManager::getPermissionMap()->getObjectMap(), 'Map', '_getPermissionMapDatatable');
-		$this->addTab($tab, AclManager::getRoles(), 'Roles', '_getRolesDatatable');
-		$this->addTab($tab, AclManager::getResources(), 'Resources', '_getResourcesDatatable');
-		$this->addTab($tab, AclManager::getPermissions(), 'Permissions', '_getPermissionsDatatable');
+		$tab->getMenu()->addClass($this->style);
+		$this->addTab($tab, AclManager::getAcls(), 'Acls', '_getAclElementsDatatable',$this->style);
+		$this->addTab($tab, AclManager::getPermissionMap()->getObjectMap(), 'Map', '_getPermissionMapDatatable',$this->style);
+		$this->addTab($tab, AclManager::getRoles(), 'Roles', '_getRolesDatatable',$this->style);
+		$this->addTab($tab, AclManager::getResources(), 'Resources', '_getResourcesDatatable',$this->style);
+		$this->addTab($tab, AclManager::getPermissions(), 'Permissions', '_getPermissionsDatatable',$this->style);
 		$this->jquery->postOnClick('._delete', $this->_getFiles()
 			->getAdminBaseRoute() . '/_removeAcl', '{class: $(event.target).closest("tr").attr("data-class"),id:$(event.target).closest("button").attr("data-ajax")}', '#response', [
 			'hasLoader' => 'internal'

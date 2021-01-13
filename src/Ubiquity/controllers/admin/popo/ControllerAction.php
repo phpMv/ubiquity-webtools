@@ -8,6 +8,7 @@ use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\seo\SeoController;
 use Ubiquity\utils\base\UString;
+use Ubiquity\security\acl\AclManager;
 
 class ControllerAction {
 
@@ -20,6 +21,8 @@ class ControllerAction {
 	private $dValues;
 
 	private $annots;
+	
+	private $acl;
 
 	private static $excludeds = [
 		"__construct",
@@ -40,12 +43,13 @@ class ControllerAction {
 
 	public static $controllers = [];
 
-	public function __construct($controller = "", $action = "", $parameters = [], $dValues = [], $annots = []) {
+	public function __construct($controller = "", $action = "", $parameters = [], $dValues = [], $annots = [],$acl=null) {
 		$this->controller = $controller;
 		$this->action = $action;
 		$this->parameters = $parameters;
 		$this->dValues = $dValues;
 		$this->annots = $annots;
+		$this->acl=$acl;
 	}
 
 	public static function initWithPath($url) {
@@ -113,8 +117,9 @@ class ControllerAction {
 
 	private static function scanMethod($controllerClass, \ReflectionMethod $method) {
 		$result = null;
-		if (\array_search($method->name, self::$excludeds) === false && ! UString::startswith($method->name, "_")) {
-			$annots = Router::getAnnotations($controllerClass, $method->name);
+		$methodName=$method->name;
+		if (\array_search($methodName, self::$excludeds) === false && ! UString::startswith($methodName, "_")) {
+			$annots = Router::getAnnotations($controllerClass, $methodName);
 			$parameters = $method->getParameters();
 			$defaults = [];
 			foreach ($parameters as $param) {
@@ -122,7 +127,11 @@ class ControllerAction {
 					$defaults[$param->name] = $param->getDefaultValue();
 				}
 			}
-			$result = new ControllerAction($controllerClass, $method->name, $parameters, $defaults, $annots);
+			$acl=null;
+			if(\class_exists('\\Ubiquity\\security\\acl\\AclManager')){
+				$acl=AclManager::getPermissionMap()->getRessourcePermission($controllerClass, $methodName);
+			}
+			$result = new ControllerAction($controllerClass, $methodName, $parameters, $defaults, $annots,$acl);
 		}
 		return $result;
 	}
@@ -180,4 +189,18 @@ class ControllerAction {
 	public function getId() {
 		return $this->getPath();
 	}
+	/**
+	 * @return mixed
+	 */
+	public function getAcl() {
+		return $this->acl;
+	}
+
+	/**
+	 * @param mixed $acl
+	 */
+	public function setAcl($acl) {
+		$this->acl = $acl;
+	}
+
 }

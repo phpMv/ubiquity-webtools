@@ -39,8 +39,8 @@ trait MaintenanceTrait {
 	protected function _displayActiveMaintenance(MaintenanceMode $maintenance) {
 		$semantic = $this->jquery->semantic();
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$bt = $semantic->htmlButton('bt-de-activate', 'Activate', 'fluid');
-		if (! class_exists($maintenance->getController())) {
+		$bt = $semantic->htmlButton('bt-de-activate', 'Activate', 'fluid '.$this->style);
+		if (! \class_exists($maintenance->getController())) {
 			$this->_createNonExistingMaintenanceController($maintenance->getController());
 		}
 		if ($maintenance->getActive()) {
@@ -52,7 +52,7 @@ trait MaintenanceTrait {
 		$bt->getOnClick($baseRoute . "/_activateMaintenance/" . $maintenance->getId(), "#main-content", [
 			'hasLoader' => 'internal'
 		]);
-		$bt = $semantic->htmlButton('bt-edit-maintenance', 'Edit...', 'fluid');
+		$bt = $semantic->htmlButton('bt-edit-maintenance', 'Edit...', 'fluid '.$this->style);
 		$bt->addIcon('edit');
 		$bt->getOnClick($baseRoute . '/_frmMaintenance/' . $maintenance->getId(), '#maintenance', [
 			'hasLoader' => 'internal',
@@ -61,7 +61,8 @@ trait MaintenanceTrait {
 		]);
 		return $this->jquery->renderView('@admin/maintenance/display.html', [
 			'maintenance' => $maintenance,
-			'selectedColor' => $maintenance->getActive() ? 'green' : ''
+			'selectedColor' => $maintenance->getActive() ? 'green' : '',
+			'inverted'=>$this->style
 		], true);
 	}
 
@@ -120,8 +121,8 @@ trait MaintenanceTrait {
 			]
 		]);
 		$frm->setValidationParams([
-			"on" => "blur",
-			"inline" => true
+			'on' => 'blur',
+			'inline' => true
 		]);
 		$frm->setSubmitParams($baseRoute . '/_submitMaintenanceForm', '#main-content', [
 			'hasLoader' => 'internal'
@@ -130,7 +131,7 @@ trait MaintenanceTrait {
 		$this->_addExcludedList('hosts', $maintenance->getHosts());
 		$this->_addExcludedList('urls', $maintenance->getUrls());
 		$this->_addExcludedList('ports', $maintenance->getPorts());
-		$controllers = array_combine($this->maintenanceControllers, $this->maintenanceControllers);
+		$controllers = \array_combine($this->maintenanceControllers, $this->maintenanceControllers);
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("dd-controllers", "controllers\\MaintenanceController", $controllers);
 		$ctrlList->asSelect("controller");
 		$ctrlList->setDefaultText("Select controller class");
@@ -147,7 +148,8 @@ trait MaintenanceTrait {
 		$this->jquery->renderView('@admin/maintenance/form.html', [
 			'maintenance' => $maintenance,
 			'ports' => implode(',', $maintenance->getPorts()),
-			'urls' => implode(',', $maintenance->getUrls())
+			'urls' => implode(',', $maintenance->getUrls()),
+			'inverted'=>$this->style
 		]);
 	}
 

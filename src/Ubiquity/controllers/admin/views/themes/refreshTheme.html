@@ -1,4 +1,4 @@
-<label>Active theme : </label><span class="ui teal left pointing label">{{activeTheme}}</span>
+<label>Active theme : </label><span class="ui teal left pointing {{inverted}} label">{{activeTheme}}</span>
 <p></p>
 <div class="head">
 	<div class="ui container">
@@ -17,17 +17,17 @@
 <div class="devtools-related">
 	<div class="ui inverted dimmer"></div>
 	<div class="ui divider"></div>
-	<h5 class="ui header">
+	<h5 class="ui {{inverted}} header">
 		<i class="ui download icon"></i>
 		<div class="content">
 			Install an existing theme
 		</div>
 	</h5>
-	<div class="ui buttons">
+	<div class="ui {{inverted}} buttons">
 		{% for theme in notInstalled %}
-			<a class="ui right labeled icon button _installTheme" data-ajax="{{theme}}"><i class="ui paint brush icon"></i>{{theme}}</a>
+			<a class="ui right labeled icon {{inverted}} button _installTheme" data-ajax="{{theme}}"><i class="ui paint brush icon"></i>{{theme}}</a>
 		{% else %}
-			<div class="ui label">All existing themes are installed.</div>
+			<div class="ui {{inverted}} label">All existing themes are installed.</div>
 		{% endfor %}
 	</div>
 </div>

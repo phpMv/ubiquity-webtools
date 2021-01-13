@@ -66,7 +66,7 @@ trait CommandsTrait {
 			$result[] = '<div class="_help"></div>';
 			return $result;
 		});
-		$dt->addEditDeleteButtons();
+			$dt->addEditDeleteButtons(true,[],function($bt){$bt->addClass($this->style);},function($bt){$bt->addClass($this->style);});
 		$dt->insertDefaultButtonIn(2, 'play', '_executeCommandSuite', true, function ($elm, $commandList) {
 			$elm->setProperty('data-suite', \urlencode($commandList->getName()));
 		});
@@ -80,6 +80,7 @@ trait CommandsTrait {
 		]);
 
 		$dt->setTargetSelector('#command');
+		$this->_setStyle($dt);
 		return $this->jquery->renderView($this->_getFiles()
 			->getViewDisplayMyCommands(), [], true);
 	}
@@ -157,14 +158,15 @@ trait CommandsTrait {
 	}
 
 	public function _myCommandsFrm($name) {
-		$name = urldecode($name);
+		$name = \urldecode($name);
 		Command::preloadCustomCommands($this->config);
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$list = [
 			$name => $this->config['commands'][$name] ?? []
 		];
-		$suite = current(CommandList::initFromArray($list, $names));
+		$suite = \current(CommandList::initFromArray($list, $names));
 		$frm = $this->jquery->semantic()->htmlForm('frm-suite');
+		$frm->addClass($this->style);
 		$commandNames = Command::getCommandNames([
 			'installation' => false,
 			'servers' => false
@@ -172,7 +174,8 @@ trait CommandsTrait {
 		$input = $frm->addInput('cmd-add');
 		$input->setName('');
 		$input->getField()->addDataList($commandNames);
-		$input->addAction('Add command', 'right', 'plus', true);
+		$bt=$input->addAction('Add command', 'right', 'plus', true);
+		$bt->addClass($this->style);
 		$input->setPlaceholder('New command name');
 		$frm->addInput('name', 'Name', 'text', $name);
 		$models = CacheManager::getModels(Startup::$config, true);
@@ -213,7 +216,8 @@ trait CommandsTrait {
 		$this->jquery->execAtLast('$("html, body").animate({ scrollTop: $("#command").offset().top}, 1000);');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandSuiteFrm(), [
-			'suite' => $suite
+			'suite' => $suite,
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -345,10 +349,11 @@ trait CommandsTrait {
 				$this->sendExecCommand("Ubiquity $name");
 			} else {
 				$form = $this->jquery->semantic()->htmlForm('frm-command');
+				$form->addClass($this->style);
 				if ($cmd->hasValue()) {
 					$form->setValidationParams([
-						"on" => "blur",
-						"inline" => true
+						'on' => 'blur',
+						'inline' => true
 					]);
 					$value = $cmd->getValue();
 					$form->addInput('value', $value, 'text', '', $value);
@@ -374,7 +379,8 @@ trait CommandsTrait {
 
 				$this->jquery->renderView($this->_getFiles()
 					->getViewDisplayCommandForm(), [
-					'cmd' => $cmd
+					'cmd' => $cmd,
+					'inverted'=>$this->style
 				]);
 			}
 		}
@@ -385,7 +391,7 @@ trait CommandsTrait {
 		$cmd = $this->getCommandByName($commandName);
 		if (isset($cmd)) {
 			$msg = $this->jquery->semantic()->htmlMessage('help-' . $commandName);
-			$msg->addClass('visibleover olive');
+			$msg->addClass('visibleover olive '.$this->style);
 			$msg->setIcon('circle question');
 			$v = "";
 			if ($cmd->hasValue()) {
@@ -418,7 +424,7 @@ trait CommandsTrait {
 				$dt->setValueFunction('defaultValue', function ($v) {
 					return "<pre>$v</pre>";
 				});
-				$dt->addClass('compact');
+				$dt->addClass('compact '.$this->style);
 				$dt->setVisibleHover(false);
 				$msg->addContent($dt);
 			}

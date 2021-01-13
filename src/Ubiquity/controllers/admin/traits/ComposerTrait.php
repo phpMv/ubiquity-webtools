@@ -188,7 +188,7 @@ trait ComposerTrait {
 		});
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->_getAdminViewer()->getComposerDataTable($libs);
-		$input = '$("#submit-composer-bt").removeClass("disabled");let input=$(this).closest("tr").find("._value");';
+		$input = '$("#submit-composer-bt").removeClass("disabled").transition("set looping").transition("pulse", "2000ms");let input=$(this).closest("tr").find("._value");';
 		$inputSetval = 'if($(this).hasClass("active")){input.val("");}else{input.val($(this).attr("data-part")+":"+$(this).attr("data-ajax"));}';
 		$this->jquery->execAtLast('$("#composer-frm").submit(false);$("._remove").click(function(){' . $input . $inputSetval . 'let elm=$(this).closest("tr").find("._u");if($(this).hasClass("active")){elm.unwrap();input.val("");}else{elm.wrap("<strike>");}});$("._remove").state({text:{inactive:"<i class=\'ui icon minus\'></i>Remove",active:"<i class=\'ui icon undo\'></i>To remove"}});');
 		$this->jquery->execAtLast('$("._add").click(function(){' . $input . $inputSetval . '$(this).closest("tr").find("._version").html("<input type=\'hidden\' name=\'version[]\'>");let elm=$(this).closest("tr").find("._u");elm.toggleClass("blue");});$("._add").state({text:{inactive:"<i class=\'ui icon plus\'></i>Add",active:"<i class=\'ui icon undo\'></i>To add"}});');
@@ -290,9 +290,11 @@ trait ComposerTrait {
 			'partial' => "$('#partial').html(response);"
 		]);
 		$this->jquery->click('#cancel-btn', '$("#response").html("");');
+		$this->jquery->exec('$("#submit-composer-bt").transition("remove looping");',true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerFrm(), [
-			'commands' => \implode("\n", $response)
+			'commands' => \implode("\n", $response),
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -348,7 +350,7 @@ trait ComposerTrait {
 		$this->jquery->click('#cancel-btn', '$("#response").html("");');
 
 		$this->jquery->renderView($this->_getFiles()
-			->getViewAddDependencyFrm());
+			->getViewAddDependencyFrm(),['inverted'=>$this->style]);
 	}
 
 	public function _addDependency() {

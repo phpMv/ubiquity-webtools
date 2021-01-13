@@ -49,7 +49,7 @@ trait ModelsTrait {
 	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	public function _showModel($model, $id = null) {
-		$model = str_replace(".", "\\", $model);
+		$model = \str_replace(".", "\\", $model);
 		$adminRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->showModel_($model, $id);
 		$metas = OrmUtils::getModelMetadata($model);
@@ -57,44 +57,43 @@ trait ModelsTrait {
 		foreach ($metas as $k => $meta) {
 			$metas_[ltrim($k, '#')] = $meta;
 		}
-		if (count($metas_) > 0) {
+		if (\count($metas_) > 0) {
 			$this->_getAdminViewer()->getModelsStructureDataTable($metas_);
 		}
 		$vMetas_ = ValidatorsManager::getCacheInfo($model);
 		if (count($vMetas_) > 0) {
-			$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), "dtValidation");
+			$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), 'dtValidation');
 		}
-		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram");
-		$bt->postOnClick($adminRoute . "/_showDiagram/", "{model:'" . \str_replace("\\", "|", $model) . "'}", "#modal", [
-			"attr" => ""
+		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram",$this->style);
+		$bt->postOnClick($adminRoute . "/_showDiagram/", "{model:'" . \str_replace("\\", "|", $model) . "'}", '#modal', [
+			'attr' => ''
 		]);
-		$bt = $this->jquery->semantic()->htmlButton("btValidation", "Validate instances");
-		$bt->addIcon("check", true, true);
-		$bt->postOnClick($adminRoute . "/_validateInstances/", "{model:'" . \str_replace("\\", "|", $model) . "'}", "#validationResults", [
-			"attr" => "",
-			"hasLoader" => "internal"
+		$bt = $this->jquery->semantic()->htmlButton("btValidation", "Validate instances",$this->style);
+		$bt->addIcon('check', true, true);
+		$bt->postOnClick($adminRoute . "/_validateInstances/", "{model:'" . \str_replace("\\", "|", $model) . "'}", '#validationResults', [
+			'attr' => '',
+			'hasLoader' => 'internal'
 		]);
 		$this->jquery->exec('$("#models-tab .item").tab();', true);
-		$this->jquery->getOnClick("#btAddNew", $adminRoute . "/_newModel/" . $this->formModal, "#frm-add-update", [
-			"hasLoader" => "internal"
+		$this->jquery->getOnClick('#btAddNew', $adminRoute . "/_newModel/" . $this->formModal, '#frm-add-update', [
+			'hasLoader' => 'internal'
 		]);
-		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
-			->getViewShowTable(), [
-			"classname" => $model
+		$this->jquery->renderView($this->_getFiles()
+			->getViewShowTable(), ['inverted'=>$this->style,
+			'classname' => $model
 		]);
 	}
 
 	public function _validateInstances() {
 		$model = $_POST['model'];
-		$model = str_replace("|", "\\", $model);
-		if (class_exists($model)) {
+		$model = \str_replace("|", "\\", $model);
+		if (\class_exists($model)) {
 			ValidatorsManager::start();
 			$result = [];
 			$instances = DAO::getAll($model, '', false);
 			foreach ($instances as $instance) {
 				$violations = ValidatorsManager::validate($instance);
-				if (sizeof($violations) > 0) {
+				if (\count($violations) > 0) {
 					$result[] = [
 						$instance,
 						$violations
@@ -141,7 +140,6 @@ trait ModelsTrait {
 		$datas = $this->getInstances($model, $totalCount, 1, $id);
 		$this->formModal = ($this->_getModelViewer()->isModal($datas, $model)) ? "modal" : "no";
 		$dt = $this->_getModelViewer()->getModelDataTable($datas, $model, $totalCount, $this->activePage);
-		$dt->setActiveRowSelector('blue');
 		return $dt;
 	}
 
@@ -201,12 +199,13 @@ trait ModelsTrait {
 		$form = $this->_getModelViewer()->getForm($formName, $instance, '_updateModel');
 		$this->jquery->click("#action-modal-" . $formName . "-0", "$('#" . $formName . "').form('submit');", false);
 		if (! $modal) {
+			$form->addClass($this->style);
 			$this->jquery->click("#bt-cancel", "$('#form-container').transition('drop');");
-			$this->jquery->compile($this->view);
-			$this->loadView($this->_getFiles()
+			$this->jquery->renderView($this->_getFiles()
 				->getViewEditTable(), [
-				"modal" => $modal,
-				"frmEditName" => $formName
+				'modal' => $modal,
+				'frmEditName' => $formName,
+				'inverted'=>$this->style
 			]);
 		} else {
 			$this->jquery->exec("$('#modal-" . $formName . "').modal('show');", true);
@@ -218,8 +217,8 @@ trait ModelsTrait {
 			$btOkay = $form->getAction(0);
 			$btOkay->addClass("green")->setValue("Validate modifications");
 			$form->onHidden("$('#modal-" . $formName . "').remove();");
-			echo $form->compile($this->jquery, $this->view);
-			echo $this->jquery->compile($this->view);
+			echo $this->jquery->compile();
+			echo $form;
 		}
 	}
 
@@ -328,7 +327,8 @@ trait ModelsTrait {
 			try {
 				$models = CacheManager::getModels($config, true, $databaseOffset);
 				$menu = $semantic->htmlMenu("menuDbs");
-				$menu->setVertical()->setInverted();
+				$menu->setVertical();
+				$menu->addClass($this->style);
 				foreach ($models as $model) {
 					$count = DAO::count($model);
 					$item = $menu->addItem(ClassUtils::getClassSimpleName($model));
@@ -349,10 +349,10 @@ trait ModelsTrait {
 			}
 			$this->_checkModelsUpdates($config, false);
 
-			$this->jquery->compile($this->view);
-			$this->loadView($this->_getFiles()
+			$this->jquery->renderView($this->_getFiles()
 				->getViewDataIndex(), [
-				'activeDb' => $databaseOffset
+				'activeDb' => $databaseOffset,
+				'bgColor'=>$this->style
 			]);
 		} else {
 			echo $stepper;
@@ -371,8 +371,8 @@ trait ModelsTrait {
 		$fkInstances = CRUDHelper::getFKIntances($instance, $model, false);
 		$semantic = $this->jquery->semantic();
 		$grid = $semantic->htmlGrid("detail");
-		if (sizeof($fkInstances) > 0) {
-			$wide = intval(16 / sizeof($fkInstances));
+		if (\count($fkInstances) > 0) {
+			$wide = \intval(16 / \count($fkInstances));
 			if ($wide < 4)
 				$wide = 4;
 			foreach ($fkInstances as $member => $fkInstanceArray) {

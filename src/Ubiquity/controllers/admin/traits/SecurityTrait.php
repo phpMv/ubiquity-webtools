@@ -27,6 +27,7 @@ use Ubiquity\cache\CacheManager;
 trait SecurityTrait {
 
 	protected function _refreshSecurity($asString = false) {
+		$style='ui label '.$this->style;
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$hasSecurity = ServicesChecker::hasSecurity();
 		$hasShieldon = ServicesChecker::hasShieldon();
@@ -91,6 +92,7 @@ trait SecurityTrait {
 		$deComponents->setValueFunction('shieldon', function ($value) use ($dependencies) {
 			return $this->installOrInstalledSecurityCompo($value, 'shieldon', 'shieldon', 'shieldon', $dependencies);
 		});
+		$this->_setStyle($deComponents);
 		if (count($servicesValues) > 0) {
 			$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
 			$deServices->setFields(\array_keys($servicesValues));
@@ -132,7 +134,7 @@ trait SecurityTrait {
 						if (Startup::isValidUrl($this->config['shieldon-url'])) {
 							$bt->asLink('/' . $this->config['shieldon-url'], 'shieldon');
 							$bt->addIcon('shield alternate');
-							$bt->addClass('blue');
+							$bt->addClass('blue '.$this->style);
 							$validUrl = true;
 						} else {
 							$bt->addIcon('warning circle');
@@ -145,7 +147,7 @@ trait SecurityTrait {
 					if (! $validUrl) {
 						$bt = new HtmlButton('bt-shieldon', 'Add shieldon controller');
 						$bt->addIcon('plus');
-						$bt->addClass('tiny right floated teal');
+						$bt->addClass('tiny right floated teal '.$this->style);
 						$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/_addSieldonControllerFrm', '#response', [
 							'hasLoader' => 'internal'
 						]);
@@ -158,6 +160,7 @@ trait SecurityTrait {
 				return $elm;
 			});
 			$deServices->setAttached();
+			$this->_setStyle($deServices);
 		}
 
 		$deSession = $this->jquery->semantic()->dataElement('session', $sessionValues);
@@ -171,15 +174,17 @@ trait SecurityTrait {
 		$deSession->fieldAsCheckbox('started', [
 			'type' => 'slider disabled'
 		]);
-		$deSession->fieldAsLabel('class');
+		$deSession->fieldAsLabel('class',null,['class'=>$style]);
 		$deSession->fieldAsLabel('protection', '', [
 			'jsCallback' => function ($elm, $value) {
 				$call = $value->protection;
 				$elm->addIcon(($call::getLevel() > 0) ? 'lock' : 'unlock');
-			}
+			},
+			'class'=>$style
 		]);
-		$deSession->fieldAsLabel('visitorCount', null, 'circular');
+		$deSession->fieldAsLabel('visitorCount', null, ['class'=>$style. ' circular']);
 		$deSession->setAttached()->setEdition();
+		$this->_setStyle($deSession);
 
 		$deCookies = $this->jquery->semantic()->dataElement('cookies', $cookieValues);
 		$deCookies->setFields([
@@ -188,8 +193,9 @@ trait SecurityTrait {
 		$deCookies->setCaptions([
 			'Transformer'
 		]);
-		$deCookies->fieldAsLabel('transformer');
+		$deCookies->fieldAsLabel('transformer',null,['class'=>$style]);
 		$deCookies->setAttached()->setEdition();
+		$this->_setStyle($deCookies);
 
 		if ($hasSecurity && $hasCsrf) {
 			$deCsrf = $this->jquery->semantic()->dataElement('csrf', $csrfValues);
@@ -199,13 +205,12 @@ trait SecurityTrait {
 				'Validator',
 				'Storage'
 			]);
-			$deCsrf->fieldsAs([
-				'label',
-				'label',
-				'label'
-			]);
+			$deCsrf->fieldAsLabel('selector',null,['class'=>$style]);
+			$deCsrf->fieldAsLabel('validator',null,['class'=>$style]);
+			$deCsrf->fieldAsLabel('storage',null,['class'=>$style]);
 			$deCsrf->setAttached()->setEdition();
-			$deCsrf->wrap('<div class="ui top attached orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
+			$this->_setStyle($deCsrf);
+			$deCsrf->wrap('<div class="ui top attached '.$this->style.' orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
 		}
 
 		$this->jquery->postOnClick('._installComponent', $baseRoute . '/_execComposer/_refreshComponentSecurity/securityPart', '{commands: "composer require "+$(this).attr("data-composer")}', '#partial', [
@@ -218,7 +223,7 @@ trait SecurityTrait {
 			'hasLoader' => 'internal'
 		]);
 		return $this->jquery->renderView($this->_getFiles()
-			->getViewSecurityPart(), [], $asString);
+			->getViewSecurityPart(), ['inverted'=>$this->style], $asString);
 	}
 
 	protected function installOrInstalledSecurityCompo(bool $value, $idElm, $vendor, $package, $dependencies) {
@@ -229,9 +234,10 @@ trait SecurityTrait {
 			if (isset($dep)) {
 				$lbl->addDetail($dep->getVersion());
 			}
+			$lbl->addClass($this->style);
 			return $lbl;
 		} else {
-			$bt = new HtmlButton('install-' . $idElm, 'Install with composer', 'teal _installComponent tiny');
+			$bt = new HtmlButton('install-' . $idElm, 'Install with composer', 'teal _installComponent tiny '.$this->style);
 			$bt->addIcon('plus');
 			$bt->setProperty('data-composer', $vendor . '/' . $package);
 			return $bt;
@@ -242,9 +248,10 @@ trait SecurityTrait {
 		if ($value) {
 			$lbl = new HtmlLabel('lbl-' . $service, 'Started', 'blue toggle on');
 			$lbl->addDetail($service);
+			$lbl->addClass($this->style);
 			return $lbl;
 		} else {
-			$bt = new HtmlButton('start-' . $service, 'Start', 'green _startService tiny');
+			$bt = new HtmlButton('start-' . $service, 'Start', 'green _startService tiny '.$this->style);
 			$bt->addIcon('play');
 			$bt->setProperty('data-service', $service);
 			return $bt;

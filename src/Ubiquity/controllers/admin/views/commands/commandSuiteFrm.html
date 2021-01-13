@@ -1,16 +1,16 @@
-<div class="ui teal top attached secondary segment">
+<div class="ui teal top attached secondary {{inverted}} segment">
 <i class="ui stream icon " data-name="{{suite.name}}"></i> <b>{{suite.name}}</b>
 </div>
-<div class="ui attached segment">
+<div class="ui attached {{inverted}} segment">
 	{{q['frm-suite']|raw}}
 </div>
-<div class="ui segment">
-  <button id="validate-btn" class="ui button positive">
+<div class="ui {{inverted}} segment">
+  <button id="validate-btn" class="ui {{inverted}} button positive">
   	<i id="icon-bt-okay" class="icon check circle"></i>
   	 Validate
   </button>
   &nbsp;
-  <button id="cancel-btn" class="ui button">
+  <button id="cancel-btn" class="ui {{inverted}} button">
   	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
   	 Cancel
   </button>

@@ -1,31 +1,31 @@
 {{q['msg-new-provider']|raw}}
-<div class="ui top attached tabular menu _tabConfig">
+<div class="ui top attached {{inverted}} tabular menu _tabConfig">
 	<a class="item" data-tab="config"><i class="cog icon"></i> Configuration</a>
 	<a class="item" data-tab="source"><i class="code icon"></i> PHP source</a>
 </div>
-<div class="ui bottom attached active tab segment" data-tab="config" id="tab-config">
+<div class="ui bottom attached active tab {{inverted}} segment" data-tab="config" id="tab-config">
 	<form class="ui form" id="frmConfig" name="frmConfig" novalidate>
-		<div class="ui segment">
-			<div id="toolbar-frmDeConfig" class="ui menu secondary">
+		<div class="ui {{inverted}} segment">
+			<div id="toolbar-frmDeConfig" class="ui {{inverted}} menu secondary">
 				<div class="no-active item">
-					<div id="save-config-btn" class="ui positive button">
+					<div id="save-config-btn" class="ui positive {{inverted}} button">
 						<i class="icon check circle"></i>
 						Save configuration
 					</div>&nbsp;
-					<div id="bt-Canceledition" class="ui button">
+					<div id="bt-Canceledition" class="ui {{inverted}} button">
 						<i class="icon remove circle outline"></i>
 						Cancel edition
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="ui blue ribbon label">
+		<div class="ui blue ribbon {{inverted}} label">
 			<i class="ui {{icon}} icon"></i>
 			{{provider}}
 		</div>
 	{{q['frmProviderConfig']|raw}}
 	</form>
 </div>
-<div class="ui bottom attached tab segment" data-tab="source" id="tab-source">
+<div class="ui bottom attached tab {{inverted}} segment" data-tab="source" id="tab-source">
 </div>
 {{script_foot|raw}}

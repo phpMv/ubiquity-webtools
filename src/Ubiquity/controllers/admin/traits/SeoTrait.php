@@ -77,7 +77,7 @@ trait SeoTrait {
 		]);
 		$dtCtrl->setValueFunction('see', function ($value, $instance, $fi, $index) {
 			if ($instance->urlExists()) {
-				$bt = new HtmlButton('see-' . $index, '', '_see circular basic right floated');
+				$bt = new HtmlButton('see-' . $index, '', '_see circular basic right floated '.$this->style);
 				$bt->setProperty("data-ajax", $instance->getName());
 				$bt->asIcon('eye');
 				return $bt;
@@ -93,7 +93,7 @@ trait SeoTrait {
 			return $value;
 		});
 		$dtCtrl->addDeleteButton(false, [], function ($bt) {
-			$bt->setProperty('class', 'ui circular basic red right floated icon button _delete');
+			$bt->setProperty('class', 'ui circular basic red right floated icon button _delete '.$this->style);
 		});
 		$dtCtrl->setTargetSelector([
 			"delete" => "#messages"
@@ -118,7 +118,7 @@ trait SeoTrait {
 			"attr" => "data-ajax"
 		]);
 		$dtCtrl->setEmptyMessage($this->showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "teal", "SEO Controllers", "info circle"));
-
+		$this->_setStyle($dtCtrl);
 		return $dtCtrl;
 	}
 
@@ -132,7 +132,7 @@ trait SeoTrait {
 			$parser->parseArray($array, true);
 			$parser->parse();
 			$urls = $parser->getUrls();
-			$dt = $this->jquery->semantic()->dataTable("dtSiteMap", 'Ubiquity\seo\Url', $urls);
+			$dt = $this->jquery->semantic()->dataTable('dtSiteMap', 'Ubiquity\seo\Url', $urls);
 			$dt->setFields([
 				'location',
 				'lastModified',
@@ -145,17 +145,17 @@ trait SeoTrait {
 				'Change Frequency',
 				'Priority'
 			]);
-			$dt->fieldAsInput("location");
-			$dt->setValueFunction("lastModified", function ($v, $o, $fi, $i) {
+			$dt->fieldAsInput('location');
+			$dt->setValueFunction('lastModified', function ($v, $o, $fi, $i) {
 				$d = date('Y-m-d\TH:i', $v);
 				$input = new HtmlInput("date-" . $i, 'datetime-local', $d);
-				$input->setName("lastModified[]");
+				$input->setName('lastModified[]');
 				return $input;
 			});
 			$freq = UrlParser::$frequencies;
 			$dt->fieldAsDropDown('changeFrequency', \array_combine($freq, $freq));
-			$dt->setValueFunction("priority", function ($v, $o, $fi, $i) {
-				$input = new HtmlInput("priority-" . $i, 'number', $v);
+			$dt->setValueFunction('priority', function ($v, $o, $fi, $i) {
+				$input = new HtmlInput('priority-' . $i, 'number', $v);
 				$f = $input->getDataField();
 				$f->setProperty('name', 'priority[]');
 				$f->setProperty('max', '1')
@@ -177,26 +177,25 @@ trait SeoTrait {
 			});
 			$dt->asForm();
 			$dt->setSubmitParams($this->_getFiles()
-				->getAdminBaseRoute() . "/_saveUrls", "#seo-details", [
+				->getAdminBaseRoute() . '/_saveUrls', '#seo-details', [
 				'attr' => ''
 			]);
-			$this->jquery->execOn("click", "#saveUrls", '$("#frm-dtSiteMap").form("submit");');
+			$this->_setStyle($dt);
+			$this->jquery->execOn('click', '#saveUrls', '$("#frm-dtSiteMap").form("submit");');
 			$this->jquery->exec('$("#displayAllRoutes").checkbox();', true);
 			$this->jquery->execOn('change', 'input[name="selection[]"]', '$(this).parents("tr").toggleClass("_checked",$(this).prop("checked"));');
 			$this->jquery->click('#displayAllRoutes', '$(".toToggle:not(._checked)").toggle();');
 			$this->jquery->execAtLast($this->jquery->execOn('change', '#frm-dtSiteMap input', '$("#saveUrls").show();', [
-				"immediatly" => false
+				'immediatly' => false
 			]));
-			$this->jquery->compile($this->view);
-
-			$this->loadView($this->_getFiles()
-				->getViewSeoDetails(), [
-				"controllerClass" => $controllerClass,
-				"urlsFile" => $controllerSeo->_getUrlsFilename()
+			$this->jquery->renderView($this->_getFiles()->getViewSeoDetails(), [
+				'controllerClass' => $controllerClass,
+				'urlsFile' => $controllerSeo->_getUrlsFilename(),
+				'inverted'=>$this->style
 			]);
 		} else {
 			if ($controllerClass == null) {
-				$msg = $this->showSimpleMessage("No controller selected!", "info", "SEO controller", "info circle");
+				$msg = $this->showSimpleMessage('No controller selected!', 'info', 'SEO controller', 'info circle');
 			} else {
 				$msg = $this->showSimpleMessage("The controller <b>`{$controllerClass}`</b> does not exists!", "warning", "SEO controller", "warning circle");
 			}

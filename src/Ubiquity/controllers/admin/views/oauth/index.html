@@ -10,40 +10,42 @@
 </div>
 {% endif %}
 <div id="oauth">
-	<div class="ui secondary menu">
-		<button id="add-provider-btn" class="ui button teal _menu">
-		  <i class="icon plus"></i>
-		  Add provider...
+	<div class="ui {{inverted}} secondary menu">
+		<button id="add-provider-btn" class="ui {{inverted}} button teal _menu">
+			<i class="icon plus"></i>
+			Add provider...
 		</button>
-		<button id="config-btn" class="ui button orange _menu">
-		  <i class="icon cogs"></i>
-		  Global configuration
+		<button id="config-btn" class="ui {{inverted}} button orange _menu">
+			<i class="icon cogs"></i>
+			Global configuration
 		</button>
-		<button id="create-controller-btn" class="ui button _menu">
-		  <i class="icon plus"></i>
-		  Create Oauth controller
-		</button>		
+		<button id="create-controller-btn" class="ui {{inverted}} button _menu">
+			<i class="icon plus"></i>
+			Create Oauth controller
+		</button>
 	</div>
 		<div style="padding: 10px 0px;" id="response">
 		{{response | raw}}
 		</div>
 	<div id="oauth-details">
-		<div class="ui styled fluid accordion">
-			<div class="title active">
-		    	<i class="dropdown icon"></i>
-		    	Callback URL
-		  	</div>
-			<div class="content active">
-			{{callback|raw}}
-			</div>
-			<div class="title active">
-		    	<i class="dropdown icon"></i>
-		    	Providers
-		  	</div>
-			<div class="content active">
-				<form id='oauth-frm' name='oauth-frm'>
-				{{ q["dtOAuth"] | raw }}
-				</form>
+		<div class='ui {{inverted}} segment'>
+			<div class="ui {{inverted}} fluid accordion">
+				<div class="title active">
+					<i class="dropdown icon"></i>
+					Callback URL
+				</div>
+				<div class="content active">
+				{{callback|raw}}
+				</div>
+				<div class="title active">
+					<i class="dropdown icon"></i>
+					Providers
+				</div>
+				<div class="content active">
+					<form id='oauth-frm' name='oauth-frm'>
+					{{ q["dtOAuth"] | raw }}
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>

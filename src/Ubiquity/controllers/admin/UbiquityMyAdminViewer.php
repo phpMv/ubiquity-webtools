@@ -51,6 +51,7 @@ use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ajax\semantic\html\content\table\HtmlTR;
 use Ubiquity\controllers\admin\popo\OAuthProvider;
 use Ubiquity\controllers\admin\popo\CommandValues;
+use Ajax\semantic\html\modules\HtmlDropdown;
 
 /**
  *
@@ -70,10 +71,22 @@ class UbiquityMyAdminViewer {
 	 * @var UbiquityMyAdminBaseController
 	 */
 	private $controller;
+	
+	private $style;
 
 	public function __construct(UbiquityMyAdminBaseController $controller) {
 		$this->jquery = $controller->jquery;
 		$this->controller = $controller;
+		$this->style=$controller->style;
+	}
+	
+	public function setStyle($elm){
+		if($this->style==='inverted'){
+			$elm->setInverted(true);
+			if($elm instanceof DataTable){
+				$elm->setActiveRowSelector('black');
+			}
+		}
 	}
 
 	public function getMainMenuElements() {
@@ -216,14 +229,14 @@ class UbiquityMyAdminViewer {
 			"Name",
 			""
 		]);
-		$dt->fieldAsLabel("path", "car");
+		$dt->fieldAsLabel("path", "car",['class'=>'ui label '.$this->style]);
 		$dt->setValueFunction("controller", function ($v) {
 			if (! is_string($v)) {
 				$lbl = new HtmlLabel("", "<span style='font-weight: bold;color: #3B83C0;'>call</span>::<span style='color: #7F0055;'>" . gettype($v) . "</span>", "heartbeat");
 			} else {
 				$lbl = new HtmlLabel("", "<span style='font-weight: bold;color: #3B83C0;'>" . $v . "</span>::<span style='color: #7F0055;'>class</span>", "heartbeat");
 			}
-			$lbl->addClass("basic large");
+			$lbl->addClass("basic large ".$this->style);
 			return $lbl;
 		});
 		$this->_dtCache($dt);
@@ -243,39 +256,40 @@ class UbiquityMyAdminViewer {
 		$this->addGetPostButtons($dt);
 		$dt->setActiveRowSelector("warning");
 		$dt->wrap($messages);
-		$dt->setEdition()->addClass("compact");
+		$dt->setEdition()->addClass("compact ");
+		$this->setStyle($dt);
 		return $dt;
 	}
 
 	public function getControllersDataTable($controllers) {
-		$filteredCtrls = USession::init("filtered-controllers", UArray::remove(ControllerAction::$controllers, [
-			"controllers\\Admin",
-			"controllers\\MaintenanceController"
+		$filteredCtrls = USession::init('filtered-controllers', UArray::remove(ControllerAction::$controllers, [
+			'controllers\\Admin',
+			'controllers\\MaintenanceController'
 		]));
-		$controllers = array_filter($controllers, function ($item) use ($filteredCtrls) {
-			return array_search($item->getController(), $filteredCtrls) !== false;
+		$controllers = \array_filter($controllers, function ($item) use ($filteredCtrls) {
+			return \array_search($item->getController(), $filteredCtrls) !== false;
 		});
-		$dt = $this->jquery->semantic()->dataTable("dtControllers", ControllerAction::class, $controllers);
+		$dt = $this->jquery->semantic()->dataTable('dtControllers', ControllerAction::class, $controllers);
 		$dt->setFields([
-			"controller",
-			"action",
-			"dValues"
+			'controller',
+			'action',
+			'dValues'
 		]);
 		$dt->setIdentifierFunction(function ($i, $instance) {
 			return \urlencode($instance->getController());
 		});
 		$dt->setCaptions([
-			"Controller",
-			"Action [routes]",
-			"Default values",
-			""
+			'Controller',
+			'Action [routes]',
+			'Default values',
+			''
 		]);
 		$this->addGetPostButtons($dt);
-		$dt->setValueFunction("controller", function ($v, $instance, $index) {
+		$dt->setValueFunction('controller', function ($v, $instance, $index) {
 			$bts = new HtmlButtonGroups("bt-" . \urlencode($v), [
 				$v
 			]);
-			$bts->addClass("basic");
+			$bts->addClass("basic ".$this->style);
 			$bt = $bts->getItem(0);
 			$bt->addClass("_clickFirst")
 				->setIdentifier("bt-0-" . $v);
@@ -285,6 +299,7 @@ class UbiquityMyAdminViewer {
 				"Add new action in <b>{$v}</b>..."
 			]);
 			$dd->setIcon("plus");
+			$dd->addClass($this->style);
 			$item = $dd->getItem(0);
 			$item->addClass("_add-new-action")
 				->setProperty("data-controller", $instance->getController());
@@ -307,9 +322,17 @@ class UbiquityMyAdminViewer {
 			$v .= new HtmlSemDoubleElement("", "span", "", $params);
 			$annots = $instance->getAnnots();
 			foreach ($annots as $path => $annotDetail) {
-				$lbl = new HtmlLabel("", $path, "car");
+				$lbl = new HtmlIcon("path-". $path, "circular car link");
+				$lbl->addPopup('Path',$path);
 				$lbl->setProperty("data-ajax", \htmlspecialchars(($path)));
-				$lbl->addClass("_route");
+				$lbl->addClass("_route _popup ".$this->style);
+				$v .= "&nbsp;" . $lbl;
+			}
+			$acl=$instance->getAcl();
+			if($acl!==null){
+				$lbl = new HtmlIcon("acl-". $controller.$action, "circular users link");
+				$lbl->addPopupHtml([new HtmlLabel('',$acl['resource'],'archive'),new HtmlLabel('',$acl['permission'],'unlock alternate')]);
+				$lbl->addClass("_popup ".$this->style);
 				$v .= "&nbsp;" . $lbl;
 			}
 			$v = \array_merge([
@@ -325,7 +348,7 @@ class UbiquityMyAdminViewer {
 				->mergeIdentiqualValues(0);
 		});
 		$dt->setEdition(true);
-		$dt->addClass("compact");
+		$dt->addClass("compact ".$this->style);
 		return $dt;
 	}
 
@@ -354,12 +377,13 @@ class UbiquityMyAdminViewer {
 				if ($instance->getOptional()) {
 					$lbl->wrap('<div class="_version _toUpdate" data-version="' . $value . '" data-ajax="' . $instance->getName() . '" data-part="' . $instance->getPart() . '">', '</div>');
 				}
+				$lbl->addClass($this->style);
 				return $lbl;
 			}
 			return "<div class='_version'><input type='hidden' name='version[]'></div>";
 		});
 		$dt->fieldAsLabel('part', 'tag', [
-			'class' => 'ui large label'
+			'class' => 'ui large label '.$this->style
 		]);
 		$dt->setGroupByFields([
 			0,
@@ -372,7 +396,7 @@ class UbiquityMyAdminViewer {
 		$dt->onNewRow(function (HtmlTR $row, ComposerDependency $instance) {
 			if ($instance->getVersion() != null) {
 				if ($instance->getLoaded()) {
-					$row->addClass('positive');
+					$row->addClass($this->controller->_getStyle('selectedRow'));
 				} else {
 					$row->addClass('warning');
 				}
@@ -396,12 +420,12 @@ class UbiquityMyAdminViewer {
 				$bt = new HtmlButton('bt-' . $name, '', 'mini basic');
 				if ($instance->getVersion() != null) {
 					$bt->setValue('Remove')
-						->addClass('_remove');
+						->addClass('_remove '.$this->style);
 					$bt->addIcon('minus');
 					$input = "<input type='hidden' class='_value' name='toRemove[]' id='remove-" . $name . "'><input type='hidden' class='_update' name='toUpdate[]' id='update-" . $name . "'>";
 				} else {
 					$bt->setValue('Add')
-						->addClass('_add');
+						->addClass('_add '.$this->style);
 					$bt->addIcon('plus');
 					$input = "<input type='hidden' class='_value' name='toAdd[]' id='add-" . $name . "'>";
 				}
@@ -416,11 +440,12 @@ class UbiquityMyAdminViewer {
 		});
 		$dt->setCompact(true);
 		$dt->setEdition();
+		$dt->addClass($this->style);
 		return $dt;
 	}
 
 	public function getCommandsDataTable($commands) {
-		$dt = $this->jquery->semantic()->dataTable("dtCommands", \Ubiquity\devtools\cmd\Command::class, $commands);
+		$dt = $this->jquery->semantic()->dataTable('dtCommands', \Ubiquity\devtools\cmd\Command::class, $commands);
 		$dt->setFields([
 			'category',
 			'commands'
@@ -433,22 +458,23 @@ class UbiquityMyAdminViewer {
 		$dt->setValueFunction('category', function ($cat, $instance) {
 			$lbl = new HtmlLabel('lbl-' . $cat, $cat, 'tag');
 			$lbl->addDetail(count($instance->getCommands()));
+			$lbl->addClass($this->style);
 			return $lbl;
 		});
 		$dt->setValueFunction('commands', function ($commands, $instance) {
 			$res = [];
 			foreach ($commands as $command) {
 				$name = $command->getName();
-				$bt = new HtmlButton("bt-" . $name, "", 'visibleover mini');
+				$bt = new HtmlButton("bt-" . $name, "", 'visibleover mini '.$this->style);
 				$bt->setProperty('style', 'visibility:hidden;');
 
 				$bt->addIcon("play");
 				$lbl = $bt->addLabel($name, true, 'blue question circle icon')
 					->setPointing("right");
 				$lbl->setProperty('data-ajax', $name);
-				$lbl->addClass('_displayHelp');
+				$lbl->addClass('_displayHelp '.$this->style);
 				$btc = $bt->getContent()[1];
-				$btc->addClass('mini _displayCommand');
+				$btc->addClass('mini _displayCommand '.$this->style);
 				$btc->setProperty('data-cmd', $name);
 				$btc->getContent()[0]->setProperty('data-ajax', $name);
 				$res[] = $bt;
@@ -456,21 +482,21 @@ class UbiquityMyAdminViewer {
 			$res[] = '<div class="_help"></div>';
 			return $res;
 		});
-
+		$this->setStyle($dt);
 		return $dt;
 	}
 
 	public function getCommandButton(CommandValues $cmd, $index, $suiteName) {
 		$name = $cmd->getCommand();
-		$bt = new HtmlButton("bt-" . $name, "", 'tiny');
-
+		$bt = new HtmlButton("bt-" . $name, "", 'tiny '.$this->style);
+		
 		$bt->addIcon("play");
 		$lbl = $bt->addLabel('Ubiquity ' . $cmd->asHtml(), true, 'code')
 			->setPointing("right");
 		$lbl->setProperty('data-command', $name);
-		$lbl->addClass('_displayMyHelp');
+		$lbl->addClass('_displayMyHelp '.$this->style);
 		$btc = $bt->getContent()[1];
-		$btc->addClass('tiny _executeOneCommand');
+		$btc->addClass('tiny _executeOneCommand '.$this->style);
 		$btc->setProperty('data-suite', $suiteName);
 		$btc->setProperty('data-index', $index);
 		return $bt;
@@ -514,7 +540,7 @@ class UbiquityMyAdminViewer {
 		});
 		$dt->setValueFunction('name', function ($value, $instance) {
 			$lbl = new HtmlLabel('', $value, strtolower($value) . " blue");
-			$lbl->setSize('large inverted grey');
+			$lbl->addClass('large '.$this->style);
 			$keys = $instance->getKeys();
 			if ($instance->needsApplication() && (! isset($keys['id']) || ! isset($keys['secret']))) {
 				$lbl->wrap('', "<span class='ui tag red label'><i class='ui bug icon'></i> id or secret are not set!</span>");
@@ -534,15 +560,15 @@ class UbiquityMyAdminViewer {
 		], false, function (HtmlButtonGroups $bts, $instance, $index) use ($baseRoute) {
 			$name = $instance->getName();
 			$bts->getItem(0)
-				->addClass("_delete red basic")
+				->addClass("_delete red basic ".$this->style)
 				->setProperty("data-name", $name)
 				->asIcon("times");
 			$bts->getItem(1)
-				->addClass("_edit basic")
+				->addClass("_edit basic ".$this->style)
 				->setProperty("data-name", $name)
 				->asIcon("edit");
 			$bts->getItem(2)
-				->addClass("green")
+				->addClass("green ".$this->style)
 				->setTagName('a')
 				->setProperty("href", $baseRoute . "/_testOauth/" . $name)
 				->addIcon("sign in alternate");
@@ -558,6 +584,7 @@ class UbiquityMyAdminViewer {
 
 		$dt->setEdition(true);
 		$dt->addClass("compact");
+		$this->setStyle($dt);
 		return $dt;
 	}
 
@@ -946,7 +973,8 @@ class UbiquityMyAdminViewer {
 	public function getFilterControllers($controllers) {
 		$selecteds = USession::init("filtered-controllers", UArray::remove($controllers, "controllers\Admin"));
 		$list = $this->jquery->semantic()->htmlList("lst-filter");
-		$list->addCheckedList(array_combine($controllers, $controllers), "<i class='heartbeat icon'></i>&nbsp;Controllers", $selecteds, false, "filtered-controllers[]");
+		$list->addCheckedList(\array_combine($controllers, $controllers), "<i class='heartbeat icon'></i>&nbsp;Controllers", $selecteds, false, "filtered-controllers[]");
+		$list->addClass($this->style);
 		return $list;
 	}
 
@@ -957,11 +985,11 @@ class UbiquityMyAdminViewer {
 		foreach ($loadedViews as $view) {
 			if ($templateEngine->exists($view)) {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "browser", "span");
-				$lbl->addClass("violet tag");
+				$lbl->addClass("violet tag ".$this->style);
 				$lbl->addPopupHtml("<i class='icon info circle green'></i>&nbsp;<b>" . $view . "</b> is ok.", "wide");
 			} else {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "warning", "span");
-				$lbl->addClass("orange tag");
+				$lbl->addClass("orange tag ".$this->style);
 				$lbl->addPopupHtml("<i class='icon red warning circle'></i>&nbsp;<b>" . $view . "</b> file is missing.", 'very wide');
 			}
 			$result[] = $lbl;
@@ -972,14 +1000,14 @@ class UbiquityMyAdminViewer {
 			$bt->setProperty("data-action", $action);
 			$bt->setProperty("data-controller", $controller);
 			$bt->setProperty("data-controllerFullname", $controllerFullname);
-			$bt->addClass("_create-view visibleover circular violet mini")
+			$bt->addClass("_create-view visibleover circular violet mini ".$this->style)
 				->setProperty("style", "visibility: hidden;")
 				->asIcon("plus");
 			$bt->setProperty('title', 'Create view ' . $viewname);
 			$result[] = $bt;
 		} elseif (\array_search($viewname, $loadedViews) === false) {
 			$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $viewname, null, "browser", "span");
-			$lbl->addClass('tag');
+			$lbl->addClass('tag '.$this->style);
 			$lbl->addPopupHtml("<i class='icon orange warning circle'></i>&nbsp;<b>" . $viewname . "</b> exists but is never loaded in action <b>" . $action . "</b>.", 'very wide');
 			$result[] = $lbl;
 		}
@@ -988,30 +1016,30 @@ class UbiquityMyAdminViewer {
 
 	protected function addGetPostButtons(DataTable $dt) {
 		$dt->addFieldButtons([
-			"GET",
-			"POST"
+			'GET',
+			'POST'
 		], true, function (HtmlButtonGroups $bts, $instance, $index) {
 			$path = $instance->getPath();
 			$path = \str_replace("(.*?)", "", $path);
 			$path = \str_replace("(index/)?", "", $path);
-			$bts->setIdentifier("bts-" . $instance->getId() . "-" . $index);
+			$bts->setIdentifier('bts-' . $instance->getId() . "-" . $index);
 			$bts->getItem(0)
-				->addClass("_get")
-				->setProperty("data-url", $path);
+				->addClass('_get '.$this->style)
+				->setProperty('data-url', $path);
 			$bts->getItem(1)
-				->addClass("_post")
-				->setProperty("data-url", $path);
-			$item = $bts->addDropdown([
-				"Post with parameters..."
-			])
-				->getItem(0);
-			$item->addClass("_postWithParams")
-				->setProperty("data-url", $path);
+				->addClass('_post '.$this->style)
+				->setProperty('data-url', $path);
+			$dd=$bts->addDropdown(['Post with parameters...']);
+			$dd->addClass($this->style);
+			$item = $dd->getItem(0);
+			$item->addClass('_postWithParams')
+				->setProperty('data-url', $path);
 		});
 	}
 
 	public function getCacheDataTable($cacheFiles) {
 		$dt = $this->jquery->semantic()->dataTable("dtCacheFiles", "Ubiquity\cache\CacheFile", $cacheFiles);
+		$this->setStyle($dt);
 		$dt->setFields([
 			"type",
 			"name",
@@ -1026,8 +1054,8 @@ class UbiquityMyAdminViewer {
 			""
 		]);
 		$dt->setValueFunction("type", function ($v, $instance, $index) {
-			$item = $this->jquery->semantic()
-				->htmlDropdown("dd-type-" . $v, $v);
+			$item = new HtmlDropdown("dd-type-" . $v, $v);
+			$item->addClass($this->style);
 			$item->addItems([
 				"Delete all",
 				"(Re-)Init cache"
@@ -1058,6 +1086,7 @@ class UbiquityMyAdminViewer {
 			} else {
 				$o->setProperty("data-key", $instance->getFile());
 			}
+			$o->addClass($this->style);
 		});
 		$dt->setIdentifierFunction("getFile");
 		$dt->setValueFunction("timestamp", function ($v) {
@@ -1121,6 +1150,9 @@ class UbiquityMyAdminViewer {
 				return $value;
 			});
 		}
+		if($this->style==='inverted'){
+			$de->setInverted(true);
+		}
 		return $de;
 	}
 
@@ -1167,7 +1199,7 @@ class UbiquityMyAdminViewer {
 
 	public function getRestRoutesTab($datas) {
 		$tabs = $this->jquery->semantic()->htmlTab("tabsRest");
-
+		$this->setStyle($tabs);
 		foreach ($datas as $controller => $restAttributes) {
 			$doc = "";
 			$list = new HtmlList("attributes", [
@@ -1183,6 +1215,7 @@ class UbiquityMyAdminViewer {
 				]
 			]);
 			$list->setHorizontal();
+			$list->addClass($this->style);
 			if (\class_exists($controller)) {
 				$parser = DocParser::docClassParser($controller);
 				$desc = $parser->getDescriptionAsHtml();
@@ -1213,6 +1246,7 @@ class UbiquityMyAdminViewer {
 				$list,
 				$this->_getRestRoutesDataTable($routes, "dtRest", $resource, $restAttributes["restAttributes"]["authorizations"])
 			]);
+			$tab->addClass($this->style);
 			if (\sizeof($errors) > 0) {
 				$tab->menuTab->addLabel("error")
 					->setColor("red")
@@ -1246,7 +1280,7 @@ class UbiquityMyAdminViewer {
 			"Exp?",
 			""
 		]);
-		$dt->fieldAsLabel("path", "car");
+		$dt->fieldAsLabel("path", "car",['class'=>'ui label '.$this->style]);
 		$this->_dtCache($dt);
 		$this->_dtMethods($dt);
 		$dt->setValueFunction("action", function ($v, $instance) use ($authorizations) {
@@ -1263,7 +1297,7 @@ class UbiquityMyAdminViewer {
 		});
 		$this->_dtExpired($dt);
 		$dt->addFieldButton("Test", true, function ($bt, $instance) use ($resource) {
-			$bt->addClass("toggle _toTest basic circular")
+			$bt->addClass("toggle _toTest basic circular ".$this->style)
 				->setProperty("data-resource", ClassUtils::cleanClassname($resource));
 			$bt->setProperty("data-action", $instance->getAction())
 				->setProperty("data-controller", \urlencode($instance->getController()));
@@ -1272,7 +1306,7 @@ class UbiquityMyAdminViewer {
 			$dTable->setColAlignment(5, TextAlignment::RIGHT);
 			$dTable->setColAlignment(4, TextAlignment::CENTER);
 		});
-		$dt->setEdition()->addClass("compact");
+		$dt->setEdition()->addClass("compact ".$this->style);
 		return $dt;
 	}
 
@@ -1294,8 +1328,12 @@ class UbiquityMyAdminViewer {
 	}
 
 	protected function _dtCache(DataTable $dt) {
-		$dt->setValueFunction("cache", function ($v, $instance) {
-			$ck = new HtmlFormCheckbox("ck-" . $instance->getPath(), $instance->getDuration() . "");
+		$dt->setValueFunction('cache', function ($v, $instance) {
+			$d=$instance->getDuration();
+			if($d==0){
+				$d='';
+			}
+			$ck = new HtmlFormCheckbox('ck-' . $instance->getPath(), $d . '');
 			$ck->setChecked(UString::isBooleanTrue($v));
 			$ck->setDisabled();
 			return $ck;
@@ -1447,6 +1485,7 @@ class UbiquityMyAdminViewer {
 		$de->fieldAsCheckbox("debug", [
 			"class" => "ui checkbox slider"
 		]);
+		$this->setStyle($de);
 		return $de;
 	}
 
@@ -1485,6 +1524,7 @@ class UbiquityMyAdminViewer {
 		$drivers = Database::getAvailableDrivers($v->wrapper);
 		$wrappers = Database::getAvailableWrappers();
 		$dbDe = new DataElement("de-database" . $dbOffset, $v);
+		$dbDe->setProperty('dataDatabase', $dbOffset);
 		$dbDe->setDefaultValueFunction(function ($name, $value) use ($n) {
 			$value = $this->_cleanStdClassValue($value);
 			$input = new HtmlFormInput("database-" . $n . $name, null, "text", $value);
@@ -1512,9 +1552,11 @@ class UbiquityMyAdminViewer {
 			"options",
 			"cache"
 		]);
+		
 		$dbDe->fieldAsInput("password", [
 			"inputType" => "password",
-			"name" => "database-" . $n . "password"
+			"name" => "database-" . $n . "password",
+			"data-name"=>"password"
 		]);
 		$dbDe->fieldAsInput("port", [
 			"name" => "database-" . $n . "port",
@@ -1524,7 +1566,8 @@ class UbiquityMyAdminViewer {
 					->setProperty("min", 0);
 				$elm->getDataField()
 					->setProperty("max", 3306);
-			}
+			},
+			"data-name"=>"port"
 		]);
 		$dbDe->fieldAsDropDown("wrapper", array_flip($wrappers), false, [
 			"name" => "database-" . $n . "wrapper",
@@ -1534,7 +1577,8 @@ class UbiquityMyAdminViewer {
 			}
 		]);
 		$dbDe->fieldAsDropDown("type", \array_combine($drivers, $drivers), false, [
-			"name" => "database-" . $n . "type"
+			"name" => "database-" . $n . "type",
+			"data-name"=>"type"
 		]);
 		$dbDe->fieldAsInput("cache", [
 			"name" => "database-" . $n . "cache",
@@ -1550,6 +1594,7 @@ class UbiquityMyAdminViewer {
 		]);
 		$dbDe->setValueFunction("dbName", function ($value) use ($n, $dbOffset) {
 			$input = new HtmlFormInput("database-" . $n . "dbName", null, "text", $value);
+			$input->setProperty("data-name","name");
 			$bt = $input->addAction("Test");
 			$bt->addClass("black");
 			$bt->postFormOnClick($this->controller->_getFiles()
@@ -1576,7 +1621,7 @@ class UbiquityMyAdminViewer {
 
 	public function getConfigDataForm($config, $origin = "all") {
 		$de = $this->jquery->semantic()->dataElement("frmDeConfig", $config);
-		$keys = array_keys($config);
+		$keys = \array_keys($config);
 
 		$de->setDefaultValueFunction(function ($name, $value) {
 			if (is_array($value))
@@ -1589,9 +1634,11 @@ class UbiquityMyAdminViewer {
 		$de->setCaptionCallback(function (&$captions, $instance) use ($keys) {
 			$dbBt = $this->getCaptionToggleButton("database-bt", "Database...");
 			$dbBt->on("toggled", 'if(!event.active) {
-													var text=$("[name=database-type]").val()+"://"+$("[name=database-user]").val()+":"+$("[name=database-password]").val()+"@"+$("[name=database-serverName]").val()+":"+$("[name=database-port]").val()+"/"+$("[name=database-dbName]").val();
-													event.caption.html(text);
-													}');
+											$("[dataDatabase]").each(function(index,elm){
+												let dbOffset=$(elm).attr("dataDatabase")+"-";
+												$(event.caption[index]).html($("[name=database-"+dbOffset+"type]",elm).val()+"://"+$("[name=database-"+dbOffset+"user]",elm).val()+":"+$("[name=database-"+dbOffset+"password]",elm).val()+"@"+$("[name=database-"+dbOffset+"serverName]",elm).val()+":"+$("[name=database-"+dbOffset+"port]",elm).val()+"/"+$("[name=database-"+dbOffset+"dbName]",elm).val());
+											});
+										}');
 			$captions[array_search("database", $keys)] = $dbBt;
 			$captions[array_search("cache", $keys)] = $this->getCaptionToggleButton("cache-bt", "Cache...");
 			$captions[array_search("mvcNS", $keys)] = $this->getCaptionToggleButton("ns-bt", "MVC namespaces...");
@@ -1737,12 +1784,12 @@ class UbiquityMyAdminViewer {
 		if ($origin == "check") {
 			$responseElement = "#main-content";
 		}
-		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive", $this->controller->_getFiles()
+		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive ".$this->style, $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement);
-		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition")->onClick('$("#config-div").show();$("#action-response").html("");');
+		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition",$this->style)->onClick('$("#config-div").show();$("#action-response").html("");');
 		$de->getToolbar()
 			->setSecondary()
-			->wrap('<div class="ui top attached segment">', '</div>');
+			->wrap('<div class="ui '.$this->style.' top attached segment">', '</div>');
 		$de->setAttached();
 
 		$form->addExtraFieldRules("siteUrl", [
@@ -1771,7 +1818,7 @@ class UbiquityMyAdminViewer {
 			->getAdminBaseRoute() . "/_checkDirectory", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkClass", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_checkClass", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
-
+		$this->setStyle($de);
 		return $de->asForm();
 	}
 
@@ -1848,6 +1895,7 @@ class UbiquityMyAdminViewer {
 		$de->setCaption('_toDelete', '<div class="ui icon button"><i class="remove icon"></i> Cancel deletions</span>');
 		$de->setLibraryId('_compo_');
 		$de->setEdition(true);
+		$de->addClass($this->style);
 		return $de;
 	}
 
@@ -1892,10 +1940,10 @@ class UbiquityMyAdminViewer {
 
 	public function getMainIndexItems($identifier, $array): HtmlItems {
 		$items = $this->jquery->semantic()->htmlItems($identifier);
-
+		$items->addClass($this->style);
 		$items->fromDatabaseObjects($array, function ($e) {
 			$item = new HtmlItem("item-" . $e[0]);
-			$item->addIcon($e[1] . " bordered circular")
+			$item->addIcon($e[1] . " bordered circular ".$this->style)
 				->setSize("big");
 			$item->addItemHeaderContent($e[0], [], $e[2]);
 			$item->setProperty("data-ajax", $e[0]);
@@ -2036,7 +2084,7 @@ class UbiquityMyAdminViewer {
 		$dt = $this->jquery->semantic()->dataTable("dt-logs", LogMessage::class, $os);
 		$gbSize = 0;
 		if (is_array($groupBy)) {
-			$gbSize = sizeof($groupBy);
+			$gbSize = \count($groupBy);
 		}
 		$dt->setFields([
 			"level",
@@ -2057,6 +2105,7 @@ class UbiquityMyAdminViewer {
 		$dt->setValueFunction(1, function ($value, $instance) {
 			$lbl = new HtmlLabel(uniqid("datetime-"), UDateTime::elapsed($value), "clock");
 			$lbl->addPopup("", UDateTime::longDatetime($value, "fr"));
+			$lbl->addClass($this->style);
 			return $lbl;
 		});
 		$dt->setValueFunction(0, function ($value, $instance) {
@@ -2065,7 +2114,7 @@ class UbiquityMyAdminViewer {
 		$dt->setValueFunction(3, function ($value, $instance) {
 			if (($count = $instance->getCount()) > 1) {
 				$lbl = new HtmlLabel(uniqid("count-"), "x" . $count);
-				$lbl->addClass("circular");
+				$lbl->addClass("circular ".$this->style);
 				return $value . "&nbsp;" . $lbl;
 			} else {
 				return $value;
@@ -2074,8 +2123,8 @@ class UbiquityMyAdminViewer {
 
 		$dt->setValueFunction(5, function ($value, $instance) {
 			if (isset($value)) {
-				$lbl = new HtmlLabel(uniqid("count-"), sizeof($value), "database");
-				$lbl->addClass("circular");
+				$lbl = new HtmlLabel(uniqid("count-"), \count($value), "database");
+				$lbl->addClass("circular ".$this->style);
 				$lbls = new HtmlLabelGroups("", $value, [
 					"circular"
 				]);
@@ -2100,16 +2149,16 @@ class UbiquityMyAdminViewer {
 			$dt->setGroupByFields($groupBy);
 		}
 		$dt->setCompact(true)->setSelectable();
+		$this->setStyle($dt);
 		return $dt;
 	}
 
 	public function displayViolations($instancesViolations) {
-		if (sizeof($instancesViolations) == 0) {
-			echo $this->controller->showSimpleMessage("No violations!", "success", 'Instances validation', 'check');
+		if (($nb=\count($instancesViolations)) == 0) {
+			echo $this->controller->showSimpleMessage('No violations!', 'success', 'Instances validation', 'check');
 		} else {
-			$nb = sizeof($instancesViolations);
-			echo $this->controller->showSimpleMessage($nb . " instance(s) with violations!", "warning", 'Instances validation', 'exclamation triangle');
-			$dt = new DataTable("dtInstancesViolations", InstanceViolations::class, InstanceViolations::initFromArray($instancesViolations));
+			echo $this->controller->showSimpleMessage($nb . ' instance(s) with violations!', 'warning', 'Instances validation', 'exclamation triangle');
+			$dt = new DataTable('dtInstancesViolations', InstanceViolations::class, InstanceViolations::initFromArray($instancesViolations));
 			$dt->setFields([
 				'instance',
 				'violations'
@@ -2117,11 +2166,10 @@ class UbiquityMyAdminViewer {
 			$dt->fieldAsLabel('instance');
 			$dt->setValueFunction('violations', function ($violations) {
 				$result = [];
-				$header = "";
 				foreach ($violations as $violation) {
 					$msg = new HtmlMessage("");
 					$severity = $violation->getSeverity();
-					$msg->addClass("tiny " . ConstraintViolationViewer::getType($severity));
+					$msg->addClass("tiny " . ConstraintViolationViewer::getType($severity).' '.$this->style);
 					$msg->addHeader($violation->getMember());
 					$msg->setIcon(ConstraintViolationViewer::getIcon($severity));
 					$message = str_replace($violation->getValue(), '<span style="color:teal">' . $violation->getValue() . '</span>', $violation->getMessage());
@@ -2132,12 +2180,13 @@ class UbiquityMyAdminViewer {
 				}
 				return $result;
 			});
+			$this->setStyle($dt);
 			echo $dt;
 		}
 	}
 
 	public function getOAuthProviderFrm($config) {
-		$de = $this->jquery->semantic()->dataElement("provider-frm", $config);
+		$de = $this->jquery->semantic()->dataElement('provider-frm', $config);
 		$keys = array_keys($config);
 
 		$de->setDefaultValueFunction(function ($name, $value) {
@@ -2146,14 +2195,14 @@ class UbiquityMyAdminViewer {
 				$de_child = new DataElement('', $arr);
 				$de_child->setFields(array_keys($arr));
 				$de_child->setDefaultValueFunction(function ($name, $value) {
-					$input = new HtmlFormInput($name, null, "text", $value);
+					$input = new HtmlFormInput($name, null, 'text', $value);
 					$input->setFluid();
 					return $this->labeledInput($input, $value);
 				});
 				$de_child->setEdition();
 				return $de_child;
 			}
-			$input = new HtmlFormInput($name, null, "text", $value);
+			$input = new HtmlFormInput($name, null, 'text', $value);
 			return $this->labeledInput($input, $value);
 		});
 		$de->setFields($keys);

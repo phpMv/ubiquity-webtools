@@ -1,21 +1,21 @@
-<div class="ui teal top attached secondary segment">
+<div class="ui teal top attached secondary {{inverted}} segment">
 <i class="ui code icon" data-name="{{cmd.name}}"></i> <b>{{cmd.name}}</b>
 </div>
-<div class="ui attached segment">
+<div class="ui attached {{inverted}} segment">
 	{{q['frm-command']|raw}}
 </div>
-<div class="ui segment">
-  <button id="validate-btn" class="ui button positive">
+<div class="ui {{inverted}} segment">
+  <button id="validate-btn" class="ui button {{inverted}} positive">
   	<i id="icon-bt-okay" class="icon check circle"></i>
   	 Validate
   </button>
   &nbsp;
-  <a href='#' id="save-btn" class="ui teal button">
+  <a href='#' id="save-btn" class="ui teal {{inverted}} button">
   	<i id="icon-bt-save" class="icon save"></i>
   	 Save in My commands
   </a>
   &nbsp;
-  <button id="cancel-btn" class="ui button">
+  <button id="cancel-btn" class="ui {{inverted}} button">
   	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
   	 Cancel
   </button>

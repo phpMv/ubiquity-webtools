@@ -1,16 +1,16 @@
-<div id="header-table" class="ui header">
+<div id="header-table" class="ui {{inverted}} header">
 	<i id="icon-header-table" class="icon table"></i>
 	<div id="content-header-table" class="content">{{classname}}
 		<div id="subheader-header-table" class="sub header">Data administration</div>
 	</div>
 </div>
-<div id="models-tab" class="ui top attached tabular menu">
+<div id="models-tab" class="ui {{inverted}} top attached tabular menu" style="background: none;">
   <a class="item active" data-tab="datas">Datas</a>
   <a class="item" data-tab="structure">Structure</a>
   <a class="item" data-tab="validation">Validation</a>
 </div>
-<div class="ui bottom attached tab segment active" data-tab="datas">
-	<a id="btAddNew" class="ui button orange">
+<div class="ui bottom attached tab segment active {{inverted}}" data-tab="datas">
+	<a id="btAddNew" class="ui button orange {{inverted}}">
 	 <i class="icon plus"></i>
 	Add a new {{classname}}...
 	</a>
@@ -19,11 +19,11 @@
 	<div id='table-messages'></div>
 	<div id='table-details'></div>
 </div>
-<div class="ui bottom attached tab segment" data-tab="structure">
+<div class="ui bottom attached tab {{inverted}} segment" data-tab="structure">
   {{ q["dtStructure"] | raw }}
   {{ q["btYuml"] | raw }}
 </div>
-<div class="ui bottom attached tab segment" data-tab="validation">
+<div class="ui bottom attached tab {{inverted}} segment" data-tab="validation">
   {{ q["dtValidation"] | raw }}
   <div>{{ q["btValidation"] | raw }}</div>
   <br>

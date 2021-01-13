@@ -124,8 +124,7 @@ trait RestTrait {
 		if (! $msgHelp->_empty) {
 			$this->jquery->exec('$("#' . JString::cleanIdentifier("help-" . $action . $controller) . '").transition("show");', true);
 		}
-		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
+		$this->jquery->renderView($this->_getFiles()
 			->getViewRestFormTester(), [
 			"frmHeaders" => $frmHeaders,
 			"frmParameters" => $frmParameters,
@@ -178,21 +177,21 @@ trait RestTrait {
 
 		$frm->addDivider();
 		$fields = $frm->addFields();
-		$bt = $fields->addButton("bt-create-new-resource", "Create new controller", "teal");
-		$bt->addIcon("plus");
-		$fields->addButton("bt-cancel-new-resource", "Cancel", "", "$('#frmNewResource').hide();$('#divRest').show();");
+		$bt = $fields->addButton("bt-create-new-resource", "Create new controller", "positive ".$this->style);
+		$bt->addIcon('plus');
+		$fields->addButton("bt-cancel-new-resource", "Cancel",$this->style, "$('#frmNewResource').hide();$('#divRest').show();");
 		$frm->setValidationParams([
-			"on" => "blur",
-			"inline" => false
+			'on' => 'blur',
+			'inline' => false
 		]);
 		$frm->addErrorMessage();
 		$frm->setSubmitParams($this->_getFiles()
 			->getAdminBaseRoute() . "/_createNewResource", "#divRest", [
 			"dataType" => "html"
 		]);
+		$frm->addClass($this->style);
 		$this->jquery->exec("$('#divRest').hide();$('#div-new-resource').show();", true);
-		echo $frm->compile($this->jquery, $this->view);
-		echo $this->jquery->compile($this->view);
+		$this->loadViewCompo($frm);
 	}
 
 	public function _createNewResource() {
@@ -362,7 +361,6 @@ trait RestTrait {
 									$('#" . $toUpdate . "').append('<div class=\"ui label\">No " . $type . "s</div>');
 								}
 					", true, true, true);
-		echo $frm;
-		echo $this->jquery->compile($this->view);
+		$this->loadViewCompo($frm);
 	}
 }
