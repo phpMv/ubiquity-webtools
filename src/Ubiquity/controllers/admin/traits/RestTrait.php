@@ -147,17 +147,17 @@ trait RestTrait {
 	public function _frmNewResource() {
 		$config = Startup::getConfig();
 		$frm = $this->jquery->semantic()->htmlForm("frmNewResource");
-		$frm->addMessage("msg", "Creating a new REST controller...", "New resource", HtmlIconGroups::corner("heartbeat", "plus"));
+		$frm->setTagName('div');
 		$fields = $frm->addFields();
 		$input = $fields->addInput("ctrlName", "Controller name")->addRule("empty");
 		$input->labeled(RestServer::getRestNamespace() . "\\");
-		$baseClasses = array_merge([
+		$baseClasses = \array_merge([
 			RestBaseController::class,
 			RestController::class,
 			JsonApiRestController::class,
 			SimpleRestController::class
 		], CacheManager::getControllers(RestBaseController::class, true, true));
-		$baseClasses = array_combine($baseClasses, $baseClasses);
+		$baseClasses = \array_combine($baseClasses, $baseClasses);
 		$dd = $fields->addDropdown("baseClass", $baseClasses, "Base class", RestController::class);
 		$dd->getField()->each(function ($index, $item) {
 			$class = $item->getProperty("data-value");
@@ -165,6 +165,7 @@ trait RestTrait {
 				$item->setProperty("data-resource", 'true');
 			}
 		});
+		$dd->getField()->addClass($this->style);
 		$dd->getField()->onClick("\$('#field-resource').toggle('true'==$(event.target).attr('data-resource'));");
 		$fields = $frm->addFields();
 		$resources = CacheManager::getModels($config, true, $this->getActiveDb());
@@ -172,26 +173,23 @@ trait RestTrait {
 		$fields->addInput("route", "Main route path", "text", "/rest/")->addRule("empty");
 		$fields->addDropdown("resource", $resources, "Resource", end($resources))->addRule([
 			"exactCount[1]"
-		]);
+		])->getField()->addClass($this->style);
 		$frm->addCheckbox("re-init", "Re-init Rest cache (recommended)", "reInit")->setChecked(true);
 
-		$frm->addDivider();
-		$fields = $frm->addFields();
-		$bt = $fields->addButton("bt-create-new-resource", "Create new controller", "positive ".$this->style);
-		$bt->addIcon('plus');
-		$fields->addButton("bt-cancel-new-resource", "Cancel",$this->style, "$('#frmNewResource').hide();$('#divRest').show();");
 		$frm->setValidationParams([
 			'on' => 'blur',
 			'inline' => false
 		]);
 		$frm->addErrorMessage();
 		$frm->setSubmitParams($this->_getFiles()
-			->getAdminBaseRoute() . "/_createNewResource", "#divRest", [
-			"dataType" => "html"
+			->getAdminBaseRoute() . '/_createNewResource', '#divRest', [
+			'dataType' => 'html'
 		]);
 		$frm->addClass($this->style);
 		$this->jquery->exec("$('#divRest').hide();$('#div-new-resource').show();", true);
-		$this->loadViewCompo($frm);
+		$this->jquery->click('#cancel-btn', "$('#div-new-resource').hide();$('#divRest').show();");
+		$this->jquery->click('#validate-btn','$("#frmNewResource").form("submit");');
+		$this->jquery->renderView('@admin/rest/formNewResource.html',['inverted'=>$this->style]);
 	}
 
 	public function _createNewResource() {

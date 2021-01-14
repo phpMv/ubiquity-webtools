@@ -1,21 +1,21 @@
 {{q["msgInfo"]|raw}}
-<div id="git-tabs" class="ui pointing secondary menu">
+<div id="git-tabs" class="ui pointing secondary {{inverted}} menu">
   <a class="active item" data-tab="changes">Changes <span id="lbl-changed" style="display:none;" class="ui green empty circular label"></span></a>
   <a class="item" data-tab="history">History</a>
 </div>
-<div class="ui active tab segment" data-tab="changes">
+<div class="ui active tab {{inverted}} segment" data-tab="changes">
 		<div class="ui two column grid">
 			<div class="row">
 				<div class="column">
-					<form class="ui form" id="commit-frm" name="commit-frm" novalidate>
-					<div class="ui error message"></div>
-						<div style="height: 370px;overflow-y: scroll;padding-top: 20px;" class="ui blue segment">
+					<form class="ui {{inverted}} form" id="commit-frm" name="commit-frm" novalidate>
+					<div class="ui error {{inverted}} message"></div>
+						<div style="height: 370px;overflow-y: scroll;padding-top: 20px;" class="ui {{inverted?'grey '~inverted:'blue'}} segment">
 							{{ q["dtGitFiles"] | raw }}
 						</div>
 						<div class="field required">
-							<div class="ui action input">
+							<div class="ui action {{inverted}} input">
 								<input class="to-clear-value" id="summary" name="summary" type="text" placeholder="summary">
-								<button id="commit-btn" class="ui teal labeled icon button">
+								<button id="commit-btn" class="ui teal labeled icon {{inverted}} button">
 									<i class="git icon"></i>
 									2-Commit to master
 								</button>

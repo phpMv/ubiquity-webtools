@@ -27,10 +27,11 @@ trait CreateControllersTrait {
 		$resources = \array_combine($resources, $resources);
 		$resourcesList = $this->jquery->semantic()->htmlDropdown("resources-list", "", $resources);
 		$resourcesList->asSelect("crud-model");
+		$resourcesList->addClass($this->style);
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["CRUD"]);
 		$viewList->asSelect("crud-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->addClass('fluid');
+		$viewList->addClass('fluid '.$this->style);
 		$frm = $this->jquery->semantic()->htmlForm("crud-controller-frm");
 		$frm->addExtraFieldRule("crud-model", "exactCount[1]");
 		$frm->addExtraFieldRules("crud-name", [
@@ -69,7 +70,8 @@ trait CreateControllersTrait {
 		$this->jquery->exec('$("#crud-files-ck").checkbox({onChange:function(){ $("#div-view-list").toggle($("#crud-files-ck").checkbox("is checked"));}});', true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddCrudController(), [
-			"controllerNS" => Startup::getNS("controllers")
+			'controllerNS' => Startup::getNS("controllers"),
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -110,10 +112,11 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["auth"]);
 		$viewList->asSelect("auth-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->addClass('fluid');
+		$viewList->addClass('fluid '.$this->style);
 		$authControllers = CacheManager::getControllers("Ubiquity\\controllers\\auth\\AuthController", false, true);
 		$authControllers = array_combine($authControllers, $authControllers);
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("ctrl-list", "Ubiquity\\controllers\\auth\\AuthController", $authControllers);
+		$ctrlList->addClass($this->style);
 		$ctrlList->asSelect("baseClass");
 		$ctrlList->setDefaultText("Select base class");
 
@@ -150,7 +153,8 @@ trait CreateControllersTrait {
 		$this->jquery->exec('$("#auth-files-ck").checkbox({onChange:function(){ $("#div-view-list").toggle($("#auth-files-ck").checkbox("is checked"));}});', true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddAuthController(), [
-			"controllerNS" => Startup::getNS("controllers")
+			'controllerNS' => Startup::getNS("controllers"),
+			'inverted'=>$this->style
 		]);
 	}
 

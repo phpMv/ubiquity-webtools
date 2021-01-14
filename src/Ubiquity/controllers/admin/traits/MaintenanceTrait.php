@@ -102,6 +102,7 @@ trait MaintenanceTrait {
 		$dd = $this->jquery->semantic()->htmlDropdown('dd-' . $name, implode(',', $elements), array_combine($elements, $elements));
 		$dd->asSearch($name, true, true);
 		$dd->setAllowAdditions(true);
+		$dd->addClass($this->style);
 	}
 
 	public function _frmMaintenance($maintenanceId) {
@@ -135,12 +136,15 @@ trait MaintenanceTrait {
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("dd-controllers", "controllers\\MaintenanceController", $controllers);
 		$ctrlList->asSelect("controller");
 		$ctrlList->setDefaultText("Select controller class");
+		$ctrlList->addClass($this->style);
 		$slider = $this->jquery->semantic()->htmlCheckbox('ck-active', 'Maintenance activation', 'on', CheckboxType::TOGGLE);
 		$slider->setChecked($maintenance->getActive());
+		$slider->addClass($this->style);
 		$this->jquery->change('#icon', '$(this).parent().find("i").attr("class","ui icon "+$(this).val());');
 		$this->jquery->postOn('change', '#input-dd-controllers', $baseRoute . '/_getMaintenanceClassActions/', '{controller:$(this).val()}', '#actions', [
 			'hasLoader' => false
 		]);
+		$this->_setStyle($frm);
 		$this->jquery->click('#cancel-btn', '$("#maintenance-frm-container").remove();$("#maintenance-display-container").show();');
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkMaintenanceId", $baseRoute . "/_checkMaintenanceId", "{}", "result=data.result;", "postForm", [
 			"form" => "maintenance-frm"

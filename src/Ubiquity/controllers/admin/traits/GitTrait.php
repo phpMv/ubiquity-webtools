@@ -88,7 +88,7 @@ trait GitTrait {
 		$this->jquery->execOn("click", "#validate-btn", '$("#frmGitSettings").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->renderView($this->_getFiles()
-			->getViewGitSettings());
+			->getViewGitSettings(),['inverted'=>$this->style]);
 	}
 
 	public function _updateGitParams() {
@@ -212,7 +212,8 @@ trait GitTrait {
 		}
 		$this->jquery->renderView($this->_getFiles()
 			->getViewGitIgnore(), [
-			"content" => $content
+			'content'=> $content,
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -288,7 +289,8 @@ trait GitTrait {
 		$this->jquery->click('#cancel-btn', '$("#frm").html("");');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewGitCmdFrm(), [
-			'commands' => 'git status'
+			'commands' => 'git status',
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -325,7 +327,7 @@ trait GitTrait {
 	private function getGitMacrosDropdown($selected = '') {
 		$macros = array_flip($this->config['git-macros'] ?? []);
 		$dd = $this->jquery->semantic()->htmlDropdown('dd-git-macros', $selected, $macros);
-
+		$dd->addClass($this->style);
 		$dd->asSearch('add-macro');
 		$dd->setFluid();
 		$this->jquery->change('#input-dd-git-macros', "var start = $('#commands').prop('selectionStart');

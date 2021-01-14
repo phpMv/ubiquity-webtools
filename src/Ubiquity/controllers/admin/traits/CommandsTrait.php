@@ -333,6 +333,7 @@ trait CommandsTrait {
 					} else {
 						$dd = $fields->addDropdown($id, array_combine($values, $values), $name . "( $pname)", $existingValues[$pname] ?? $dValue, strpos($dValue, ',') !== false);
 						$dd->getField()->setProperty('style', 'min-width: 200px!important;');
+						$dd->getField()->addClass($this->style);
 					}
 				} else {
 					$fields->addInput($id, $name . "( $pname)", 'text', $existingValues[$pname] ?? $dValue, $pname);

@@ -1,10 +1,10 @@
 {{ q["header"] | raw }}
 <div id="messages" style="padding: 20px 0;">{{ q["init-message"] | raw }}</div>
 <div class="ui labeled button">
-  <div id="settings-btn" class="ui button">
+  <div id="settings-btn" class="ui {{inverted}} button">
     <i class="settings icon"></i> Repository settings
   </div>
-  <a class="ui basic left pointing label">
+  <a class="ui basic left pointing {{inverted}} label">
     {{repo}}
   </a>
 </div>&nbsp;{{ initializeBt | raw }}&nbsp;{{ btRefresh | raw }}&nbsp;{{ gitIgnoreBt | raw }}&nbsp;{{ execCmdBt | raw }}&nbsp;{{ pushPullBts | raw }}

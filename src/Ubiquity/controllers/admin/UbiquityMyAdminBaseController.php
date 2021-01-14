@@ -865,11 +865,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$btRefresh = "";
 		$execCmdBt = "";
 		if (! $gitRepo->getInitialized()) {
-			$initializeBt = $semantic->htmlButton("initialize-bt", "Initialize repository", "orange");
+			$initializeBt = $semantic->htmlButton("initialize-bt", "Initialize repository", "orange ".$this->style);
 			$initializeBt->addIcon("magic");
 			$initializeBt->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_gitInit", "#main-content", [
-				"attr" => ""
+				'attr' => '',
+				'hasLoader'=>false
 			]);
 			if ($hasMessage)
 				$this->showSimpleMessage("<b>{$gitRepo->getName()}</b> respository is not initialized!", "warning", null, "warning circle", null, "init-message");
@@ -890,8 +891,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"_gitPull"
 			]);
 			$pushPullBts->addPropertyValues("class", [
-				"blue",
-				"black"
+				"blue ".$this->style,
+				"black ".$this->style
 			]);
 			$pushPullBts->getOnClick($this->_getFiles()
 				->getAdminBaseRoute(), "#messages", [
@@ -899,12 +900,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				"ajaxLoader" => $loader
 			]);
 			$pushPullBts->setPropertyValues("style", "width: 220px;");
-			$gitIgnoreBt = $semantic->htmlButton("gitIgnore-bt", ".gitignore");
+			$gitIgnoreBt = $semantic->htmlButton("gitIgnore-bt", ".gitignore",$this->style);
 			$gitIgnoreBt->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_gitIgnoreEdit", "#frm", [
-				"attr" => ""
+					"attr" => "",
+					'hasLoader'=>'internal'
 			]);
-			$btRefresh = $semantic->htmlButton("refresh-bt", "Refresh files", "green");
+			$btRefresh = $semantic->htmlButton("refresh-bt", "Refresh files", "green ".$this->style);
 			$btRefresh->addIcon("sync alternate");
 			$btRefresh->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshGitFiles", "#dtGitFiles", [
@@ -913,7 +915,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'hasLoader' => false
 			]);
 
-			$execCmdBt = $semantic->htmlButton("execCmd-bt", "Git cmd");
+			$execCmdBt = $semantic->htmlButton("execCmd-bt", "Git cmd",$this->style);
 			$execCmdBt->getOnClick($this->_getFiles()
 				->getAdminBaseRoute() . '/_gitCmdFrm', '#frm', [
 				'hasLoader' => 'internal'
@@ -921,7 +923,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 
 		$this->jquery->getOnClick("#settings-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/_gitFrmSettings", "#frm");
+			->getAdminBaseRoute() . "/_gitFrmSettings", "#frm",['hasLoader'=>'internal']);
 
 		$this->gitTabs($gitRepo, $loader);
 		$this->jquery->renderView($this->_getFiles()
@@ -931,7 +933,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			"gitIgnoreBt" => $gitIgnoreBt,
 			"pushPullBts" => $pushPullBts,
 			"btRefresh" => $btRefresh,
-			"execCmdBt" => $execCmdBt
+			"execCmdBt" => $execCmdBt,
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -1009,7 +1012,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					"</div>"
 				]);
 				$modal->addAction("Close");
-				$this->jquery->exec("$('#diagram').modal('show');", true);
+				$this->jquery->exec("$('#diagram').modal('show');",true);
 				$modal->onHidden("$('#diagram').remove();");
 				echo $modal;
 				echo $this->jquery->compile($this->view);
@@ -1244,7 +1247,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 			$modal = $this->jquery->semantic()->htmlModal("response-with-params", "Parameters for the " . \strtoupper($method) . ":" . $url);
 			$frm = $this->jquery->semantic()->htmlForm("frmParams");
-			$frm->addMessage("msg", "Enter your " . $type . "s.", \ucfirst($method) . " " . $type . "s", "info circle");
+			$frm->addClass($this->style);
+			$frm->addMessage("msg", "Enter your " . $type . "s.", \ucfirst($method) . " " . $type . "s", "info circle",$this->style);
 			$index = 0;
 			foreach ($actualParams as $name => $value) {
 				$this->_addNameValueParamFields($frm, $type, $name, $value, $index ++);
@@ -1253,7 +1257,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 			$fieldsButton = $frm->addFields();
 			$fieldsButton->addClass("_notToClone");
-			$fieldsButton->addButton("clone", "Add " . $type, "yellow")->setTagName("div");
+			$fieldsButton->addButton("clone", "Add " . $type, "yellow ".$this->style)->setTagName("div");
 			if ($model != null) {
 				$model = UbiquityUtils::getModelsName(Startup::getConfig(), $model);
 				$modelFields = OrmUtils::getSerializableFields($model);
@@ -1341,7 +1345,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->click("#action-response-with-params-0", "$('#frmParams').form('submit');", false, false, false);
 
 			$modal->addAction("Close");
-			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#response-with-params').modal('show');", true);
+			$this->_setStyle($modal);
+			$this->jquery->execAtLast("$('#response-with-params').modal('show');");
 			echo $modal->compile($this->jquery, $this->view);
 			echo $this->jquery->compile($this->view);
 		}
@@ -1376,7 +1381,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$input->getDataField()
 			->setIdentifier("value-" . $index)
 			->setProperty("value", htmlentities($value));
-		$input->addAction("", true, "remove")->addClass("icon basic _deleteParameter");
+		$input->addAction("", true, "remove")->addClass("icon basic _deleteParameter ".$this->style);
 	}
 
 	public function _deleteCookie($index, $type = "post") {

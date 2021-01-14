@@ -1605,6 +1605,7 @@ class UbiquityMyAdminViewer {
 			return $this->labeledInput($input, '<i id="db-' . $n . 'status" class="ui question icon"></i>&nbsp;' . $value);
 		});
 		$dbDe->setEdition();
+		$dbDe->addClass($this->style);
 		return $dbDe;
 	}
 
@@ -1971,6 +1972,7 @@ class UbiquityMyAdminViewer {
 			"preventDefault" => false,
 			"stopPropagation" => true
 		]);
+		$list->addClass($this->style);
 		return $list;
 	}
 
@@ -2012,6 +2014,7 @@ class UbiquityMyAdminViewer {
 			if ($object->getPushed())
 				$row->addClass("positive");
 		});
+		$this->setStyle($dt);
 		$this->jquery->exec('$("#htmlbuttongroups-push-pull-bts-0").prop("disabled",' . ($notPushed ? "false" : "true") . ');', true);
 		return $dt;
 	}
@@ -2019,7 +2022,6 @@ class UbiquityMyAdminViewer {
 	public function gitFrmSettings(RepositoryGit $gitRepo) {
 		$frm = $this->jquery->semantic()->dataForm("frmGitSettings", $gitRepo);
 		$frm->setFields([
-			"name\n",
 			"name",
 			"remoteUrl\n",
 			"baseFolder",
@@ -2027,22 +2029,19 @@ class UbiquityMyAdminViewer {
 			"password"
 		]);
 		$frm->setCaptions([
-			"&nbsp;Git repository settings",
 			"Repository name",
 			"Remote URL",
 			"Local path",
 			"User name",
 			"password"
 		]);
-		$frm->fieldAsMessage(0, [
-			"icon" => HtmlIconGroups::corner("git", "settings")
-		]);
+
 		$frm->setValidationParams([
 			"on" => "blur",
 			"inline" => true
 		]);
 		$frm->setSubmitParams($this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_updateGitParams", "#main-content");
+			->getAdminBaseRoute() . "/_updateGitParams", "#main-content",['hasLoader'=>'internal']);
 		$frm->fieldAsInput('name');
 		$frm->fieldAsInput('baseFolder', [
 			'rules' => [
@@ -2052,7 +2051,7 @@ class UbiquityMyAdminViewer {
 				]
 			]
 		]);
-		$frm->fieldAsInput(2, [
+		$frm->fieldAsInput(1, [
 			'rules' => [
 				[
 					'checkUrl',
@@ -2073,6 +2072,7 @@ class UbiquityMyAdminViewer {
 			->getAdminBaseRoute() . "/_checkAbsoluteDirectory", "{_value:value}", "result=data.result;", "post"), true);
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkUrl", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_checkUrl", "{_value:value}", "result=data.result;", "post"), true);
+		$this->setStyle($frm);
 		return $frm;
 	}
 

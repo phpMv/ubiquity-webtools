@@ -261,6 +261,7 @@ trait ModelsConfigTrait {
 		];
 		$dbForm = $this->_getAdminViewer()->getDatabaseDataForm($v);
 		$frm = $this->jquery->semantic()->htmlForm("frm-frmDeConfig");
+		$frm->addClass($this->style);
 		$frm->addExtraFieldRule("database-dbName", "empty");
 		$frm->addExtraFieldRules("connection-name", [
 			"empty",
@@ -293,7 +294,8 @@ trait ModelsConfigTrait {
 		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
 		$this->jquery->renderView($this->_getFiles()
 			->getViewFrmNewDbConnection(), [
-			'dbForm' => $dbForm
+			'dbForm' => $dbForm,
+			'inverted'=>$this->style
 		]);
 	}
 

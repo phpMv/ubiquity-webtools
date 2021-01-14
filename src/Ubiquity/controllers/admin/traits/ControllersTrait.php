@@ -85,7 +85,7 @@ trait ControllersTrait {
 			$controllers = CacheManager::getControllers();
 			$controller = $_POST["controller"];
 			$modal = $this->jquery->semantic()->htmlModal("modalNewAction", "Creating a new action in controller");
-			$modal->setInverted();
+			$this->_setStyle($modal);
 			$frm = $this->jquery->semantic()->htmlForm("frmNewAction");
 			$dd = $frm->addDropdown('controller', \array_combine($controllers, $controllers), "Controller", $controller);
 			$dd->getField()->setShowOnFocus(false);
@@ -130,11 +130,12 @@ trait ControllersTrait {
 				"inline" => true
 			]);
 			$frm->setSubmitParams($baseRoute . "/_newAction", "#messages");
+			$frm->addClass($this->style);
 			$modal->setContent($frm);
 			$modal->addAction("Validate");
 			$this->jquery->click("#action-modalNewAction-0", "$('#frmNewAction').form('submit');", false, false);
 			$modal->addAction("Close");
-			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAction').modal('show');", true);
+			$this->jquery->execAtLast("$('#modalNewAction').modal('show');");
 			$this->jquery->jsonOn("change", "#ck-add-route", $baseRoute . "/_addRouteWithNewAction", "post", [
 				"context" => "$('#frmNewAction')",
 				"params" => "$('#frmNewAction').serialize()",

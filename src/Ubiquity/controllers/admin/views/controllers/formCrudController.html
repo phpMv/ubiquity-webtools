@@ -1,11 +1,11 @@
-<form class="ui form" id="crud-controller-frm" novalidate>
-	<div class="ui top attached secondary segment">Adding a CRUD controller</div>
-	<div class="ui attached segment">
+<form class="ui {{inverted}} form" id="crud-controller-frm" novalidate>
+	<div class="ui top attached secondary {{inverted}} segment">Adding a CRUD controller</div>
+	<div class="ui attached {{inverted}} segment">
 			<div class="two fields">
 			<div class="field">
 				<label for="crud-name">Name</label>
-				<div class="ui labeled input">
-					<div class="ui label">
+				<div class="ui labeled {{inverted}} input">
+					<div class="ui {{inverted}} label">
 					    {{controllerNS}}
 					</div>
 					<input id="crud-name" name="crud-name">
@@ -18,13 +18,13 @@
 		</div>
 		<div class="two fields">
 			<div class="field">
-				<div class="ui slider checkbox" id="crud-datas-ck">
+				<div class="ui slider {{inverted}} checkbox" id="crud-datas-ck">
 				  <input type="checkbox" name="crud-datas" id="crud-datas">
 				  <label for="crud-datas">Create override Datas class</label>
 				</div>
 			</div>
 			<div class="field">
-				<div class="ui slider checkbox" id="crud-viewer-ck">
+				<div class="ui slider {{inverted}} checkbox" id="crud-viewer-ck">
 				  <input type="checkbox" name="crud-viewer" id="crud-viewer">
 				  <label for="crud-viewer">Create override ModelViewer class</label>
 				</div>
@@ -32,20 +32,20 @@
 		</div>
 		<div class="two fields">
 			<div class="field">
-				<div class="ui slider checkbox" id="crud-events-ck">
+				<div class="ui slider {{inverted}} checkbox" id="crud-events-ck">
 				  <input type="checkbox" name="crud-events" id="crud-events">
 				  <label for="crud-events">Create override Events class</label>
 				</div>
 			</div>
 			<div class="field">
-				<div class="ui slider checkbox _views" id="crud-files-ck">
+				<div class="ui slider {{inverted}} checkbox _views" id="crud-files-ck">
 				  <input type="checkbox" name="crud-files" id="crud-files">
 				  <label for="crud-files">Create override CRUDFiles class (URLs and files)</label>
 				</div>
 				<div id="div-view-list" style="display:none;width: 100%;">
 				<br>
 				{{ q["view-list"] | raw }}
-					<div id='ck-view-inheritance' class="ui checkbox">
+					<div id='ck-view-inheritance' class="ui {{inverted}} checkbox">
 					  <input type="checkbox" name="ck-use-inheritance" id="ck-use-inheritance">
 					  <label for="ck-use-inheritance">Use inheritance on views</label>
 					</div>
@@ -69,13 +69,13 @@
 		</div>
 	</div>
 </form>
-<div class="ui segment">
-  <button id="validate-btn" class="ui button positive">
+<div class="ui {{inverted}} segment">
+  <button id="validate-btn" class="ui button {{inverted}} positive">
   	<i id="icon-bt-okay" class="icon check circle"></i>
   	 Validate
   </button>
   &nbsp;
-  <button id="cancel-btn" class="ui button">
+  <button id="cancel-btn" class="ui {{inverted}} button">
   	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
   	 Cancel
   </button>

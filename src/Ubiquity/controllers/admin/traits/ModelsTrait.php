@@ -197,6 +197,7 @@ trait ModelsTrait {
 		$modal = ($modal == "modal");
 		$formName = "frmEdit-" . UString::cleanAttribute(get_class($instance));
 		$form = $this->_getModelViewer()->getForm($formName, $instance, '_updateModel');
+		$this->_setStyle($form);
 		$this->jquery->click("#action-modal-" . $formName . "-0", "$('#" . $formName . "').form('submit');", false);
 		if (! $modal) {
 			$form->addClass($this->style);
@@ -208,17 +209,19 @@ trait ModelsTrait {
 				'inverted'=>$this->style
 			]);
 		} else {
-			$this->jquery->exec("$('#modal-" . $formName . "').modal('show');", true);
+			$this->jquery->execAtLast("$('#modal-" . $formName . "').modal('show');");
 			$form = $form->asModal(\get_class($instance));
+			$this->_setStyle($form);
 			$form->setActions([
 				"Okay_",
 				"Cancel"
 			]);
+			
 			$btOkay = $form->getAction(0);
 			$btOkay->addClass("green")->setValue("Validate modifications");
 			$form->onHidden("$('#modal-" . $formName . "').remove();");
-			echo $this->jquery->compile();
-			echo $form;
+			echo $form->compile($this->jquery, $this->view);
+			echo $this->jquery->compile($this->view);
 		}
 	}
 

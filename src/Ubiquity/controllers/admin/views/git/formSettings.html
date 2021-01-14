@@ -1,13 +1,16 @@
-{{ q["frmGitSettings"] | raw }}
-<div class="ui segment">
-  <button id="validate-btn" class="ui button positive">
-  	<i id="icon-bt-okay" class="icon check circle"></i>
-  	 Validate
-  </button>
-  &nbsp;
-  <button id="cancel-btn" class="ui button">
-  	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
-  	 Cancel
-  </button>
+<div class="ui top attached secondary {{inverted}} segment">Git repository settings</div>
+	<div class="ui attached {{inverted}} segment">
+		{{ q["frmGitSettings"] | raw }}
+	</div>
+<div class="ui {{inverted}} segment">
+	<button id="validate-btn" class="ui button {{inverted}} positive">
+		<i id="icon-bt-okay" class="icon check circle"></i>
+		Validate
+	</button>
+	&nbsp;
+	<button id="cancel-btn" class="ui {{inverted}} button">
+		<i id="icon-bt-cancel" class="icon remove circle outline"></i>
+		Cancel
+	</button>
 </div>
 {{ script_foot | raw }}

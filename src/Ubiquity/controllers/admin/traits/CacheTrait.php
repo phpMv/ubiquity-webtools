@@ -97,10 +97,12 @@ trait CacheTrait {
 			if (isset($content)) {
 				$modal = $this->jquery->semantic()->htmlModal("file", $type . " : " . \basename($filename));
 				$frm = new HtmlForm("frmShowFileContent");
+				$frm->addClass($this->style);
 				$frm->addTextarea("file-content", null, $content, "", 10);
 				$modal->setContent($frm);
 				$modal->addAction("Close");
-				$this->jquery->exec("$('#file').modal('show');", true);
+				$this->_setStyle($modal);
+				$this->jquery->execAtLast("$('#file').modal('show');");
 				echo $modal;
 				echo $this->jquery->compile($this->view);
 			}

@@ -245,6 +245,7 @@ trait OAuthTrait {
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("ctrl-list", "Ubiquity\\controllers\\auth\\AbstractOAuthController", $authControllers);
 		$ctrlList->asSelect("baseClass");
 		$ctrlList->setDefaultText("Select base class");
+		$ctrlList->addClass($this->style);
 
 		$frm = $this->jquery->semantic()->htmlForm("oauth-controller-frm");
 		$frm->addExtraFieldRules("auth-name", [

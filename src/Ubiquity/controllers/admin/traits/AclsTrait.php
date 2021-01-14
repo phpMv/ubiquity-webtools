@@ -139,8 +139,8 @@ trait AclsTrait {
 
 	public function _newAclController() {
 		$modal = $this->jquery->semantic()->htmlModal("modalNewAcl", "Creating a new Acl controller");
-		$modal->setInverted();
 		$frm = $this->jquery->semantic()->htmlForm("frmNewAcl");
+		
 		$fc = $frm->addField('controllerName')->addRules([
 			'empty',
 			[
@@ -172,6 +172,8 @@ trait AclsTrait {
 		$modal->addAction("Validate");
 		$this->jquery->click("#action-modalNewAcl-0", "$('#frmNewAcl').form('submit');", false, false);
 		$modal->addAction("Close");
+		$this->_setStyle($modal);
+		$this->_setStyle($frm);
 		$this->jquery->change('#controllerName', 'if($("#ck-add-route").is(":checked")){$("#path").val($(this).val());}');
 		$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAcl').modal('show');", true);
 		$this->jquery->jsonOn("change", "#ck-add-route", $this->_getFiles()
