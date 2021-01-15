@@ -7,7 +7,6 @@ use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\admin\popo\MailerClass;
 use Ubiquity\controllers\admin\popo\MailerQueuedClass;
 use Ubiquity\mailer\MailerManager;
-use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\base\UDateTime;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
@@ -140,7 +139,8 @@ trait MailerTrait {
 			->getViewSeeMail(), [
 			'disabled' => $disabled ? 'disabled' : '',
 			'class' => $mailerClass,
-			'queue' => true
+			'queue' => true,
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -156,7 +156,7 @@ trait MailerTrait {
 			'jsCallback' => $jsClose
 		]);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewSeeMailForm());
+			->getViewSeeMailForm(),['inverted'=>$this->style]);
 	}
 
 	public function _editSentMail($index) {
@@ -379,7 +379,7 @@ trait MailerTrait {
 		$this->jquery->click('#cancel-btn', '$("#frm").html("");', false);
 		$this->jquery->click('td', '$(this).closest("tr").find("input[type=radio]")[0].click();', false, false, true);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerDefinePeriod(), $this->getQueuePeriodeValues($qp));
+			->getViewMailerDefinePeriod(), $this->getQueuePeriodeValues($qp)+['inverted'=>$this->style]);
 	}
 
 	private function queuePeriodToString($qp) {
@@ -555,6 +555,7 @@ trait MailerTrait {
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("mailer-list", "Ubiquity\\mailer\\AbstractMail", $mailerClasses);
 		$ctrlList->asSelect("mailerClass");
 		$ctrlList->setDefaultText("Select mailer class");
+		$ctrlList->addClass($this->style);
 
 		$frm = $this->jquery->semantic()->htmlForm("new-mailer-frm");
 		$frm->addExtraFieldRules("mailer-name", [
@@ -585,7 +586,8 @@ trait MailerTrait {
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewNewMailerFrm(), [
-			"mailerNS" => MailerManager::getNamespace()
+			"mailerNS" => MailerManager::getNamespace(),
+			'inverted'=>$this->style
 		]);
 	}
 
@@ -627,7 +629,8 @@ trait MailerTrait {
 		$this->getConfigPartFrmDataForm($config);
 		$configs = \array_keys($this->defaultMailerConfigs);
 		$dd = $this->jquery->semantic()->htmlDropdown('btDefaultConfig', 'Add default config', \array_combine($configs, $configs));
-		$dd->asButton(true)->setColor('olive');
+		$dd->addClass($this->style);
+		$dd->asButton(true)->setColor('olive '.$this->style);
 		$dd->addIcons($this->getDefaultMailerConfigIcons());
 		$this->jquery->postFormOnClick('#btDefaultConfig a.item', $baseRoute . '/_applyConfig', 'frmConfig', '#frmMailerConfig', [
 			'hasLoader' => false,
@@ -648,7 +651,7 @@ trait MailerTrait {
 		]);
 
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerConfig());
+			->getViewMailerConfig(),['inverted'=>$this->style]);
 	}
 
 	private function getConfigPartFrmDataForm($config, $identifier = 'frmMailerConfig') {

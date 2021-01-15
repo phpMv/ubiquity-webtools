@@ -617,15 +617,15 @@ class UbiquityMyAdminViewer {
 			$name = \urlencode($class);
 			$bts->setIdentifier("bts-" . $name . "-" . $index);
 			$bts->getItem(0)
-				->addClass("_add_to_queue" . ($disabled ? ' disabled' : ''))
+				->addClass("_add_to_queue " .$this->style. ($disabled ? ' disabled' : ''))
 				->setProperty("data-class", $name)
 				->addIcon("plus");
 			$bts->getItem(1)
-				->addClass("positive _send_now" . ($disabled ? ' disabled' : ''))
+				->addClass("positive _send_now ".$this->style . ($disabled ? ' disabled' : ''))
 				->setProperty("data-class", $name)
 				->addIcon('play');
 			$bts->getItem(2)
-				->addClass("_see")
+				->addClass("_see ".$this->style)
 				->setProperty("data-class", $name)
 				->asIcon("eye");
 		});
@@ -635,12 +635,14 @@ class UbiquityMyAdminViewer {
 
 		$dt->setEdition(true);
 		$dt->addClass("compact");
+		$this->setStyle($dt);
+		
 		return $dt;
 	}
 
 	private function initMailerFields($dt) {
 		$dt->fieldAsLabel("shortname", "envelope outline", [
-			"class" => 'ui large basic label',
+			"class" => 'ui large basic label '.$this->style,
 			'jsCallback' => function ($item, $instance) {
 				$item->addPopupHtml($instance->getSubject());
 			}
@@ -650,6 +652,7 @@ class UbiquityMyAdminViewer {
 				$value = \current($value);
 				$v = (isset($value['name']) ? "<{$value['name']}>" : "") . ($value['address'] ?? $value);
 				$lbl = new HtmlLabel('', \htmlentities($v), 'user');
+				$lbl->addClass($this->style);
 				return $lbl;
 			}
 		});
@@ -698,9 +701,11 @@ class UbiquityMyAdminViewer {
 			});
 			$lst->setBulleted();
 			$lbl->addPopupHtml($lst);
+			$lbl->addClass($this->style);
 			return $lbl;
 		}
 		$lbl = new HtmlLabel('lbl-' . $dt->getIdentifier() . InstanceViewer::$index, 'No recipient', 'ban');
+		$lbl->addClass($this->style);
 		return $lbl->addClass('basic');
 	}
 
@@ -741,12 +746,12 @@ class UbiquityMyAdminViewer {
 			$name = \urlencode($class);
 			$bts->setIdentifier("bts-queue-" . $name . "-" . $index);
 			$bts->getItem(0)
-				->addClass("positive _send")
+				->addClass("positive _send ".$this->style)
 				->setProperty("data-class", $name)
 				->setProperty("data-index", $index)
 				->asIcon('play');
 			$bts->getItem(1)
-				->addClass("red _remove_from_queue")
+				->addClass("red _remove_from_queue ".$this->style)
 				->setProperty("data-class", $name)
 				->setProperty("data-index", $index)
 				->asIcon('delete');
@@ -757,6 +762,7 @@ class UbiquityMyAdminViewer {
 
 		$dt->setEdition(true);
 		$dt->addClass("compact");
+		$this->setStyle($dt);
 		return $dt;
 	}
 
@@ -807,6 +813,7 @@ class UbiquityMyAdminViewer {
 
 		$dt->setEdition(true);
 		$dt->addClass("compact");
+		$this->setStyle($dt);
 		return $dt;
 	}
 
@@ -841,10 +848,12 @@ class UbiquityMyAdminViewer {
 			if ($text != null) {
 				$tab->addTab('BodyText', '<pre>' . $text . '</pre>');
 			}
+			$this->setStyle($tab);
 			return $tab;
 		});
-		$de->fieldAsHeader('subject', 4);
+		$de->fieldAsHeader('subject', 4,null,['class'=>'ui header '.$this->style]);
 		$de->setAttached(true);
+		$this->setStyle($de);
 	}
 
 	public function getSeeMailDataElementForm($mailerClass) {
@@ -879,6 +888,7 @@ class UbiquityMyAdminViewer {
 			if ($text != null) {
 				$tab->addTab('BodyText', new HtmlFormTextarea('bodyText', null, $text));
 			}
+			$this->setStyle($tab);
 			return $tab;
 		});
 		$de->fieldAsInput('subject');
@@ -890,6 +900,7 @@ class UbiquityMyAdminViewer {
 			return new HtmlFormInput('from', null, 'text', $this->getMailAddress($value)['text']);
 		});
 		$this->initMailerFieldAttachments($de, 'attachments');
+		$this->setStyle($de);
 		$de->setAttached(true);
 		$de->asForm();
 		return $de;
@@ -941,7 +952,8 @@ class UbiquityMyAdminViewer {
 				->setValue($textValue);
 			$dd->getField()
 				->asSearch($name, true, true)
-				->setAllowAdditions(true);
+				->setAllowAdditions(true)
+				->addClass($this->style);
 			return $dd;
 		});
 	}
@@ -1499,7 +1511,8 @@ class UbiquityMyAdminViewer {
 		$lbl = "[empty]";
 		if (UString::isNotNull($value))
 			$lbl = $value;
-		$input->getField()->labeled($lbl);
+		$lbl=$input->getField()->labeled($lbl);
+		$lbl->addClass($this->style);
 		return $input;
 	}
 
@@ -1869,12 +1882,14 @@ class UbiquityMyAdminViewer {
 				return $this->getArrayDataForm($name, \json_decode(\json_encode($value), true), $fields);
 			if (UString::isBoolean($value)) {
 				$input = new HtmlFormCheckbox($name, '', '', 'slider');
+				$input->getField()->addClass($this->style);
 				$input->setChecked($value);
 				$input->getField()
 					->forceValue();
 				return $input;
 			}
 			$input = new HtmlFormInput($name, null, $fields['types'][$name] ?? 'text', $value);
+			$input->addClass($this->style);
 			return $this->labeledInput($input, $value);
 		});
 		$de->setFields($keys);
@@ -1883,11 +1898,12 @@ class UbiquityMyAdminViewer {
 			'id' => 'toDelete',
 			'jsCallback' => function ($elm) {
 				$elm->getField()
-					->setAllowAdditions(true)
+					->setAllowAdditions(true)->addClass($this->style)
 					->setOnAdd("let self=$('[data-name='+addedValue+']');let table=self.closest('table tbody');self.closest('tr').hide();while(table && table.children(':visible').length==0){let next=table.closest('tr').closest('table tbody');table.closest('tr').hide();table=next;}")
 					->setOnRemove("let self=$('[data-name='+removedValue+']');let tr=self.closest('tr');tr.show();tr.parents('tr').show();");
 			}
 		]);
+		
 
 		\array_walk($keys, function (&$item) {
 			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $item . '" style="visibility: hidden;"></i>';

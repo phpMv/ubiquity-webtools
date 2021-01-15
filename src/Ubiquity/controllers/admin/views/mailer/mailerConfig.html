@@ -1,22 +1,22 @@
-<div class="ui top attached tabular menu _tabConfig">
+<div class="ui top attached tabular {{inverted}} menu _tabConfig">
 	<a class="item" data-tab="config"><i class="cog icon"></i> Configuration</a>
 	<a class="item" data-tab="source"><i class="code icon"></i> PHP source</a>
 </div>
-<div class="ui bottom attached active tab segment" data-tab="config" id="tab-config">
-	<form class="ui form" id="frmConfig" name="frmConfig" novalidate>
-		<div class="ui segment">
-			<div id="toolbar-frmDeConfig" class="ui menu secondary">
+<div class="ui bottom attached active tab {{inverted}} segment" data-tab="config" id="tab-config">
+	<form class="ui {{inverted}} form" id="frmConfig" name="frmConfig" novalidate>
+		<div class="ui {{inverted}} segment">
+			<div id="toolbar-frmDeConfig" class="ui menu {{inverted}} secondary">
 				<div class="no-active item">
-					<div id="save-config-btn" class="ui positive button">
+					<div id="save-config-btn" class="ui positive {{inverted}} button">
 						<i class="icon check circle"></i>
 						Save configuration
 					</div>&nbsp;
-					<div id="bt-Canceledition" class="ui button">
+					<div id="bt-Canceledition" class="ui {{inverted}} button">
 						<i class="icon remove circle outline"></i>
 						Cancel edition
 					</div>
 				</div>
-				<div class="right menu">
+				<div class="right {{inverted}} menu">
 					<div class="no-active item">{{q["btDefaultConfig"]|raw}}</div>
 				</div>
 			</div>

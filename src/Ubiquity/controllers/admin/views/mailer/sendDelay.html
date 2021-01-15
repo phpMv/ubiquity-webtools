@@ -1,28 +1,28 @@
-<form class="ui form" id="define-period-frm" novalidate>
-	<div class="ui top attached secondary segment">Define send period</div>
-	<div class="ui attached segment">
-		<table class="ui definition table">
+<form class="ui {{inverted}} form" id="define-period-frm" novalidate>
+	<div class="ui top attached secondary {{inverted}} segment">Define send period</div>
+	<div class="ui attached {{inverted}} segment">
+		<table class="ui {{inverted}} definition table">
 			<tr>
 				<td class="four wide column {{choice=='1'?'left marked green':''}}">
-					<div class="ui radio checkbox">
+					<div class="ui {{inverted}} radio checkbox">
 						<input type="radio" name="choice" value="1" {{choice=='1'?'checked="checked"':''}} data-assoc="td-1" id="choice1">
 						<label for="choice1">No date (Now)</label>
 					</div>
 				</td>
 				<td class="twelve wide column {{choice=='1'?'green':''}}" id="td-1">
-					<div class="ui label">Now</div>
+					<div class="ui {{inverted}} label">Now</div>
 				</td>
 			</tr>
 			<tr>
 				<td class="four wide column {{choice=='2'?'left marked green':''}}">
-					<div class="ui radio checkbox">
+					<div class="ui {{inverted}} radio checkbox">
 						<input type="radio" name="choice" value="2" {{choice=='2'?'checked="checked"':''}} data-assoc="td-2" id="choice2">
 						<label for="choice2">Date</label>
 					</div>
 				</td>
 				<td class="twelve wide column {{choice=='2'?'green':''}}" id="td-2">
-					<div class="ui labeled input">
-						<div class="ui label">
+					<div class="ui {{inverted}} labeled input">
+						<div class="ui {{inverted}} label">
 							At
 						</div>
 						<input type="datetime-local" value="{{d1}}" name="d-at" id="d-at">
@@ -31,21 +31,21 @@
 			</tr>
 			<tr>
 				<td class="four wide column {{choice=='3'?'left marked green':''}}">
-					<div class="ui radio checkbox">
+					<div class="ui {{inverted}} radio checkbox">
 						<input type="radio" name="choice" value="3" {{choice=='3'?'checked="checked"':''}} data-assoc="td-3" id="choice3">
 						<label for="choice3">Periode</label>
 					</div>
 				</td>
 				<td class="twelve wide column {{choice=='3'?'green':''}}" id="td-3">
-					<div class="ui labeled input">
-						<div class="ui label">
+					<div class="ui {{inverted}} labeled input">
+						<div class="ui {{inverted}} label">
 							Between
 						</div>
 						<input type="datetime-local" value="{{d2}}" name="d-between" id="d-between">
 					</div>
 					&nbsp;
-					<div class="ui labeled input">
-						<div class="ui label">
+					<div class="ui labeled {{inverted}} input">
+						<div class="ui {{inverted}} label">
 							and
 						</div>
 						<input type="datetime-local" value="{{d3}}" name="d-and" id="d-and">
@@ -54,15 +54,15 @@
 			</tr>
 		</table>
 	</div>
-	<div class="ui error message"></div>
+	<div class="ui error {{inverted}} message"></div>
 </form>
-<div class="ui segment">
-  <button id="validate-btn" class="ui button positive">
+<div class="ui {{inverted}} {{inverted}} segment">
+  <button id="validate-btn" class="ui {{inverted}} button positive">
   	<i id="icon-bt-okay" class="icon check circle"></i>
   	 Validate
   </button>
   &nbsp;
-  <button id="cancel-btn" class="ui button">
+  <button id="cancel-btn" class="ui {{inverted}} button">
   	<i id="icon-bt-cancel" class="icon remove circle outline"></i>
   	 Cancel
   </button>

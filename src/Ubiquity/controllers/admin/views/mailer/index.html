@@ -10,12 +10,12 @@
 </div>
 {% endif %}
 <div id="mailer-all">
-	<div class="ui secondary menu">
-		<button id="add-mailer-btn" class="ui button teal _menu">
+	<div class="ui secondary {{inverted}} menu">
+		<button id="add-mailer-btn" class="ui button {{inverted}} teal _menu">
 		  <i class="icon plus"></i>
 		  Add mailer class...
 		</button>
-		<button id="edit-config-btn" class="ui button orange">
+		<button id="edit-config-btn" class="ui button {{inverted}} orange">
 		  <i class="icon cogs"></i>
 		  Mailer configuration...
 		</button>
@@ -23,7 +23,7 @@
 		  <a id="queue-period" class="ui basic right pointing label _menu">
 			{{period}}
 		  </a>
-		  <button class="ui button _menu" id="define-period-btn">
+		  <button class="ui {{inverted}} button _menu" id="define-period-btn">
 		    <i class="calendar alternate icon"></i> Define send period...
 		  </button>
 		</div>
@@ -36,34 +36,34 @@
 		<div id="response">
 		
 		</div>
-		<div class="ui top attached tabular menu">
+		<div class="ui top attached tabular {{inverted}} menu">
 		  <a class="item" data-tab="queue"><i class="stream icon"></i> Queue (to send)</a>
 		  <a class="item" data-tab="dequeue"><i class="tasks icon"></i> Dequeue (Sent)</a>
 		</div>
-		<div class="ui bottom attached active tab segment" data-tab="queue">
+		<div class="ui bottom attached active tab {{inverted}} segment" data-tab="queue">
 		<div class="ui secondary menu">
-			<button id="send-queue-btn" class="ui button green _queue">
+			<button id="send-queue-btn" class="ui button {{inverted}} green _queue">
 			  <i class="icon play"></i>
 			  Send mails ready...
 			</button>
-			<button id="delete-queue-btn" class="ui button red _queue">
+			<button id="delete-queue-btn" class="ui button {{inverted}} red _queue">
 			  <i class="icon close"></i>
 			  Remove all messages
 			</button>
-			<div class="ui right labeled input _queue">
-				<div class="ui label">
+			<div class="ui right labeled {{inverted}} input _queue">
+				<div class="ui {{inverted}} label">
 					<div class="ui checkbox">
 						<input type="checkbox" name="auto-refresh" id="auto-refresh">
 						<label for="auto-refresh">Auto-refresh</label>
 					</div>
 				</div>
 				<input type="number" id="interval" min='5' value='5'>
-				<div class="ui basic label">seconds</div>
+				<div class="ui basic {{inverted}} label">seconds</div>
 			</div>
 		</div>
 		{{ q["dtQueue"] | raw }}
 		</div>
-		<div class="ui bottom attached tab segment" data-tab="dequeue">
+		<div class="ui bottom attached tab {{inverted}} segment" data-tab="dequeue">
 		{{ q["dtDequeue"] | raw }}
 		</div>
 	</div>

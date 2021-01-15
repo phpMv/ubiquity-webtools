@@ -1261,9 +1261,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			if ($model != null) {
 				$model = UbiquityUtils::getModelsName(Startup::getConfig(), $model);
 				$modelFields = OrmUtils::getSerializableFields($model);
-				if (\sizeof($modelFields) > 0) {
+				if (\count($modelFields) > 0) {
 					$modelFields = \array_combine($modelFields, $modelFields);
 					$ddModel = $fieldsButton->addDropdown("bt-addModel", $modelFields, "Add " . $type . "s from " . $model);
+					$ddModel->getField()->addClass($this->style);
 					$ddModel->asButton();
 					$this->jquery->click("#dropdown-bt-addModel .item", "
 							var text=$(this).text();
@@ -1741,7 +1742,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewMailerIndex(), [
-			'period' => $this->queuePeriodToString($this->config['mailer']['queue-period'] ?? 'now')
+			'period' => $this->queuePeriodToString($this->config['mailer']['queue-period'] ?? 'now'),
+			'inverted'=>$this->style
 		]);
 	}
 

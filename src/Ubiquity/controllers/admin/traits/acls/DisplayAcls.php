@@ -42,7 +42,9 @@ trait DisplayAcls {
 					->setContent('');
 			}
 		});
-		$dt->addClass($style);
+		if($style==='inverted'){
+			$dt->setInverted(true);
+		}
 		return $dt;
 	}
 
