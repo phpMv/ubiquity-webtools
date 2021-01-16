@@ -175,7 +175,7 @@ trait AclsTrait {
 		$this->_setStyle($modal);
 		$this->_setStyle($frm);
 		$this->jquery->change('#controllerName', 'if($("#ck-add-route").is(":checked")){$("#path").val($(this).val());}');
-		$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAcl').modal('show');", true);
+		$this->jquery->execAtLast("$('#modalNewAcl').modal('show');");
 		$this->jquery->jsonOn("change", "#ck-add-route", $this->_getFiles()
 			->getAdminBaseRoute() . "/_addRouteWithNewAction", "post", [
 			"context" => "$('#frmNewAcl')",

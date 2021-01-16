@@ -16,6 +16,7 @@ use Ubiquity\devtools\cmd\Parameter;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\base\UString;
 use Ajax\service\JString;
+use Ajax\semantic\html\base\constants\TextAlignment;
 
 /**
  * Ubiquity\controllers\admin\traits$CommandsTrait
@@ -66,7 +67,11 @@ trait CommandsTrait {
 			$result[] = '<div class="_help"></div>';
 			return $result;
 		});
-			$dt->addEditDeleteButtons(true,[],function($bt){$bt->addClass($this->style);},function($bt){$bt->addClass($this->style);});
+		$dt->addEditDeleteButtons(true,[],function($bt){
+				$bt->addClass($this->style);
+			},function($bt){
+				$bt->addClass($this->style);
+			});
 		$dt->insertDefaultButtonIn(2, 'play', '_executeCommandSuite', true, function ($elm, $commandList) {
 			$elm->setProperty('data-suite', \urlencode($commandList->getName()));
 		});
@@ -80,9 +85,12 @@ trait CommandsTrait {
 		]);
 
 		$dt->setTargetSelector('#command');
+		$dt->onPreCompile(function ($dTable) {
+			$dTable->setColAlignment(2, TextAlignment::RIGHT);
+		});
 		$this->_setStyle($dt);
 		return $this->jquery->renderView($this->_getFiles()
-			->getViewDisplayMyCommands(), [], true);
+			->getViewDisplayMyCommands(), [], $asString);
 	}
 
 	protected function addMyCommandsBehavior($baseRoute) {
@@ -294,12 +302,12 @@ trait CommandsTrait {
 		$input = $cForm->addContent(new HtmlInput("pos[$index]", 'hidden', $index));
 		$input->addClass('_pos');
 		$cForm->setTagName('div');
-		$cForm->setClass('ui small positive message _drag');
+		$cForm->setClass('ui small positive message _drag '.$this->style);
 		$cForm->setProperty('draggable', 'true');
 		$cForm->addContent("<i class='icon close _close' data-index='$index' data-suite='$suite'></i>");
 		$fields = $cForm->addFields();
 		$lbl = new HtmlLabel("", 'Ubiquity <span class="ui blue text">' . $cmd->getName() . '</span>');
-		$lbl->addClass('large pointing below');
+		$lbl->addClass('large pointing below '.$this->style);
 		$lbl->addIcon('code');
 		$fields->addItem($lbl);
 		$cForm->addContent(new HtmlInput("command[$index]", 'hidden', $cmd->getName()));
@@ -398,13 +406,13 @@ trait CommandsTrait {
 			if ($cmd->hasValue()) {
 				$v = "<span class='ui green text'>{$cmd->getValue()}</span>";
 			}
-			$msg->addHeader("<div><b><span class='ui black text'>{$commandName}</span></b> {$v}</div>");
+			$msg->addHeader("<div><b><span class='ui {$this->style} black text'>{$commandName}</span></b> {$v}</div>");
 			$msg->addContent('<div><span class="ui blue text">' . $cmd->getDescription() . '</span></div>');
 
 			$aliases = $cmd->getAliases();
 			if (count($aliases) > 0) {
 				$msg->addContent('<h5>Aliases</h5>');
-				$msg->addContent("<div><b><span class='ui black text'>" . \implode(', ', $aliases) . "</span></b></div>");
+				$msg->addContent("<div><b><span class='ui {$this->style} black text'>" . \implode(', ', $aliases) . "</span></b></div>");
 			}
 			if ($cmd->hasParameters()) {
 				$msg->addContent('<h5>Parameters</h5>');
@@ -435,7 +443,7 @@ trait CommandsTrait {
 				$msg->addContent('<h5>Samples</h5><ul>');
 				if (UArray::isAssociative($examples)) {
 					foreach ($cmd->getExamples() as $desc => $sample) {
-						$msg->addContent("<li>$sample <span class='ui black text'><br>$desc</span></li>");
+						$msg->addContent("<li>$sample <span class='ui {$this->style} black text'><br>$desc</span></li>");
 					}
 				} else {
 					foreach ($cmd->getExamples() as $sample) {

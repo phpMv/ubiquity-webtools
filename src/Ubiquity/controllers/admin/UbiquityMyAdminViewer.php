@@ -323,7 +323,7 @@ class UbiquityMyAdminViewer {
 			$annots = $instance->getAnnots();
 			foreach ($annots as $path => $annotDetail) {
 				$lbl = new HtmlIcon("path-". $path, "circular car link");
-				$lbl->addPopup('Path',$path);
+				$lbl->addPopup('Path',$path,$this->style);
 				$lbl->setProperty("data-ajax", \htmlspecialchars(($path)));
 				$lbl->addClass("_route _popup ".$this->style);
 				$v .= "&nbsp;" . $lbl;
@@ -331,7 +331,11 @@ class UbiquityMyAdminViewer {
 			$acl=$instance->getAcl();
 			if($acl!==null){
 				$lbl = new HtmlIcon("acl-". $controller.$action, "circular users link");
-				$lbl->addPopupHtml([new HtmlLabel('',$acl['resource'],'archive'),new HtmlLabel('',$acl['permission'],'unlock alternate')]);
+				$resource=new HtmlLabel('',$acl['resource'],'archive');
+				$resource->addClass($this->style);
+				$permission=new HtmlLabel('',$acl['permission'],'unlock alternate');
+				$permission->addClass($this->style);
+				$lbl->addPopupHtml([$resource,$permission],$this->style);
 				$lbl->addClass("_popup ".$this->style);
 				$v .= "&nbsp;" . $lbl;
 			}
@@ -474,7 +478,7 @@ class UbiquityMyAdminViewer {
 				$lbl->setProperty('data-ajax', $name);
 				$lbl->addClass('_displayHelp '.$this->style);
 				$btc = $bt->getContent()[1];
-				$btc->addClass('mini _displayCommand '.$this->style);
+				$btc->addClass('mini _displayCommand');
 				$btc->setProperty('data-cmd', $name);
 				$btc->getContent()[0]->setProperty('data-ajax', $name);
 				$res[] = $bt;
@@ -482,6 +486,7 @@ class UbiquityMyAdminViewer {
 			$res[] = '<div class="_help"></div>';
 			return $res;
 		});
+
 		$this->setStyle($dt);
 		return $dt;
 	}
@@ -496,7 +501,7 @@ class UbiquityMyAdminViewer {
 		$lbl->setProperty('data-command', $name);
 		$lbl->addClass('_displayMyHelp '.$this->style);
 		$btc = $bt->getContent()[1];
-		$btc->addClass('tiny _executeOneCommand '.$this->style);
+		$btc->addClass('tiny _executeOneCommand');
 		$btc->setProperty('data-suite', $suiteName);
 		$btc->setProperty('data-index', $index);
 		return $bt;
@@ -644,7 +649,7 @@ class UbiquityMyAdminViewer {
 		$dt->fieldAsLabel("shortname", "envelope outline", [
 			"class" => 'ui large basic label '.$this->style,
 			'jsCallback' => function ($item, $instance) {
-				$item->addPopupHtml($instance->getSubject());
+				$item->addPopupHtml($instance->getSubject(),$this->style);
 			}
 		]);
 		$dt->setValueFunction('from', function ($value, $instance) {
@@ -682,7 +687,7 @@ class UbiquityMyAdminViewer {
 				return \basename($item['file']);
 			});
 			$lst->setBulleted();
-			$lbl->addPopupHtml($lst);
+			$lbl->addPopupHtml($lst,$this->style);
 			return $lbl;
 		}
 		return "";
@@ -700,7 +705,7 @@ class UbiquityMyAdminViewer {
 				return $item['address'];
 			});
 			$lst->setBulleted();
-			$lbl->addPopupHtml($lst);
+			$lbl->addPopupHtml($lst,$this->style);
 			$lbl->addClass($this->style);
 			return $lbl;
 		}
@@ -998,11 +1003,11 @@ class UbiquityMyAdminViewer {
 			if ($templateEngine->exists($view)) {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "browser", "span");
 				$lbl->addClass("violet tag ".$this->style);
-				$lbl->addPopupHtml("<i class='icon info circle green'></i>&nbsp;<b>" . $view . "</b> is ok.", "wide");
+				$lbl->addPopupHtml("<i class='icon info circle green'></i>&nbsp;<b>" . $view . "</b> is ok.", "wide ".$this->style);
 			} else {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "warning", "span");
 				$lbl->addClass("orange tag ".$this->style);
-				$lbl->addPopupHtml("<i class='icon red warning circle'></i>&nbsp;<b>" . $view . "</b> file is missing.", 'very wide');
+				$lbl->addPopupHtml("<i class='icon red warning circle'></i>&nbsp;<b>" . $view . "</b> file is missing.", 'very wide '.$this->style);
 			}
 			$result[] = $lbl;
 		}
@@ -1020,7 +1025,7 @@ class UbiquityMyAdminViewer {
 		} elseif (\array_search($viewname, $loadedViews) === false) {
 			$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $viewname, null, "browser", "span");
 			$lbl->addClass('tag '.$this->style);
-			$lbl->addPopupHtml("<i class='icon orange warning circle'></i>&nbsp;<b>" . $viewname . "</b> exists but is never loaded in action <b>" . $action . "</b>.", 'very wide');
+			$lbl->addPopupHtml("<i class='icon orange warning circle'></i>&nbsp;<b>" . $viewname . "</b> exists but is never loaded in action <b>" . $action . "</b>.", 'very wide '.$this->style);
 			$result[] = $lbl;
 		}
 		return $result;
@@ -2144,7 +2149,7 @@ class UbiquityMyAdminViewer {
 				$lbls = new HtmlLabelGroups("", $value, [
 					"circular"
 				]);
-				$lbl->addPopupHtml("<h4>Datas</h4>" . $lbls, null, [
+				$lbl->addPopupHtml("<h4>Datas</h4>" . $lbls, $this->style, [
 					"on" => "click"
 				]);
 				return $lbl;

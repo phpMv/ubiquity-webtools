@@ -20,6 +20,7 @@ use Ubiquity\translation\TranslatorManager;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\USession;
+use Ajax\semantic\html\base\constants\TextAlignment;
 
 /**
  *
@@ -158,6 +159,9 @@ trait TranslateTrait {
 			$bt->addClass($locale.' '.$this->style);
 		});
 		$dt->setActiveRowSelector();
+		$dt->onPreCompile(function ($dTable) {
+			$dTable->setColAlignment(2, TextAlignment::RIGHT);
+		});
 		$this->_setStyle($dt);
 		$this->jquery->getOnClick('._edit.' . $locale, $baseRoute . "/_loadDomain/" . $locale . "/", '#domain-' . $locale, [
 			'attr' => 'data-ajax',

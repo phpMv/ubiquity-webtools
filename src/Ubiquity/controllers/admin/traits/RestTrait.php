@@ -203,8 +203,12 @@ trait RestTrait {
 	}
 
 	protected function _addRestDataTableBehavior() {
+		$active='active';
+		if($this->style==='inverted'){
+			$active='inverted';
+		}
 		$this->jquery->click("._toTest", "if(!$(this).hasClass('active')){
-					\$(this).closest('tr').after('<tr class=\"active\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">test</td></tr>');
+					\$(this).closest('tr').after('<tr class=\"".$active."\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">test</td></tr>');
 					$(this).addClass('active').removeClass('visibleover');}else{
 						$(this).removeClass('active').addClass('visibleover');
 						$(this).closest('tr').find('.ui.icon.help').transition('hide');
@@ -213,9 +217,10 @@ trait RestTrait {
 		$this->jquery->click("._showMsgHelp", '$("#"+$(this).attr("data-show")).transition();');
 		$this->jquery->postOnClick("._toTest", $this->_getFiles()
 			->getAdminBaseRoute() . "/_displayRestFormTester", "{resource:$(this).attr('data-resource'),controller:$(this).attr('data-controller'),action:$(this).attr('data-action'),path:$(this).closest('tr').attr('data-ajax')}", "'#sub-td'+$(self).closest('tr').attr('id')", [
-			"ajaxTransition" => "random",
+			"ajaxTransition" => "fade left",
 			"stopPropagation" => true,
-			"jsCondition" => "!$(self).hasClass('active')"
+			"jsCondition" => "!$(self).hasClass('active')",
+			'hasLoader'=>'internal'
 		]);
 		$this->jquery->exec("addToken=function(jqXHR){
 			if(jqXHR.getResponseHeader('authorization')!=null && jqXHR.getResponseHeader('authorization').trim().startsWith('Bearer')){

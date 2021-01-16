@@ -19,32 +19,39 @@
 	.ui.definition.inverted.table>tbody>tr>td:first-child:not(.ignored){
 		color: {{tdDefinition}}!important;
 	}
+	
+	{%if inverted%}
 	.ui.tabular.menu.inverted .active.item{
 		border-color: #555;
 		background: #1B1C1D;
 	}
-	
 	.ui.tabular.inverted.menu {
 		border-bottom: 1px solid #555;
 		background: none;
 	}
-
 	.ui.inverted.teal.button, .ui.inverted.teal.buttons .button {
-		box-shadow: 0 0 0 2px #57cccc inset!important;
+		box-shadow: 0 0 0 2px #007f79 inset!important;
 		color: #57cccc!important;
 	}
 	.ui.inverted.teal.button:active, .ui.inverted.teal.buttons .button:active, .ui.inverted.teal.button:hover, .ui.inverted.teal.buttons .button:hover {
-		background-color: #57cccc!important;
+		background-color: #007f79!important;
 		color: black!important;
 	}
 	.ui.inverted.label{
 		background : #474747;
 	}
-	
 	.ui.inverted.modal>.content {
 		background: #292929;
 	}
-
+	.inverted .ui.teal.labels .label, .inverted .ui.ui.ui.teal.label {
+		background-color: #007f79;
+		border-color: #007f79;
+		color: #fff;
+	}
+	.ui.inverted.dimmer {
+		background-color: rgba(200,200,200,.85)!important;
+	}
+	{%endif%}
 	</style>
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/diff2html/2.3.3/diff2html.min.css">
 {% endblock %}

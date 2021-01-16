@@ -124,7 +124,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
-	protected $styles=['inverted'=>['bgColor'=>'#0c0d0d','aceBgColor'=>'#fff','tdDefinition'=>'#fff','selectedRow'=>'black'],''=>['bgColor'=>'#fff','aceBgColor'=>'#002B36','selectedRow'=>'positive']];
+	protected $styles=['inverted'=>['bgColor'=>'#0c0d0d','aceBgColor'=>'#fff','inverted'=>true,'tdDefinition'=>'#fff','selectedRow'=>'black'],''=>['bgColor'=>'#fff','aceBgColor'=>'#002B36','selectedRow'=>'positive']];
 	
 	public const version = '2.4.1+';
 	
@@ -1468,7 +1468,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				]);
 			}
 			$modal->addAction("Close");
-			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#rModal').modal('show');", true);
+			$this->_setStyle($modal);
+			$this->jquery->execAtLast("$('#rModal').modal('show');");
 			echo $modal;
 			echo $this->jquery->compile($this->view);
 		}
