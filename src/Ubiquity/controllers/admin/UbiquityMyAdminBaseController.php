@@ -603,7 +603,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			]);
 		} else {
 			$bt->setDisabled(true);
-			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!");
+			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!",$this->style);
 		}
 
 		$bt = $fields->addButton("filter-bt", "Filter controllers");

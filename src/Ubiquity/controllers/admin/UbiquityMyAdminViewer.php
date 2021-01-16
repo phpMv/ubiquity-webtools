@@ -83,7 +83,7 @@ class UbiquityMyAdminViewer {
 	public function setStyle($elm){
 		if($this->style==='inverted'){
 			$elm->setInverted(true);
-			if($elm instanceof DataTable){
+			if($elm instanceof DataTable && $elm->hasActiveRowSelector()){
 				$elm->setActiveRowSelector('black');
 			}
 		}
@@ -352,7 +352,8 @@ class UbiquityMyAdminViewer {
 				->mergeIdentiqualValues(0);
 		});
 		$dt->setEdition(true);
-		$dt->addClass("compact ".$this->style);
+		$dt->addClass("compact");
+		$this->setStyle($dt);
 		return $dt;
 	}
 
@@ -1304,7 +1305,7 @@ class UbiquityMyAdminViewer {
 			$auth = "";
 			if (\array_search($v, $authorizations) !== false) {
 				$auth = new HtmlIcon("lock-" . $instance->getController() . $v, "lock alternate");
-				$auth->addPopup("Authorization", "This route require a valid access token");
+				$auth->addPopup("Authorization", "This route require a valid access token",$this->style);
 			}
 			$result = [
 				"<span style=\"color: #3B83C0;\">" . $v . "</span>" . $instance->getCompiledParams() . "<i class='ui icon help circle blue hidden transition _showMsgHelp' id='" . JString::cleanIdentifier("help-" . $instance->getAction() . $instance->getController()) . "' data-show='" . JString::cleanIdentifier("msg-help-" . $instance->getAction() . $instance->getController()) . "'></i>",
@@ -1382,7 +1383,7 @@ class UbiquityMyAdminViewer {
 			$result .= $instance->getCompiledParams();
 			if (! \method_exists($instance->getController(), $v)) {
 				$errorLbl = new HtmlIcon("error-" . $v, "warning sign red");
-				$errorLbl->addPopup("", "Missing method!");
+				$errorLbl->addPopup("", "Missing method!",$this->style);
 				return [
 					$result,
 					$errorLbl
@@ -2125,7 +2126,7 @@ class UbiquityMyAdminViewer {
 		]);
 		$dt->setValueFunction(1, function ($value, $instance) {
 			$lbl = new HtmlLabel(uniqid("datetime-"), UDateTime::elapsed($value), "clock");
-			$lbl->addPopup("", UDateTime::longDatetime($value, "fr"));
+			$lbl->addPopup("", UDateTime::longDatetime($value, "fr"),$this->style);
 			$lbl->addClass($this->style);
 			return $lbl;
 		});

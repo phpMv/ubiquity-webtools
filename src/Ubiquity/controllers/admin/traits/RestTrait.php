@@ -150,7 +150,8 @@ trait RestTrait {
 		$frm->setTagName('div');
 		$fields = $frm->addFields();
 		$input = $fields->addInput("ctrlName", "Controller name")->addRule("empty");
-		$input->labeled(RestServer::getRestNamespace() . "\\");
+		$input->labeled(RestServer::getRestNamespace() . "\\")->addClass($this->style);
+		$input->getField()->addClass($this->style);
 		$baseClasses = \array_merge([
 			RestBaseController::class,
 			RestController::class,
