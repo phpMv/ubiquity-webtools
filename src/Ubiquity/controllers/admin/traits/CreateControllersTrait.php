@@ -31,7 +31,7 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["CRUD"]);
 		$viewList->asSelect("crud-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->addClass('fluid '.$this->style);
+		$viewList->addClass('fluid ' . $this->style);
 		$frm = $this->jquery->semantic()->htmlForm("crud-controller-frm");
 		$frm->addExtraFieldRule("crud-model", "exactCount[1]");
 		$frm->addExtraFieldRules("crud-name", [
@@ -71,7 +71,7 @@ trait CreateControllersTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddCrudController(), [
 			'controllerNS' => Startup::getNS("controllers"),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -97,7 +97,7 @@ trait CreateControllersTrait {
 			if (isset($_POST["ck-add-route"])) {
 				$route = $_POST["route-path"] ?? '';
 			}
-			$this->scaffold->addCrudController(\ucfirst(\trim($_POST["crud-name"])), UString::doubleBackSlashes($_POST["crud-model"]), $_POST["crud-datas"] ?? null, $_POST["crud-viewer"] ?? null, $_POST["crud-events"] ?? null, $views, $route, isset($_POST["ck-use-inheritance"]));
+			$this->scaffold->addCrudController(\ucfirst(\trim($_POST["crud-name"])), UString::doubleBackSlashes($_POST["crud-model"]), $_POST["crud-datas"] ?? null, $_POST["crud-viewer"] ?? null, $_POST["crud-events"] ?? null, $views, $route, isset($_POST["ck-use-inheritance"]), $this->style);
 			$this->jquery->get($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
 				"jqueryDone" => "replaceWith",
@@ -112,7 +112,7 @@ trait CreateControllersTrait {
 		$viewList = $this->jquery->semantic()->htmlDropdown("view-list", "", AdminScaffoldController::$views["auth"]);
 		$viewList->asSelect("auth-views", true);
 		$viewList->setDefaultText("Select views");
-		$viewList->addClass('fluid '.$this->style);
+		$viewList->addClass('fluid ' . $this->style);
 		$authControllers = CacheManager::getControllers("Ubiquity\\controllers\\auth\\AuthController", false, true);
 		$authControllers = array_combine($authControllers, $authControllers);
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("ctrl-list", "Ubiquity\\controllers\\auth\\AuthController", $authControllers);
@@ -154,7 +154,7 @@ trait CreateControllersTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddAuthController(), [
 			'controllerNS' => Startup::getNS("controllers"),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
