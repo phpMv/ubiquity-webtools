@@ -1593,16 +1593,19 @@ class UbiquityMyAdminViewer {
 			"jsCallback" => function ($elm) use ($n) {
 				$nn = ($n == '') ? '-' : $n;
 				$elm->on('change', '$("#dropdown-de-database' . $nn . 'dd-type .menu").html(wrappers[$("[name=\'database-' . $n . 'wrapper\']").val()]);$("#dropdown-de-database' . $nn . 'dd-type").dropdown("refresh").dropdown("set selected", $("#dropdown-de-database' . $nn . 'dd-type .menu .item:first").attr("data-value")||"");');
+				$elm->getField()->addClass($this->style);
 			}
 		]);
 		$dbDe->fieldAsDropDown("type", \array_combine($drivers, $drivers), false, [
 			"name" => "database-" . $n . "type",
-			"data-name"=>"type"
+			"data-name"=>"type",
+			"jsCallback"=>function($elm){$elm->getField()->addClass($this->style);}
 		]);
 		$dbDe->fieldAsInput("cache", [
 			"name" => "database-" . $n . "cache",
 			"jsCallback" => function ($elm, $object) use ($n) {
 				$ck = $elm->labeledCheckbox();
+				$ck->addClass($this->style);
 				$ck->getField()
 					->setIdentifier("ck-" . $n . "cache");
 				$ck->on("click", '$("[name=database-' . $n . 'cache]").prop("disabled",$(this).checkbox("is unchecked"));');

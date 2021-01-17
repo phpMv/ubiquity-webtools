@@ -88,7 +88,7 @@ trait ControllersTrait {
 			$this->_setStyle($modal);
 			$frm = $this->jquery->semantic()->htmlForm("frmNewAction");
 			$dd = $frm->addDropdown('controller', \array_combine($controllers, $controllers), "Controller", $controller);
-			$dd->getField()->setShowOnFocus(false);
+			$dd->getField()->setShowOnFocus(false)->addClass($this->style);
 			$fields = $frm->addFields([
 				"action",
 				"parameters"
@@ -119,9 +119,10 @@ trait ControllersTrait {
 				"Route {value} already exists!"
 			]);
 			$field = $fields->addDropdown("methods", Constants::REQUEST_METHODS, null, "", true)->setWidth(3);
-			$field->getField()->addClass("fluid");
+			$field->getField()->addClass("fluid ".$this->style);
 			$duration = $fields->addInput("duration", "", "number");
 			$ck = $duration->labeledCheckbox("left", null);
+			$ck->addClass($this->style);
 			$ck->getField()->setProperty("name", "ck-Cache");
 			$frm->addContent("</div>");
 
