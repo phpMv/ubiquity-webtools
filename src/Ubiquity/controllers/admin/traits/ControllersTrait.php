@@ -136,7 +136,7 @@ trait ControllersTrait {
 			$modal->addAction("Validate");
 			$this->jquery->click("#action-modalNewAction-0", "$('#frmNewAction').form('submit');", false, false);
 			$modal->addAction("Close");
-			$this->jquery->execAtLast("$('#modalNewAction').modal('show');");
+			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAction').modal('show');",true);
 			$this->jquery->jsonOn("change", "#ck-add-route", $baseRoute . "/_addRouteWithNewAction", "post", [
 				"context" => "$('#frmNewAction')",
 				"params" => "$('#frmNewAction').serialize()",

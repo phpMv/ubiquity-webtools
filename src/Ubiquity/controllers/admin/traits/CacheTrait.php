@@ -102,7 +102,7 @@ trait CacheTrait {
 				$modal->setContent($frm);
 				$modal->addAction("Close");
 				$this->_setStyle($modal);
-				$this->jquery->execAtLast("$('#file').modal('show');");
+				$this->jquery->exec("$('.dimmer.modals.page').html('');$('#file').modal('show');",true);
 				echo $modal;
 				echo $this->jquery->compile($this->view);
 			}
