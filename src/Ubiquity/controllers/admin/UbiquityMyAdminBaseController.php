@@ -1372,6 +1372,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 			$modal->addAction("Close");
 			$this->_setStyle($modal);
+			$this->jquery->exec("$('.dimmer.modals.page').html('');", true);
 			$this->jquery->execAtLast("$('#response-with-params').modal('show');");
 			echo $modal->compile($this->jquery, $this->view);
 			echo $this->jquery->compile($this->view);
@@ -1494,6 +1495,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 			$modal->addAction("Close");
 			$this->_setStyle($modal);
+			$this->jquery->exec("$('.dimmer.modals.page').html('');", true);
 			$this->jquery->execAtLast("$('#rModal').modal('show');");
 			echo $modal;
 			echo $this->jquery->compile($this->view);
