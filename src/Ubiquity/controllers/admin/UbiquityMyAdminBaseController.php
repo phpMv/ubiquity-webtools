@@ -55,6 +55,7 @@ use Ubiquity\orm\OrmUtils;
 use Ubiquity\scaffolding\AdminScaffoldController;
 use Ubiquity\themes\ThemesManager;
 use Ubiquity\translation\TranslatorManager;
+use Ubiquity\utils\http\USession;
 use Ubiquity\utils\UbiquityUtils;
 use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\base\UFileSystem;
@@ -139,7 +140,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.2';
+	public const version = '2.4.3';
 
 	public $style;
 
@@ -620,8 +621,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$bt->setDisabled(true);
 			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!", $this->style);
 		}
-
-		$bt = $fields->addButton("filter-bt", "Filter controllers");
+		$tbExt='';
+		if(USession::exists('filtered-controllers')){
+			$btExt='[*]';
+		}
+		$bt = $fields->addButton("filter-bt", "Filter controllers ".$btExt);
 		$bt->getOnClick($baseRoute . '/_frmFilterControllers', '#frm', [
 			'attr' => '',
 			'hasLoader' => 'internal'
