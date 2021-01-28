@@ -621,7 +621,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$bt->setDisabled(true);
 			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!", $this->style);
 		}
-		$tbExt='';
+		$btExt='';
 		if(USession::exists('filtered-controllers')){
 			$btExt='[*]';
 		}
