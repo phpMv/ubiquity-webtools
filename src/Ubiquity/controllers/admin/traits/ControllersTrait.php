@@ -152,8 +152,7 @@ trait ControllersTrait {
 				"form" => "frmNewAction"
 			]), true);
 			$this->jquery->change("#ck-add-route", "$('#div-new-route').toggle($(this).is(':checked'));");
-			echo $modal;
-			echo $this->jquery->compile($this->view);
+			$this->_loadViewCompo($modal);
 		}
 	}
 
