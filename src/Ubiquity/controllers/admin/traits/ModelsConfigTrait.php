@@ -103,8 +103,8 @@ trait ModelsConfigTrait {
 			if ($index === 0) {
 				$step->addClass("_noStep")->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_changeEngineering/" . $this->engineering . "/" . $completed, "#stepper", [
-					"jqueryDone" => "replaceWith",
-					"hasLoader" => false
+					'jqueryDone' => 'replaceWith',
+					'hasLoader' => false
 				]);
 			} else {
 				$step->setProperty("data-ajax", $index);
@@ -116,7 +116,8 @@ trait ModelsConfigTrait {
 		$stepper->addClass($this->style);
 		$this->jquery->getOnClick(".step:not(._noStep)", $this->_getFiles()
 			->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/", "#models-main", [
-			"attr" => "data-ajax"
+			'attr' => 'data-ajax',
+			'hasLoader' => 'internal-x'
 		]);
 		return $stepper;
 	}

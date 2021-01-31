@@ -255,18 +255,19 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$dataAjax[] = $values[0];
 				$hrefs[] = $siteUrl . $baseRoute . "/" . $values[0];
 			}
-			$mn = $semantic->htmlMenu("mainMenu", $elements);
+			$mn = $semantic->htmlMenu('mainMenu', $elements);
 			$mn->getItem(0)
-				->addClass("header")
-				->addIcon("home big link");
-			$mn->setPropertyValues("data-ajax", $dataAjax);
-			$mn->setPropertyValues("href", $hrefs);
+				->addClass('header')
+				->addIcon('home big link');
+			$mn->setPropertyValues('data-ajax', $dataAjax);
+			$mn->setPropertyValues('href', $hrefs);
 			$mn->setActiveItem(0);
 			$mn->setSecondary();
 			$mn->addClass($this->style);
-			$mn->getOnClick($baseRoute, "#main-content", [
-				"attr" => "data-ajax",
-				"historize" => true
+			$mn->getOnClick($baseRoute, '#main-content', [
+				'attr' => 'data-ajax',
+				'historize' => true,
+				'hasLoader' => 'internal-x'
 			]);
 			$this->jquery->activateLink("#mainMenu");
 
@@ -621,11 +622,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$bt->setDisabled(true);
 			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!", $this->style);
 		}
-		$btExt='';
-		if(USession::exists('filtered-controllers')){
-			$btExt='[*]';
+		$btExt = '';
+		if (USession::exists('filtered-controllers')) {
+			$btExt = '[*]';
 		}
-		$bt = $fields->addButton("filter-bt", "Filter controllers ".$btExt);
+		$bt = $fields->addButton("filter-bt", "Filter controllers " . $btExt);
 		$bt->getOnClick($baseRoute . '/_frmFilterControllers', '#frm', [
 			'attr' => '',
 			'hasLoader' => 'internal'

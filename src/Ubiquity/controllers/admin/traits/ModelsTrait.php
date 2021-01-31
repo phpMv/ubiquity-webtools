@@ -64,11 +64,11 @@ trait ModelsTrait {
 		if (count($vMetas_) > 0) {
 			$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), 'dtValidation');
 		}
-		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram",$this->style);
+		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram", $this->style);
 		$bt->postOnClick($adminRoute . "/_showDiagram/", "{model:'" . \str_replace("\\", "|", $model) . "'}", '#modal', [
 			'attr' => ''
 		]);
-		$bt = $this->jquery->semantic()->htmlButton("btValidation", "Validate instances",$this->style);
+		$bt = $this->jquery->semantic()->htmlButton("btValidation", "Validate instances", $this->style);
 		$bt->addIcon('check', true, true);
 		$bt->postOnClick($adminRoute . "/_validateInstances/", "{model:'" . \str_replace("\\", "|", $model) . "'}", '#validationResults', [
 			'attr' => '',
@@ -79,7 +79,8 @@ trait ModelsTrait {
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewShowTable(), ['inverted'=>$this->style,
+			->getViewShowTable(), [
+			'inverted' => $this->style,
 			'classname' => $model
 		]);
 	}
@@ -206,7 +207,7 @@ trait ModelsTrait {
 				->getViewEditTable(), [
 				'modal' => $modal,
 				'frmEditName' => $formName,
-				'inverted'=>$this->style
+				'inverted' => $this->style
 			]);
 		} else {
 			$this->jquery->execAtLast("$('#modal-" . $formName . "').modal('show');");
@@ -216,7 +217,7 @@ trait ModelsTrait {
 				"Okay_",
 				"Cancel"
 			]);
-			
+
 			$btOkay = $form->getAction(0);
 			$btOkay->addClass("green")->setValue("Validate modifications");
 			$form->onHidden("$('#modal-" . $formName . "').remove();");
@@ -329,7 +330,7 @@ trait ModelsTrait {
 			$config = Startup::getConfig();
 			try {
 				$models = CacheManager::getModels($config, true, $databaseOffset);
-				$menu = $semantic->htmlMenu("menuDbs");
+				$menu = $semantic->htmlMenu('menuDbs');
 				$menu->setVertical();
 				$menu->addClass($this->style);
 				foreach ($models as $model) {
@@ -337,13 +338,14 @@ trait ModelsTrait {
 					$item = $menu->addItem(ClassUtils::getClassSimpleName($model));
 					$item->addLabel($count);
 					$tbl = OrmUtils::getTableName($model);
-					$item->setProperty("data-ajax", $tbl);
-					$item->setProperty("data-model", str_replace("\\", ".", $model));
+					$item->setProperty('data-ajax', $tbl);
+					$item->setProperty('data-model', str_replace("\\", ".", $model));
 				}
 				$menu->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_showModel", "#divTable", [
-					"attr" => "data-model",
-					"historize" => true
+					->getAdminBaseRoute() . '/_showModel', '#divTable', [
+					'attr' => 'data-model',
+					'historize' => true,
+					'hasLoader' => 'internal-x'
 				]);
 				$menu->onClick("$('.ui.label.left.pointing.teal').removeClass('left pointing teal');$(this).find('.ui.label').addClass('left pointing teal');");
 			} catch (\Exception $e) {
@@ -355,7 +357,7 @@ trait ModelsTrait {
 			$this->jquery->renderView($this->_getFiles()
 				->getViewDataIndex(), [
 				'activeDb' => $databaseOffset,
-				'bgColor'=>$this->style
+				'bgColor' => $this->style
 			]);
 		} else {
 			echo $stepper;
