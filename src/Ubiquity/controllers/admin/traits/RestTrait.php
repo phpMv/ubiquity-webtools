@@ -172,9 +172,9 @@ trait RestTrait {
 		$resources = CacheManager::getModels($config, true, $this->getActiveDb());
 		$resources = \array_combine($resources, $resources);
 		$fields->addInput("route", "Main route path", "text", "/rest/")->addRule("empty");
-		$fields->addDropdown("resource", $resources, "Resource", end($resources))->addRule([
-			"exactCount[1]"
-		])->getField()->addClass($this->style);
+		$fields->addDropdown("resource", $resources, "Resource", end($resources))
+			->getField()
+			->addClass($this->style);
 		$frm->addCheckbox("re-init", "Re-init Rest cache (recommended)", "reInit")->setChecked(true);
 
 		$frm->setValidationParams([
@@ -189,8 +189,10 @@ trait RestTrait {
 		$frm->addClass($this->style);
 		$this->jquery->exec("$('#divRest').hide();$('#div-new-resource').show();", true);
 		$this->jquery->click('#cancel-btn', "$('#div-new-resource').hide();$('#divRest').show();");
-		$this->jquery->click('#validate-btn','$("#frmNewResource").form("submit");');
-		$this->jquery->renderView('@admin/rest/formNewResource.html',['inverted'=>$this->style]);
+		$this->jquery->click('#validate-btn', '$("#frmNewResource").form("submit");');
+		$this->jquery->renderView('@admin/rest/formNewResource.html', [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _createNewResource() {
@@ -204,12 +206,12 @@ trait RestTrait {
 	}
 
 	protected function _addRestDataTableBehavior() {
-		$active='active';
-		if($this->style==='inverted'){
-			$active='inverted';
+		$active = 'active';
+		if ($this->style === 'inverted') {
+			$active = 'inverted';
 		}
 		$this->jquery->click("._toTest", "if(!$(this).hasClass('active')){
-					\$(this).closest('tr').after('<tr class=\"".$active."\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">test</td></tr>');
+					\$(this).closest('tr').after('<tr class=\"" . $active . "\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">test</td></tr>');
 					$(this).addClass('active').removeClass('visibleover');}else{
 						$(this).removeClass('active').addClass('visibleover');
 						$(this).closest('tr').find('.ui.icon.help').transition('hide');
@@ -221,7 +223,7 @@ trait RestTrait {
 			"ajaxTransition" => "fade left",
 			"stopPropagation" => true,
 			"jsCondition" => "!$(self).hasClass('active')",
-			'hasLoader'=>'internal'
+			'hasLoader' => 'internal'
 		]);
 		$this->jquery->exec("addToken=function(jqXHR){
 			if(jqXHR.getResponseHeader('authorization')!=null && jqXHR.getResponseHeader('authorization').trim().startsWith('Bearer')){
