@@ -352,11 +352,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'jsCallback' => '$("#' . $type . '-refresh").html("");'
 			];
 		}
-		$bt = $this->jquery->semantic()->htmlButton("bt-mini-init-{$type}-cache", null, 'orange small');
+		$bt = $this->jquery->semantic()->htmlButton("bt-mini-init-{$type}-cache", null, 'orange mini ' . $this->style);
 		$bt->setProperty('title', "Re-init {$type} cache");
 		$bt->asIcon('refresh');
 		echo "<div class='ui container' id='{$type}-refresh' style='display:inline;'>";
-		echo $this->showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . $bt, $messageType, null, null, '');
+		echo $this->showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
 		echo "&nbsp;</div>";
 		$this->jquery->getOnClick("#bt-mini-init-{$type}-cache", $this->_getFiles()
 			->getAdminBaseRoute() . "/" . $url, $target, [
