@@ -1006,7 +1006,7 @@ class UbiquityMyAdminViewer {
 	public function getActionViews($controllerFullname, $controller, $action, \ReflectionMethod $r, $lines) {
 		$result = [];
 		$loadedViews = UIntrospection::getLoadedViews($r, $lines);
-		$templateEngine = Startup::getTempateEngineInstance();
+		$templateEngine = Startup::getTemplateEngineInstance();
 		foreach ($loadedViews as $view) {
 			if ($templateEngine->exists($view)) {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "browser", "span");
