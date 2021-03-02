@@ -8,6 +8,8 @@ use Ajax\semantic\html\elements\HtmlLabel;
 use Ajax\service\JString;
 use Ubiquity\annotations\parser\DocParser;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\controllers\rest\api\json\JsonRestController;
+use Ubiquity\controllers\rest\RestResourceController;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\utils\Constants;
 use Ubiquity\controllers\rest\RestServer;
@@ -154,9 +156,9 @@ trait RestTrait {
 		$input->getField()->addClass($this->style);
 		$baseClasses = \array_merge([
 			RestBaseController::class,
-			RestController::class,
+			RestResourceController::class,
 			JsonApiRestController::class,
-			SimpleRestController::class
+			JsonRestController::class
 		], CacheManager::getControllers(RestBaseController::class, true, true));
 		$baseClasses = \array_combine($baseClasses, $baseClasses);
 		$dd = $fields->addDropdown("baseClass", $baseClasses, "Base class", RestController::class);
