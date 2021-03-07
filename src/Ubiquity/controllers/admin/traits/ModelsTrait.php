@@ -11,7 +11,6 @@ use Ubiquity\controllers\crud\CRUDHelper;
 use Ubiquity\controllers\crud\CRUDMessage;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
-use Ubiquity\controllers\rest\ResponseFormatter;
 use Ajax\semantic\widgets\datatable\Pagination;
 use Ubiquity\utils\base\UString;
 use Ajax\common\html\HtmlContentOnly;
@@ -20,6 +19,7 @@ use Ubiquity\contents\transformation\TransformersManager;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
 use Ajax\semantic\components\Toast;
+use Ubiquity\controllers\rest\formatters\ResponseFormatter;
 
 /**
  *
