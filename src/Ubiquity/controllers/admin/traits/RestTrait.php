@@ -18,9 +18,9 @@ use Ubiquity\utils\base\UString;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\controllers\rest\RestBaseController;
 use Ubiquity\controllers\rest\HasResourceInterface;
-use Ubiquity\controllers\rest\RestController;
 use Ubiquity\controllers\rest\api\jsonapi\JsonApiRestController;
-use Ubiquity\controllers\rest\SimpleRestController;
+use Ubiquity\controllers\rest\api\json\JsonRestController;
+use Ubiquity\controllers\rest\RestResourceController;
 use Ubiquity\utils\base\UArray;
 
 /**
@@ -161,10 +161,10 @@ trait RestTrait {
 			JsonRestController::class
 		], CacheManager::getControllers(RestBaseController::class, true, true));
 		$baseClasses = \array_combine($baseClasses, $baseClasses);
-		$dd = $fields->addDropdown("baseClass", $baseClasses, "Base class", RestController::class);
+		$dd = $fields->addDropdown("baseClass", $baseClasses, "Base class", RestBaseController::class);
 		$dd->getField()->each(function ($index, $item) {
 			$class = $item->getProperty("data-value");
-			if (is_subclass_of($class, HasResourceInterface::class, true)) {
+			if (\is_subclass_of($class, HasResourceInterface::class, true)) {
 				$item->setProperty("data-resource", 'true');
 			}
 		});
