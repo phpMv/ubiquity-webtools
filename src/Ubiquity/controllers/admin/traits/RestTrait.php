@@ -19,8 +19,6 @@ use Ubiquity\utils\http\URequest;
 use Ubiquity\controllers\rest\RestBaseController;
 use Ubiquity\controllers\rest\HasResourceInterface;
 use Ubiquity\controllers\rest\api\jsonapi\JsonApiRestController;
-use Ubiquity\controllers\rest\api\json\JsonRestController;
-use Ubiquity\controllers\rest\RestResourceController;
 use Ubiquity\utils\base\UArray;
 
 /**
