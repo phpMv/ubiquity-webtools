@@ -1651,7 +1651,7 @@ class UbiquityMyAdminViewer {
 
 	private function getDatabaseForm($v, $instance, $index, $dbOffset = '') {
 		$dbDe = $this->getDatabaseDataForm($v, $dbOffset);
-		$dbDe->wrap('<div class="ui pointing below black label" style="display:none;">' . $dbOffset . '</div>');
+		$dbDe->wrap('<div class="ui pointing below black label" style="display:none;">' . ($dbOffset == '' ? 'default' : $dbOffset) . '</div>');
 		$dbDe->setStyle("display: none;");
 		$caption = "<div class='toggle-caption'>" . $this->_getDSNFromStdClass($v) . "</div>";
 		return [
@@ -1704,7 +1704,7 @@ class UbiquityMyAdminViewer {
 		});
 		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
 			if (isset($config['database']['dbName'])) {
-				return $this->getDatabaseForm($v, $instance, $index, 'default');
+				return $this->getDatabaseForm($v, $instance, $index);
 			} else {
 				$cos = \array_keys($config['database']);
 				$res = [];
