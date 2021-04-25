@@ -1661,19 +1661,35 @@ class UbiquityMyAdminViewer {
 		$de = $this->jquery->semantic()->dataElement("frmDeConfig", $config);
 		$keys = \array_keys($config);
 
-		$de->setDefaultValueFunction(function ($name, $value) {
-			if (is_array($value))
-				$value = UArray::asPhpArray($value, "array");
+		$de->setDefaultValueFunction(function ($name, $value) use ($config) {
+			$val = $config[$name];
+			if (\is_array($val))
+				$value = UArray::asPhpArray($val, "array");
+			elseif (! \is_string($val) && \is_callable($val)) {
+				$input = new HtmlFormTextarea($name);
+				$df = $input->getDataField();
+				$df->setProperty("rows", "3");
+				$df->setProperty("data-editor", "true");
+				if (! \is_string($val) && \is_callable($val)) {
+					$value = \htmlentities(UIntrospection::closure_dump($val));
+				}
+				$input->setValue($value);
+				return $input;
+			}
 			$input = new HtmlFormInput($name, null, "text", $value);
 			return $this->labeledInput($input, $value);
 		});
+
 		$de->setFields($keys);
 		$de->setCaptions($keys);
 		$de->setCaptionCallback(function (&$captions, $instance) use ($keys) {
 			$dbBt = $this->getCaptionToggleButton("database-bt", "Database...");
 			$dbBt->on("toggled", 'if(!event.active) {
 											$("[dataDatabase]").each(function(index,elm){
-												let dbOffset=$(elm).attr("dataDatabase")+"-";
+												let dbOffset="";
+												if(!$("#database-dbName").length){
+													dbOffset=$(elm).attr("dataDatabase")+"-";
+												}
 												$(event.caption[index]).html($("[name=database-"+dbOffset+"type]",elm).val()+"://"+$("[name=database-"+dbOffset+"user]",elm).val()+":"+$("[name=database-"+dbOffset+"password]",elm).val()+"@"+$("[name=database-"+dbOffset+"serverName]",elm).val()+":"+$("[name=database-"+dbOffset+"port]",elm).val()+"/"+$("[name=database-"+dbOffset+"dbName]",elm).val());
 											});
 										}');
@@ -1685,7 +1701,7 @@ class UbiquityMyAdminViewer {
 		});
 		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
 			if (isset($config['database']['dbName'])) {
-				return $this->getDatabaseForm($v, $instance, $index);
+				return $this->getDatabaseForm($v, $instance, $index, 'default');
 			} else {
 				$cos = \array_keys($config['database']);
 				$res = [];
@@ -1823,7 +1839,9 @@ class UbiquityMyAdminViewer {
 			$responseElement = "#main-content";
 		}
 		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement);
+			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement, [
+			'hasLoader' => 'internal'
+		]);
 		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition", $this->style)->onClick('$("#config-div").show();$("#action-response").html("");');
 		$de->getToolbar()
 			->setSecondary()

@@ -29,14 +29,14 @@ trait ConfigTrait {
 
 	abstract public function models($hasHeader = true);
 
-	abstract protected function reloadConfig();
+	abstract protected function reloadConfig($originalConfig);
 
 	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function _formConfig($hasHeader = true) {
-		global $config;
+		$config = include ROOT . 'config/config.php';
 		if ($hasHeader === true) {
 			$this->getHeader("config");
 		}
@@ -68,7 +68,8 @@ trait ConfigTrait {
 	}
 
 	public function _submitConfig($partial = true) {
-		$result = Startup::getConfig();
+		$originalConfig = Startup::$config;
+		$result = include ROOT . 'config/config.php';
 		$postValues = $_POST;
 		if ($partial !== true) {
 			if (isset($result['database']['dbName'])) {
@@ -84,10 +85,10 @@ trait ConfigTrait {
 			$postValues["templateEngineOptions-cache"] = isset($postValues["templateEngineOptions-cache"]);
 		}
 		foreach ($postValues as $key => $value) {
-			if (strpos($key, "-") === false) {
+			if (\strpos($key, "-") === false) {
 				$result[$key] = $value;
 			} else {
-				$keys = explode('-', $key);
+				$keys = \explode('-', $key);
 				$v = &$result;
 				foreach ($keys as $k) {
 					if (! isset($v[$k])) {
@@ -108,9 +109,9 @@ trait ConfigTrait {
 			$this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
 		}
 
-		$config = $this->reloadConfig();
-		if ($partial == "check") {
-			if (isset($config["database"]["dbName"])) {
+		$config = $this->reloadConfig($originalConfig);
+		if ($partial === 'check') {
+			if (isset($config['database']['dbName'])) {
 				Startup::reloadServices();
 			}
 			$this->models(true);
@@ -123,9 +124,9 @@ trait ConfigTrait {
 		if (URequest::isPost()) {
 			$result = [];
 			UResponse::asJSON();
-			$value = $_POST["_value"];
-			$result["result"] = $callback($value);
-			echo json_encode($result);
+			$value = $_POST['_value'];
+			$result['result'] = $callback($value);
+			echo \json_encode($result);
 		}
 	}
 
@@ -133,7 +134,7 @@ trait ConfigTrait {
 		$this->_checkCondition(function ($value) {
 			try {
 				$array = eval("return " . $value . ";");
-				return is_array($array);
+				return \is_array($array);
 			} catch (\ParseError $e) {
 				return false;
 			}

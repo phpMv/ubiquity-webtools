@@ -285,7 +285,9 @@ trait ModelsConfigTrait {
 			"inline" => true
 		]);
 		$frm->setSubmitParams($this->_getFiles()
-			->getAdminBaseRoute() . "/_addDbConnection", "#main-content");
+			->getAdminBaseRoute() . "/_addDbConnection", "#main-content", [
+			'hasLoader' => 'internal'
+		]);
 
 		$this->jquery->click("#validate-btn", '$("#frm-frmDeConfig").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#temp-form").html("");$("#models-main").show();');
@@ -314,7 +316,8 @@ trait ModelsConfigTrait {
 
 	public function _addDbConnection() {
 		if (URequest::isPost()) {
-			$result = Startup::getConfig();
+			$originalConfig = Startup::$config;
+			$result = include ROOT . 'config/config.php';
 			$postValues = $_POST;
 			$this->checkConfigDatabaseCache($postValues);
 			if (isset($result['database']['dbName'])) {
@@ -340,7 +343,7 @@ trait ModelsConfigTrait {
 			} else {
 				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "opMessage");
 			}
-			$this->reloadConfig();
+			$this->reloadConfig($originalConfig);
 		}
 
 		$this->models();

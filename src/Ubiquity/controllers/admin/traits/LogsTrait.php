@@ -24,7 +24,7 @@ trait LogsTrait {
 
 	abstract public function git();
 
-	abstract protected function reloadConfig();
+	abstract protected function reloadConfig($originalConfig);
 
 	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
@@ -72,10 +72,11 @@ trait LogsTrait {
 	}
 
 	private function startStopLogging($start = true) {
-		$config = Startup::getConfig();
-		$config["debug"] = $start;
+		$originalConfig = Startup::$config;
+		$config = include ROOT . 'config/config.php';
+		$config['debug'] = $start;
 		Startup::saveConfig($config);
-		$this->reloadConfig();
+		$this->reloadConfig($originalConfig);
 		Logger::init($config);
 		$this->logs();
 	}

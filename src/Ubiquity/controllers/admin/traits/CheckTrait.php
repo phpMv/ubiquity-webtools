@@ -277,24 +277,32 @@ trait CheckTrait {
 					$buttons->addItem("(Re-)Create database")
 						->addClass($this->style)
 						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/_showDatabaseCreation", "#main-content")
+						->getAdminBaseRoute() . "/_showDatabaseCreation", "#main-content", [
+						'hasLoader' => 'internal'
+					])
 						->addIcon("database");
 			case "Conf":
 				$buttons->addItem("Show config file")
 					->addClass($this->style)
 					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_config", "#action-response")
+					->getAdminBaseRoute() . "/_config", "#action-response", [
+					'hasLoader' => 'internal'
+				])
 					->addIcon("settings");
 				$buttons->addItem("Edit config file")
 					->addClass($this->style)
 					->addClass("orange")
 					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_formConfig/check", "#action-response")
+					->getAdminBaseRoute() . "/_formConfig/check", "#action-response", [
+					'hasLoader' => 'internal'
+				])
 					->addIcon("edit");
 				$buttons->addItem('Import from SQL file')
 					->addClass($this->style)
 					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_importSQL", "#action-response")
+					->getAdminBaseRoute() . "/_importSQL", "#action-response", [
+					'hasLoader' => 'internal'
+				])
 					->addIcon("file code");
 				break;
 			case "Models":
@@ -312,7 +320,8 @@ trait CheckTrait {
 						->addClass($this->style)
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/_createModels", "#main-content", [
-						"attr" => ""
+						"attr" => "",
+						'hasLoader' => 'internal'
 					])
 						->addIcon("sticky note");
 				} else {
@@ -320,7 +329,8 @@ trait CheckTrait {
 						->addClass($this->style)
 						->getOnClick($this->_getFiles()
 						->getAdminBaseRoute() . "/_importFromYuml", "#models-main", [
-						"attr" => ""
+						"attr" => "",
+						'hasLoader' => 'internal'
 					])
 						->addIcon("sticky note");
 				}
@@ -329,7 +339,8 @@ trait CheckTrait {
 					->getOnClick($this->_getFiles()
 					->getAdminBaseRoute() . "/_showAllClassesDiagram", "#action-response", [
 					"attr" => "",
-					"ajaxTransition" => "random"
+					"ajaxTransition" => "random",
+					'hasLoader' => 'internal'
 				]);
 				$bt->addIcon("sticky note outline");
 				if ($this->hasError())
@@ -339,7 +350,9 @@ trait CheckTrait {
 				$buttons->addItem("(Re-)Init all models cache")
 					->addClass($this->style)
 					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_initCache/models/models", "#main-content")
+					->getAdminBaseRoute() . "/_initCache/models/models", "#main-content", [
+					'hasLoader' => 'internal'
+				])
 					->addIcon("lightning");
 				break;
 		}
@@ -351,7 +364,9 @@ trait CheckTrait {
 			$bt->getContent()[1]->addClass("green " . $this->style);
 			if ($this->hasNoError()) {
 				$bt->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/" . ($this->activeStep + 1), "#models-main");
+					->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/" . ($this->activeStep + 1), "#models-main", [
+					'hasLoader' => 'internal'
+				]);
 			} else {
 				$bt->addClass("disabled");
 			}
@@ -361,7 +376,9 @@ trait CheckTrait {
 			$bt->addIcon("unhide");
 			if ($this->hasNoError()) {
 				$bt->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/models/noHeader/", "#models-main");
+					->getAdminBaseRoute() . "/models/noHeader/", "#models-main", [
+					'hasLoader' => 'internal'
+				]);
 				$this->jquery->execAtLast('$("#btNewConnection").show();');
 			} else {
 				$bt->addClass("disabled");

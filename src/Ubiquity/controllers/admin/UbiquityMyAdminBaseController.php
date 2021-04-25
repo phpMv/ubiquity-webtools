@@ -127,7 +127,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected $styles = [
 		'inverted' => [
-			'bgColor' => '#0c0d0d',
+			'bgColor' => '#303030',
 			'aceBgColor' => '#fff',
 			'inverted' => true,
 			'tdDefinition' => '#fff',
@@ -140,7 +140,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.7';
+	public const version = '2.4.8';
 
 	public $style;
 
@@ -223,10 +223,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function initialize() {
-		ob_start(array(
-			__class__,
-			'_error_handler'
-		));
 		$this->style = $this->config['style'] ?? '';
 		if ($this->style !== 'inverted') {
 			$loader = "<div class=\"ui {$this->style} loader\"></div>";
@@ -280,34 +276,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		CacheManager::start($config);
 	}
 
-	public static function _error_handler($buffer) {
-		$e = error_get_last();
-		if ($e) {
-			if ($e['file'] != 'xdebug://debug-eval' && ! UResponse::isJSON()) {
-				$staticName = "msg-" . rand(0, 50);
-				$message = new HtmlMessage($staticName);
-				$message->addClass("error");
-				$message->addHeader("Error");
-				$message->addList([
-					"<b>Message :</b> " . $e['message'],
-					"<b>File :</b> " . $e['file'],
-					"<b>Line :</b> " . $e['line']
-				]);
-				$message->setIcon("bug");
-				switch ($e['type']) {
-					case E_ERROR:
-					case E_PARSE:
-						return $message;
-					default:
-						return str_replace($e['message'], "", $buffer) . $message;
-				}
-			} else {
-				return str_replace($e['message'], "", $buffer);
-			}
-		}
-		return $buffer;
-	}
-
 	public function finalize() {
 		if (! URequest::isAjax()) {
 			$this->loadView("@admin/main/vFooter.html", [
@@ -323,9 +291,12 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]) . \DS, "admin");
 	}
 
-	protected function reloadConfig() {
+	protected function reloadConfig($originalConfig) {
 		$config = Startup::reloadConfig();
 		$this->addAdminViewPath();
+		$config['siteUrl'] = $originalConfig['siteUrl'];
+		$config['sessionName'] = $originalConfig['sessionName'] ?? null;
+		Startup::$config = $config;
 		return $config;
 	}
 
@@ -615,8 +586,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$bt->addIcon("plus");
 		if ($activeTheme == null) {
-			$this->jquery->getOnClick("#dropdown-crud-bt [data-value]", $baseRoute, "#frm", [
-				"attr" => "data-value"
+			$this->jquery->getOnClick('#dropdown-crud-bt [data-value]', $baseRoute, '#frm', [
+				'attr' => 'data-value',
+				'hasLoader' => 'internal-x'
 			]);
 		} else {
 			$bt->setDisabled(true);
@@ -674,7 +646,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$this->jquery->postOnClick("#bt-filter-routes", $this->_getFiles()
 			->getAdminBaseRoute() . "/_filterRoutes", "{filter:$('#filter-routes').val()}", "#divRoutes", [
-			"ajaxTransition" => "random"
+			"ajaxTransition" => "random",
+			"hasLoader" => "internal"
 		]);
 		if (isset($_POST["filter"]))
 			$this->jquery->exec("$(\"tr:contains('" . $_POST["filter"] . "')\").addClass('warning');", true);
@@ -1023,7 +996,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$e = $this->_getAdminViewer()->getMainMenuElements()[$key];
 		$header->asTitle($e[0], $e[2]);
 		$header->addIcon($e[1]);
-		$header->setBlock()->setInverted();
+		$header->addClass($this->style);
+		$header->wrap('<div class="ui grey ' . $this->style . ' segment">', '</div>');
 		return $header;
 	}
 
