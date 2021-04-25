@@ -1147,17 +1147,20 @@ class UbiquityMyAdminViewer {
 		$this->jquery->postFormOnClick("._delete", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_deleteCacheFile", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
-			"params" => "{type:$(this).attr('data-type'),toDelete:$(this).attr('data-key')}"
+			"params" => "{type:$(this).attr('data-type'),toDelete:$(this).attr('data-key')}",
+			'hasLoader' => 'internal-x'
 		]);
 		$this->jquery->postFormOnClick("._delete-all", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_deleteAllCacheFiles", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
-			"params" => "{type:$(this).attr('data-ajax')}"
+			"params" => "{type:$(this).attr('data-ajax')}",
+			'hasLoader' => 'internal-x'
 		]);
 		$this->jquery->postFormOnClick("._init", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_initCacheType", "frmCache", "#dtCacheFiles tbody", [
 			"jqueryDone" => "replaceWith",
-			"params" => "{type:$(this).attr('data-ajax')}"
+			"params" => "{type:$(this).attr('data-ajax')}",
+			'hasLoader' => 'internal-x'
 		]);
 		return $dt;
 	}
