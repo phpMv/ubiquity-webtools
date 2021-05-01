@@ -3,14 +3,20 @@
 {{ q["stepper"] | raw }}
 <div id="models-main">
 {{ q["opMessage"] | raw }}
-	<div class="ui grid">
-		<div class="four wide column">{{ q["menuDbs"] | raw }}</div>
-		<div class="twelve wide column">{{ q["errorMsg"] | raw }}<div id="divTable">
-		<h2 class="ui center aligned icon header disabled {{bgColor}}">
-			<i class="huge circular sticky note icon"></i>
-			{{activeDb}} Models
-		</h2>
-		</div></div>
+<div class="ui grid">
+	<div class="four wide column">{{ q["menuDbs"] | raw }}</div>
+		<div class="twelve wide column">{{ q["errorMsg"] | raw }}
+			<div id="divTable">
+				{% if outlet %}
+					{{ outlet | raw }}
+				{% else %}
+					<h2 class="ui center aligned icon header disabled {{bgColor}}">
+						<i class="huge circular sticky note icon"></i>
+						{{activeDb}} Models
+					</h2>
+				{% endif %}
+			</div>
+		</div>
 	</div>
 </div>
 <div id='temp-form'></div>

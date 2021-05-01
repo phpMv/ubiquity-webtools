@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ajax\php\ubiquity\JsUtils;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\orm\DAO;
 use Ajax\service\JString;
@@ -24,13 +25,13 @@ use Ubiquity\controllers\rest\formatters\ResponseFormatter;
 /**
  *
  * @author jc
- * @property \Ajax\JsUtils $jquery
+ * @property JsUtils $jquery
  */
 trait ModelsTrait {
 
 	protected $activePage;
 
-	protected $formModal = "no";
+	protected $formModal = 'no';
 
 	abstract public function _getAdminData();
 
@@ -48,8 +49,8 @@ trait ModelsTrait {
 
 	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	public function _showModel($model, $id = null) {
-		$model = \str_replace(".", "\\", $model);
+	public function _showModel($oModel, $id = null) {
+		$model = \str_replace(".", "\\", $oModel);
 		$adminRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->showModel_($model, $id);
 		$metas = OrmUtils::getModelMetadata($model);
@@ -61,7 +62,7 @@ trait ModelsTrait {
 			$this->_getAdminViewer()->getModelsStructureDataTable($metas_);
 		}
 		$vMetas_ = ValidatorsManager::getCacheInfo($model);
-		if (count($vMetas_) > 0) {
+		if (\count($vMetas_) > 0) {
 			$this->_getAdminViewer()->getModelsStructureDataTable(ValidatorsManager::getCacheInfo($model), 'dtValidation');
 		}
 		$bt = $this->jquery->semantic()->htmlButton("btYuml", "Class diagram", $this->style);
@@ -78,6 +79,18 @@ trait ModelsTrait {
 		$this->jquery->getOnClick('#btAddNew', $adminRoute . "/_newModel/" . $this->formModal, '#frm-add-update', [
 			'hasLoader' => 'internal'
 		]);
+
+		if(!URequest::isAjax()){
+			$this->clickOnModel($oModel);
+			$this->getView()->setVar('outlet',$this->jquery->renderView($this->_getFiles()
+				->getViewShowTable(), [
+				'inverted' => $this->style,
+				'classname' => $model
+			],true));
+			$this->models(true);
+			return ;
+		}
+
 		$this->jquery->renderView($this->_getFiles()
 			->getViewShowTable(), [
 			'inverted' => $this->style,
@@ -118,7 +131,7 @@ trait ModelsTrait {
 	}
 
 	protected function updateModelCount($model) {
-		$dataModel = str_replace("\\", ".", $model);
+		$dataModel = \str_replace("\\", ".", $model);
 		$count = DAO::count($model);
 		$this->jquery->execAtLast("$('a.active.item[data-model=\"{$dataModel}\"] .label').html('{$count}')");
 	}
@@ -126,13 +139,17 @@ trait ModelsTrait {
 	public function _showModelClick($modelAndId) {
 		$array = \explode("||", $modelAndId);
 		if (\is_array($array)) {
-			$table = $array[0];
+			$model = $array[0];
 			$id = $array[1];
-			$this->jquery->exec("$('#menuDbs .active').removeClass('active');$('.ui.label.left.pointing.teal').removeClass('left pointing teal active');$(\"[data-model='" . $table . "']\").addClass('active');$(\"[data-model='" . $table . "']\").find('.ui.label').addClass('left pointing teal');", true);
-			$this->_showModel($table, $id);
+			$this->clickOnModel($model);
+			$this->_showModel($model, $id);
 			$this->jquery->execAtLast("$(\"tr[data-ajax='" . $id . "']\").click();");
 			echo $this->jquery->compile();
 		}
+	}
+
+	protected function clickOnModel($model){
+		$this->jquery->exec("$('#menuDbs .active').removeClass('active');$('.ui.label.left.pointing.teal').removeClass('left pointing teal active');$(\"[data-model='" . $model . "']\").addClass('active');$(\"[data-model='" . $model . "']\").find('.ui.label').addClass('left pointing teal');", true);
 	}
 
 	protected function showModel_($model, $id = null) {

@@ -140,7 +140,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.8';
+	public const version = '2.4.7';
 
 	public $style;
 
@@ -294,9 +294,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function reloadConfig($originalConfig) {
 		$config = Startup::reloadConfig();
 		$this->addAdminViewPath();
-		$config['siteUrl'] = $originalConfig['siteUrl'];
-		$config['sessionName'] = $originalConfig['sessionName'] ?? null;
-		Startup::$config = $config;
+		$config['siteUrl']=$originalConfig['siteUrl'];
+		$config['sessionName']=$originalConfig['sessionName']??null;
+		Startup::$config=$config;
 		return $config;
 	}
 
@@ -586,9 +586,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$bt->addIcon("plus");
 		if ($activeTheme == null) {
-			$this->jquery->getOnClick('#dropdown-crud-bt [data-value]', $baseRoute, '#frm', [
-				'attr' => 'data-value',
-				'hasLoader' => 'internal-x'
+			$this->jquery->getOnClick("#dropdown-crud-bt [data-value]", $baseRoute, "#frm", [
+				"attr" => "data-value",
+				'hasLoader'=>'internal-x'
 			]);
 		} else {
 			$bt->setDisabled(true);
@@ -646,8 +646,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$this->jquery->postOnClick("#bt-filter-routes", $this->_getFiles()
 			->getAdminBaseRoute() . "/_filterRoutes", "{filter:$('#filter-routes').val()}", "#divRoutes", [
-			"ajaxTransition" => "random",
-			"hasLoader" => "internal"
+			"ajaxTransition" => "random"
 		]);
 		if (isset($_POST["filter"]))
 			$this->jquery->exec("$(\"tr:contains('" . $_POST["filter"] . "')\").addClass('warning');", true);
@@ -997,7 +996,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$header->asTitle($e[0], $e[2]);
 		$header->addIcon($e[1]);
 		$header->addClass($this->style);
-		$header->wrap('<div class="ui grey ' . $this->style . ' segment">', '</div>');
+		$header->wrap('<div class="ui grey '.$this->style.' segment">','</div>');
 		return $header;
 	}
 
