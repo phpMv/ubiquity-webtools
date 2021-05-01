@@ -20,7 +20,7 @@ use Ubiquity\contents\transformation\TransformersManager;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
 use Ajax\semantic\components\Toast;
-use Ubiquity\controllers\rest\formatters\ResponseFormatter;
+use Ubiquity\utils\models\UArrayModels;
 
 /**
  *
@@ -80,15 +80,15 @@ trait ModelsTrait {
 			'hasLoader' => 'internal'
 		]);
 
-		if(!URequest::isAjax()){
+		if (! URequest::isAjax()) {
 			$this->clickOnModel($oModel);
-			$this->getView()->setVar('outlet',$this->jquery->renderView($this->_getFiles()
+			$this->getView()->setVar('outlet', $this->jquery->renderView($this->_getFiles()
 				->getViewShowTable(), [
 				'inverted' => $this->style,
 				'classname' => $model
-			],true));
+			], true));
 			$this->models(true);
-			return ;
+			return;
 		}
 
 		$this->jquery->renderView($this->_getFiles()
@@ -148,7 +148,7 @@ trait ModelsTrait {
 		}
 	}
 
-	protected function clickOnModel($model){
+	protected function clickOnModel($model) {
 		$this->jquery->exec("$('#menuDbs .active').removeClass('active');$('.ui.label.left.pointing.teal').removeClass('left pointing teal active');$(\"[data-model='" . $model . "']\").addClass('active');$(\"[data-model='" . $model . "']\").find('.ui.label').addClass('left pointing teal');", true);
 	}
 
@@ -194,8 +194,7 @@ trait ModelsTrait {
 		$recordsPerPage = $this->_getModelViewer()->recordsPerPage($model, $totalCount);
 		if (isset($recordsPerPage)) {
 			UResponse::asJSON();
-			$responseFormatter = new ResponseFormatter();
-			print_r($responseFormatter->getJSONDatas($instances));
+			print_r(UArrayModels::asJsonProperties($instances, $this->_getAdminData()->getFieldNames($model)));
 		} else {
 			$this->formModal = ($this->_getModelViewer()->isModal($instances, $model)) ? "modal" : "no";
 			$compo = $this->_getModelViewer()
