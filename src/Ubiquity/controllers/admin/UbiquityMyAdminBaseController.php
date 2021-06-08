@@ -294,9 +294,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function reloadConfig($originalConfig) {
 		$config = Startup::reloadConfig();
 		$this->addAdminViewPath();
-		$config['siteUrl']=$originalConfig['siteUrl'];
-		$config['sessionName']=$originalConfig['sessionName']??null;
-		Startup::$config=$config;
+		$config['siteUrl'] = $originalConfig['siteUrl'];
+		$config['sessionName'] = $originalConfig['sessionName'] ?? null;
+		Startup::$config = $config;
 		return $config;
 	}
 
@@ -588,7 +588,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if ($activeTheme == null) {
 			$this->jquery->getOnClick("#dropdown-crud-bt [data-value]", $baseRoute, "#frm", [
 				"attr" => "data-value",
-				'hasLoader'=>'internal-x'
+				'hasLoader' => 'internal-x'
 			]);
 		} else {
 			$bt->setDisabled(true);
@@ -996,7 +996,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$header->asTitle($e[0], $e[2]);
 		$header->addIcon($e[1]);
 		$header->addClass($this->style);
-		$header->wrap('<div class="ui grey '.$this->style.' segment">','</div>');
+		$header->wrap('<div class="ui grey ' . $this->style . ' segment">', '</div>');
 		return $header;
 	}
 
@@ -1570,7 +1570,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	protected function getAdminData() {
-		return new CRUDDatas();
+		return new CRUDDatas($this);
 	}
 
 	protected function getUbiquityMyAdminViewer() {

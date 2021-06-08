@@ -88,7 +88,9 @@ trait ControllersTrait {
 			$this->_setStyle($modal);
 			$frm = $this->jquery->semantic()->htmlForm("frmNewAction");
 			$dd = $frm->addDropdown('controller', \array_combine($controllers, $controllers), "Controller", $controller);
-			$dd->getField()->setShowOnFocus(false)->addClass($this->style);
+			$dd->getField()
+				->setShowOnFocus(false)
+				->addClass($this->style);
 			$fields = $frm->addFields([
 				"action",
 				"parameters"
@@ -119,7 +121,7 @@ trait ControllersTrait {
 				"Route {value} already exists!"
 			]);
 			$field = $fields->addDropdown("methods", Constants::REQUEST_METHODS, null, "", true)->setWidth(3);
-			$field->getField()->addClass("fluid ".$this->style);
+			$field->getField()->addClass("fluid " . $this->style);
 			$duration = $fields->addInput("duration", "", "number");
 			$ck = $duration->labeledCheckbox("left", null);
 			$ck->addClass($this->style);
@@ -136,7 +138,7 @@ trait ControllersTrait {
 			$modal->addAction("Validate");
 			$this->jquery->click("#action-modalNewAction-0", "$('#frmNewAction').form('submit');", false, false);
 			$modal->addAction("Close");
-			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAction').modal('show');",true);
+			$this->jquery->exec("$('.dimmer.modals.page').html('');$('#modalNewAction').modal('show');", true);
 			$this->jquery->jsonOn("change", "#ck-add-route", $baseRoute . "/_addRouteWithNewAction", "post", [
 				"context" => "$('#frmNewAction')",
 				"params" => "$('#frmNewAction').serialize()",
@@ -216,7 +218,7 @@ trait ControllersTrait {
 			$action = $_POST["action"] ?? null;
 			$parameters = $_POST["parameters"] ?? null;
 			$parameters = CodeUtils::getParametersForRoute($parameters);
-			$controller = ClassUtils::getClassSimpleName($controller);
+			$controller = \str_ireplace('controller', '', ClassUtils::getClassSimpleName($controller));
 
 			$urlParts = \array_diff(\array_merge([
 				$controller,
@@ -278,7 +280,9 @@ trait ControllersTrait {
 		]);
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->renderView($this->_getFiles()
-			->getViewControllersFiltering(),['inverted'=>$this->style]);
+			->getViewControllersFiltering(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _filterControllers() {
