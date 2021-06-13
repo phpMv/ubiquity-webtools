@@ -140,7 +140,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.7';
+	public const version = '2.4.8+';
 
 	public $style;
 
@@ -215,7 +215,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function __construct() {
 		parent::__construct();
-		$this->addAdminViewPath();
+		$this->startTemplateEngine();
 		DAO::$transformerOp = 'toView';
 		$this->_insertJquerySemantic();
 		$this->config = self::_getConfigFile();
@@ -284,8 +284,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 	}
 
-	protected function addAdminViewPath() {
-		Startup::$templateEngine->addPath(implode(\DS, [
+	protected function startTemplateEngine() {
+		Startup::startDefaultTemplateEngine()->addPath(implode(\DS, [
 			\dirname(__FILE__),
 			"views"
 		]) . \DS, "admin");
@@ -293,7 +293,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected function reloadConfig($originalConfig) {
 		$config = Startup::reloadConfig();
-		$this->addAdminViewPath();
+		$this->startTemplateEngine();
 		$config['siteUrl'] = $originalConfig['siteUrl'];
 		$config['sessionName'] = $originalConfig['sessionName'] ?? null;
 		Startup::$config = $config;
