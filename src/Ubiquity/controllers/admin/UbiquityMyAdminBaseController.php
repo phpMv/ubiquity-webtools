@@ -1982,7 +1982,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$live_output = mb_convert_encoding($live_output, 'UTF-8', 'UTF-8');
 			echo "$live_output";
 			flush();
-			ob_flush();
+			if (ob_get_level() > 0) {
+				ob_flush();
+			}
 		}
 		\pclose($proc);
 	}

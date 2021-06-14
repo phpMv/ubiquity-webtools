@@ -290,11 +290,11 @@ trait ComposerTrait {
 			'partial' => "$('#partial').html(response);"
 		]);
 		$this->jquery->click('#cancel-btn', '$("#response").html("");');
-		$this->jquery->exec('$("#submit-composer-bt").transition("remove looping");',true);
+		$this->jquery->exec('$("#submit-composer-bt").transition("remove looping");', true);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewComposerFrm(), [
 			'commands' => \implode("\n", $response),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -310,7 +310,9 @@ trait ComposerTrait {
 		foreach ($commands as $cmd) {
 			echo "<span class='ui teal text'>$cmd</span>\n<pre style='line-height: 1.25em;white-space: pre-wrap;'>";
 			flush();
-			ob_flush();
+			if (ob_get_level() > 0) {
+				ob_flush();
+			}
 			$this->liveExecuteCommand($cmd);
 			echo "</pre>";
 		}
@@ -350,7 +352,9 @@ trait ComposerTrait {
 		$this->jquery->click('#cancel-btn', '$("#response").html("");');
 
 		$this->jquery->renderView($this->_getFiles()
-			->getViewAddDependencyFrm(),['inverted'=>$this->style]);
+			->getViewAddDependencyFrm(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _addDependency() {
