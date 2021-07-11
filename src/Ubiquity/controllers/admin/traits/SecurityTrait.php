@@ -22,12 +22,12 @@ use Ubiquity\cache\CacheManager;
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  * @author jc
  * @version 1.0.1
- *
+ *         
  */
 trait SecurityTrait {
 
 	protected function _refreshSecurity($asString = false) {
-		$style='ui label '.$this->style;
+		$style = 'ui label ' . $this->style;
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$hasSecurity = ServicesChecker::hasSecurity();
 		$hasShieldon = ServicesChecker::hasShieldon();
@@ -134,7 +134,7 @@ trait SecurityTrait {
 						if (Startup::isValidUrl($this->config['shieldon-url'])) {
 							$bt->asLink('/' . $this->config['shieldon-url'], 'shieldon');
 							$bt->addIcon('shield alternate');
-							$bt->addClass('blue '.$this->style);
+							$bt->addClass('blue ' . $this->style);
 							$validUrl = true;
 						} else {
 							$bt->addIcon('warning circle');
@@ -147,7 +147,7 @@ trait SecurityTrait {
 					if (! $validUrl) {
 						$bt = new HtmlButton('bt-shieldon', 'Add shieldon controller');
 						$bt->addIcon('plus');
-						$bt->addClass('tiny right floated teal '.$this->style);
+						$bt->addClass('tiny right floated teal ' . $this->style);
 						$this->jquery->getOnClick('#bt-shieldon', $baseRoute . '/_addSieldonControllerFrm', '#response', [
 							'hasLoader' => 'internal'
 						]);
@@ -174,15 +174,19 @@ trait SecurityTrait {
 		$deSession->fieldAsCheckbox('started', [
 			'type' => 'slider disabled'
 		]);
-		$deSession->fieldAsLabel('class',null,['class'=>$style]);
+		$deSession->fieldAsLabel('class', null, [
+			'class' => $style
+		]);
 		$deSession->fieldAsLabel('protection', '', [
 			'jsCallback' => function ($elm, $value) {
 				$call = $value->protection;
 				$elm->addIcon(($call::getLevel() > 0) ? 'lock' : 'unlock');
 			},
-			'class'=>$style
+			'class' => $style
 		]);
-		$deSession->fieldAsLabel('visitorCount', null, ['class'=>$style. ' circular']);
+		$deSession->fieldAsLabel('visitorCount', null, [
+			'class' => $style . ' circular'
+		]);
 		$deSession->setAttached()->setEdition();
 		$this->_setStyle($deSession);
 
@@ -193,7 +197,9 @@ trait SecurityTrait {
 		$deCookies->setCaptions([
 			'Transformer'
 		]);
-		$deCookies->fieldAsLabel('transformer',null,['class'=>$style]);
+		$deCookies->fieldAsLabel('transformer', null, [
+			'class' => $style
+		]);
 		$deCookies->setAttached()->setEdition();
 		$this->_setStyle($deCookies);
 
@@ -205,12 +211,18 @@ trait SecurityTrait {
 				'Validator',
 				'Storage'
 			]);
-			$deCsrf->fieldAsLabel('selector',null,['class'=>$style]);
-			$deCsrf->fieldAsLabel('validator',null,['class'=>$style]);
-			$deCsrf->fieldAsLabel('storage',null,['class'=>$style]);
+			$deCsrf->fieldAsLabel('selector', null, [
+				'class' => $style
+			]);
+			$deCsrf->fieldAsLabel('validator', null, [
+				'class' => $style
+			]);
+			$deCsrf->fieldAsLabel('storage', null, [
+				'class' => $style
+			]);
 			$deCsrf->setAttached()->setEdition();
 			$this->_setStyle($deCsrf);
-			$deCsrf->wrap('<div class="ui top attached '.$this->style.' orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
+			$deCsrf->wrap('<div class="ui top attached ' . $this->style . ' orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
 		}
 
 		$this->jquery->postOnClick('._installComponent', $baseRoute . '/_execComposer/_refreshComponentSecurity/securityPart', '{commands: "composer require "+$(this).attr("data-composer")}', '#partial', [
@@ -223,7 +235,9 @@ trait SecurityTrait {
 			'hasLoader' => 'internal'
 		]);
 		return $this->jquery->renderView($this->_getFiles()
-			->getViewSecurityPart(), ['inverted'=>$this->style], $asString);
+			->getViewSecurityPart(), [
+			'inverted' => $this->style
+		], $asString);
 	}
 
 	protected function installOrInstalledSecurityCompo(bool $value, $idElm, $vendor, $package, $dependencies) {
@@ -237,7 +251,7 @@ trait SecurityTrait {
 			$lbl->addClass($this->style);
 			return $lbl;
 		} else {
-			$bt = new HtmlButton('install-' . $idElm, 'Install with composer', 'teal _installComponent tiny '.$this->style);
+			$bt = new HtmlButton('install-' . $idElm, 'Install with composer', 'teal _installComponent tiny ' . $this->style);
 			$bt->addIcon('plus');
 			$bt->setProperty('data-composer', $vendor . '/' . $package);
 			return $bt;
@@ -251,7 +265,7 @@ trait SecurityTrait {
 			$lbl->addClass($this->style);
 			return $lbl;
 		} else {
-			$bt = new HtmlButton('start-' . $service, 'Start', 'green _startService tiny '.$this->style);
+			$bt = new HtmlButton('start-' . $service, 'Start', 'green _startService tiny ' . $this->style);
 			$bt->addIcon('play');
 			$bt->setProperty('data-service', $service);
 			return $bt;
@@ -259,12 +273,12 @@ trait SecurityTrait {
 	}
 
 	public function _refreshComponentSecurity() {
-		$this->showSimpleMessage("<b>Composer</b> successfully updated!", "success", "Composer", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("<b>Composer</b> successfully updated!", "success", "Composer", "info circle", null, "msgInfo");
 		$this->_refreshSecurity();
 	}
 
 	public function _refreshComponentSecurityForShieldon() {
-		$this->showSimpleMessage("<b>Shieldon</b> admin controller successfully created!", "success", "Controller", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("<b>Shieldon</b> admin controller successfully created!", "success", "Controller", "info circle", null, "msgInfo");
 		$this->_refreshSecurity();
 	}
 
@@ -273,7 +287,7 @@ trait SecurityTrait {
 		$sStarter->addService($service);
 		$sStarter->save();
 		Startup::reloadServices();
-		$this->showSimpleMessage("Service <b>" . ucfirst($service) . "</b> successfully started!", "success", "Services", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("Service <b>" . ucfirst($service) . "</b> successfully started!", "success", "Services", "info circle", null, "msgInfo");
 		$this->_refreshSecurity();
 	}
 
@@ -337,10 +351,12 @@ trait SecurityTrait {
 			$variables = [];
 			$path = URequest::post("path");
 			if (isset($path)) {
-				$uses=new AclUses();
-				$variables["%routePath%"]=$path;
-				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', ['path' => $path])->asAnnotation();
-				$variables['%uses%']=$uses->getUsesStr();
+				$uses = new AclUses();
+				$variables["%routePath%"] = $path;
+				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', [
+					'path' => $path
+				])->asAnnotation();
+				$variables['%uses%'] = $uses->getUsesStr();
 				$this->config['shieldon-url'] = $path;
 				$this->_saveConfig();
 			}

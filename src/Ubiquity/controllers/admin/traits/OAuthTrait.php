@@ -22,9 +22,9 @@ use Ubiquity\controllers\admin\traits\acls\AclUses;
  */
 trait OAuthTrait {
 
-	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	abstract protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "");
 
@@ -111,14 +111,14 @@ trait OAuthTrait {
 			->getProviderFrm(), [
 			'provider' => $name,
 			'icon' => strtolower($name),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
 	public function _newOAuthProviderFrm($name) {
 		$type = OAuthAdmin::getProviderType($name);
 		if ($type === 'OAuth2' || $type === 'OAuth1') {
-			$this->showSimpleMessage("You need to create an application on your <u>{$name}</u> account and specify the <b>id</b> and <b>secret</b> credentials of the provider.", "info", "Provider creation", "info circle", null, 'msg-new-provider');
+			$this->_showSimpleMessage("You need to create an application on your <u>{$name}</u> account and specify the <b>id</b> and <b>secret</b> credentials of the provider.", "info", "Provider creation", "info circle", null, 'msg-new-provider');
 		}
 		$this->_oauthProviderFrm($name);
 	}
@@ -140,16 +140,16 @@ trait OAuthTrait {
 		$this->removeEmpty($result);
 		try {
 			if (OAuthAdmin::addAndSaveProvider($provider, $result)) {
-				$msg = $this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
 				if (isset($this->config['oauth-providers'][$provider])) {
 					unset($this->config['oauth-providers'][$provider]);
 					$this->_saveConfig();
 				}
 			} else {
-				$msg = $this->showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
+			$msg = $this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
 		}
 		$this->oauth($msg);
 	}
@@ -179,7 +179,9 @@ trait OAuthTrait {
 		]);
 
 		$this->jquery->renderView($this->_getFiles()
-			->getOAuthConfigFrm(),['inverted'=>$this->style]);
+			->getOAuthConfigFrm(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _getGlobalConfigSource() {
@@ -199,12 +201,12 @@ trait OAuthTrait {
 		$this->removeEmpty($result);
 		try {
 			if (OAuthAdmin::saveConfig($result)) {
-				$msg = $this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
 			} else {
-				$msg = $this->showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
+			$msg = $this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
 		}
 		$this->oauth($msg);
 	}
@@ -214,9 +216,9 @@ trait OAuthTrait {
 		$providers = OAuthAdmin::getAvailableProviders();
 		$frm = $this->jquery->semantic()->htmlForm('frm-provider');
 		$frm->addClass($this->style);
-		$dd=$frm->addDropdown('providers', $providers, 'Select a Provider...', 'provider...');
+		$dd = $frm->addDropdown('providers', $providers, 'Select a Provider...', 'provider...');
 		$dd->getField()->addClass($this->style);
-		$frm->wrap('<div class="ui olive '.$this->style.' segment">', '</div>');
+		$frm->wrap('<div class="ui olive ' . $this->style . ' segment">', '</div>');
 		$this->jquery->getOn('change', '#input-dropdown-providers', $baseRoute . '/_newOAuthProviderFrm/', '#response', [
 			'attr' => 'value'
 		]);
@@ -224,7 +226,7 @@ trait OAuthTrait {
 	}
 
 	public function _deleteOAuthProviderConf($name) {
-		$message = $this->showConfMessage("Do you confirm the deletion of `<b>{$name}</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
+		$message = $this->_showConfMessage("Do you confirm the deletion of `<b>{$name}</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
 			->getAdminBaseRoute() . "/_deleteOAuthProvider", "#main-content", $name);
 		$this->loadViewCompo($message);
 	}
@@ -232,9 +234,9 @@ trait OAuthTrait {
 	public function _deleteOAuthProvider() {
 		$provider = $_POST['data'];
 		if (OAuthAdmin::removeAndSaveProvider($provider)) {
-			$msg = $this->showSimpleMessage("The provider <b>{$provider}</b> has been successfully removed!", "positive", "Provider", "times circle", null, "msgConfig");
+			$msg = $this->_showSimpleMessage("The provider <b>{$provider}</b> has been successfully removed!", "positive", "Provider", "times circle", null, "msgConfig");
 		} else {
-			$msg = $this->showSimpleMessage("Impossible to remove the provider <b>{$provider}</b>.", "negative", "Provider", "warning circle", null, "msgConfig");
+			$msg = $this->_showSimpleMessage("Impossible to remove the provider <b>{$provider}</b>.", "negative", "Provider", "warning circle", null, "msgConfig");
 		}
 		$this->oauth($msg);
 	}
@@ -273,19 +275,22 @@ trait OAuthTrait {
 			->getViewAddOAuthController(), [
 			'controllerNS' => Startup::getNS("controllers"),
 			'route' => OAuthAdmin::getRedirectRoute($GLOBALS["config"]["siteUrl"]),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
 	public function _addOAuthController() {
 		if (URequest::isPost()) {
-			$uses=new AclUses();
-			$path=$_POST['route-path'];
-			$variables=['%baseClass%' => '\\' . \ltrim($_POST['baseClass'], '\\'),'%routePath%'=>$path];
+			$uses = new AclUses();
+			$path = $_POST['route-path'];
+			$variables = [
+				'%baseClass%' => '\\' . \ltrim($_POST['baseClass'], '\\'),
+				'%routePath%' => $path
+			];
 			$variables['%route%'] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'get', [
-				'path' => $path.'/{name}'
+				'path' => $path . '/{name}'
 			])->asAnnotation();
-			$variables['%uses%']=$uses->getUsesStr();
+			$variables['%uses%'] = $uses->getUsesStr();
 			$msg = $this->_createController($_POST['auth-name'], $variables, 'oauthController.tpl', false);
 			$this->loadViewCompo($msg);
 		}

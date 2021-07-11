@@ -31,9 +31,7 @@ trait ConfigTrait {
 
 	abstract protected function reloadConfig($originalConfig);
 
-	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
-
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function _formConfig($hasHeader = true) {
 		$config = include ROOT . 'config/config.php';
@@ -101,12 +99,12 @@ trait ConfigTrait {
 		}
 		try {
 			if (Startup::saveConfig($result)) {
-				$this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "check square", null, "msgConfig");
+				$this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "check square", null, "msgConfig");
 			} else {
-				$this->showSimpleMessage("Impossible to write the configuration file.", "negative", "warning circle", null, "msgConfig");
+				$this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
+			$this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
 		}
 
 		$config = $this->reloadConfig($originalConfig);

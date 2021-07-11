@@ -28,7 +28,7 @@ use Ajax\semantic\html\base\constants\TextAlignment;
  */
 trait CommandsTrait {
 
-	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	protected $devtoolsConfig;
 
@@ -67,11 +67,11 @@ trait CommandsTrait {
 			$result[] = '<div class="_help"></div>';
 			return $result;
 		});
-		$dt->addEditDeleteButtons(true,[],function($bt){
-				$bt->addClass($this->style);
-			},function($bt){
-				$bt->addClass($this->style);
-			});
+		$dt->addEditDeleteButtons(true, [], function ($bt) {
+			$bt->addClass($this->style);
+		}, function ($bt) {
+			$bt->addClass($this->style);
+		});
 		$dt->insertDefaultButtonIn(2, 'play', '_executeCommandSuite', true, function ($elm, $commandList) {
 			$elm->setProperty('data-suite', \urlencode($commandList->getName()));
 		});
@@ -134,10 +134,10 @@ trait CommandsTrait {
 	}
 
 	public function _deleteCommandSuite($name, $conf = true) {
-		$dname = urldecode($name);
-		$name = urlencode($name);
+		$dname = \urldecode($name);
+		$name = \urlencode($name);
 		if ($conf) {
-			$msg = $this->showConfMessage("Do you want to delete the command suite <b>{$dname}</b>?", 'error', 'Suite deleting', 'remove circle', $this->_getFiles()
+			$msg = $this->_showConfMessage("Do you want to delete the command suite <b>{$dname}</b>?", 'error', 'Suite deleting', 'remove circle', $this->_getFiles()
 				->getAdminBaseRoute() . "/_deleteCommandSuite/{$name}/0", '#command', '');
 			$this->loadViewCompo($msg);
 		} else {
@@ -182,7 +182,7 @@ trait CommandsTrait {
 		$input = $frm->addInput('cmd-add');
 		$input->setName('');
 		$input->getField()->addDataList($commandNames);
-		$bt=$input->addAction('Add command', 'right', 'plus', true);
+		$bt = $input->addAction('Add command', 'right', 'plus', true);
 		$bt->addClass($this->style);
 		$input->setPlaceholder('New command name');
 		$frm->addInput('name', 'Name', 'text', $name);
@@ -225,7 +225,7 @@ trait CommandsTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewCommandSuiteFrm(), [
 			'suite' => $suite,
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -302,12 +302,12 @@ trait CommandsTrait {
 		$input = $cForm->addContent(new HtmlInput("pos[$index]", 'hidden', $index));
 		$input->addClass('_pos');
 		$cForm->setTagName('div');
-		$cForm->setClass('ui small positive message _drag '.$this->style);
+		$cForm->setClass('ui small positive message _drag ' . $this->style);
 		$cForm->setProperty('draggable', 'true');
 		$cForm->addContent("<i class='icon close _close' data-index='$index' data-suite='$suite'></i>");
 		$fields = $cForm->addFields();
 		$lbl = new HtmlLabel("", 'Ubiquity <span class="ui blue text">' . $cmd->getName() . '</span>');
-		$lbl->addClass('large pointing below '.$this->style);
+		$lbl->addClass('large pointing below ' . $this->style);
 		$lbl->addIcon('code');
 		$fields->addItem($lbl);
 		$cForm->addContent(new HtmlInput("command[$index]", 'hidden', $cmd->getName()));
@@ -389,7 +389,7 @@ trait CommandsTrait {
 				$this->jquery->renderView($this->_getFiles()
 					->getViewDisplayCommandForm(), [
 					'cmd' => $cmd,
-					'inverted'=>$this->style
+					'inverted' => $this->style
 				]);
 			}
 		}
@@ -400,7 +400,7 @@ trait CommandsTrait {
 		$cmd = $this->getCommandByName($commandName);
 		if (isset($cmd)) {
 			$msg = $this->jquery->semantic()->htmlMessage('help-' . $commandName);
-			$msg->addClass('visibleover olive '.$this->style);
+			$msg->addClass('visibleover olive ' . $this->style);
 			$msg->setIcon('circle question');
 			$v = "";
 			if ($cmd->hasValue()) {
@@ -433,7 +433,7 @@ trait CommandsTrait {
 				$dt->setValueFunction('defaultValue', function ($v) {
 					return "<pre>$v</pre>";
 				});
-				$dt->addClass('compact '.$this->style);
+				$dt->addClass('compact ' . $this->style);
 				$dt->setVisibleHover(false);
 				$msg->addContent($dt);
 			}

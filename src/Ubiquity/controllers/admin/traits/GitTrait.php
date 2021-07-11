@@ -32,9 +32,7 @@ trait GitTrait {
 
 	abstract public function git();
 
-	abstract protected function showConfMessage($content, $type, $itle, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
-
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected function _getRepo($getfiles = true) {
 		$gitRepo = RepositoryGit::init($getfiles);
@@ -58,7 +56,7 @@ trait GitTrait {
 	}
 
 	public function _gitTabsRefresh() {
-		$this->showSimpleMessage("<b>Git command</b> successfully executed!", "success", "Git commands", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("<b>Git command</b> successfully executed!", "success", "Git commands", "info circle", null, "msgInfo");
 		$gitRepo = $this->_getRepo();
 		$this->gitTabs($gitRepo, '<div class="ui active inline centered indeterminate text loader">Waiting for git operation...</div>');
 		echo $this->jquery->compile($this->view);
@@ -77,7 +75,7 @@ trait GitTrait {
 			}
 			$this->git();
 		} catch (GitException $ge) {
-			echo $this->showSimpleMessage($ge->getMessage(), "negative", "Push", "upload", null, "init-message");
+			echo $this->_showSimpleMessage($ge->getMessage(), "negative", "Push", "upload", null, "init-message");
 			echo $this->jquery->compile($this->view);
 		}
 	}
@@ -88,7 +86,9 @@ trait GitTrait {
 		$this->jquery->execOn("click", "#validate-btn", '$("#frmGitSettings").form("submit");');
 		$this->jquery->execOn("click", "#cancel-btn", '$("#frm").html("");');
 		$this->jquery->renderView($this->_getFiles()
-			->getViewGitSettings(),['inverted'=>$this->style]);
+			->getViewGitSettings(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _updateGitParams() {
@@ -148,11 +148,11 @@ trait GitTrait {
 					URequest::post("description")
 				];
 			$repo->commit($message);
-			$msg = $this->showSimpleMessage("Commit successfully completed!", "positive", "Commit", "check square", null, "init-message");
+			$msg = $this->_showSimpleMessage("Commit successfully completed!", "positive", "Commit", "check square", null, "init-message");
 			$msg->addList($messages);
 			$this->_refreshParts();
 		} else {
-			$msg = $this->showSimpleMessage("Nothing to commit!", "", "Commit", "warning circle", null, "init-message");
+			$msg = $this->_showSimpleMessage("Nothing to commit!", "", "Commit", "warning circle", null, "init-message");
 		}
 		$this->loadViewCompo($msg);
 	}
@@ -181,13 +181,13 @@ trait GitTrait {
 				$repo->push("origin master", [
 					"--set-upstream"
 				]);
-				$msg = $this->showSimpleMessage("Push successfully completed!", "positive", "Push", "upload", null, "init-message");
+				$msg = $this->_showSimpleMessage("Push successfully completed!", "positive", "Push", "upload", null, "init-message");
 				$this->_refreshParts();
 			} else {
-				$msg = $this->showSimpleMessage("Check your github settings before pushing! (user name, password or remote url)", "negative", "Push", "upload", null, "init-message");
+				$msg = $this->_showSimpleMessage("Check your github settings before pushing! (user name, password or remote url)", "negative", "Push", "upload", null, "init-message");
 			}
 		} catch (GitException $ge) {
-			$msg = $this->showSimpleMessage($ge->getMessage(), "negative", "Push", "upload", null, "init-message");
+			$msg = $this->_showSimpleMessage($ge->getMessage(), "negative", "Push", "upload", null, "init-message");
 		}
 		$this->loadViewCompo($msg);
 	}
@@ -196,7 +196,7 @@ trait GitTrait {
 		$gitRepo = $this->_getRepo(false);
 		$repo = $gitRepo->getRepository();
 		$repo->pull();
-		$msg = $this->showSimpleMessage("Pull successfully completed!", "positive", "Pull", "download", null, "init-message");
+		$msg = $this->_showSimpleMessage("Pull successfully completed!", "positive", "Pull", "download", null, "init-message");
 		$this->_refreshParts();
 		$this->loadViewCompo($msg);
 	}
@@ -212,8 +212,8 @@ trait GitTrait {
 		}
 		$this->jquery->renderView($this->_getFiles()
 			->getViewGitIgnore(), [
-			'content'=> $content,
-			'inverted'=>$this->style
+			'content' => $content,
+			'inverted' => $this->style
 		]);
 	}
 
@@ -228,9 +228,9 @@ trait GitTrait {
 					"jqueryDone" => "replaceWith",
 					"hasLoader" => false
 				]);
-				$message = $this->showSimpleMessage("<b>.gitignore</b> file saved !", "positive", "gitignore", "git");
+				$message = $this->_showSimpleMessage("<b>.gitignore</b> file saved !", "positive", "gitignore", "git");
 			} else {
-				$message = $this->showSimpleMessage("<b>.gitignore</b> file not saved !", "warning", "gitignore", "git");
+				$message = $this->_showSimpleMessage("<b>.gitignore</b> file not saved !", "warning", "gitignore", "git");
 			}
 		}
 		$this->loadViewCompo($message);
@@ -290,7 +290,7 @@ trait GitTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewGitCmdFrm(), [
 			'commands' => 'git status',
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 

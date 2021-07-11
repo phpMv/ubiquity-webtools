@@ -140,7 +140,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.9';
+	public const version = '2.4.10';
 
 	public $style;
 
@@ -327,7 +327,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$bt->setProperty('title', "Re-init {$type} cache");
 		$bt->asIcon('refresh');
 		echo "<div class='ui container' id='{$type}-refresh' style='display:inline;'>";
-		echo $this->showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
+		echo $this->_showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
 		echo "&nbsp;</div>";
 		$this->jquery->getOnClick("#bt-mini-init-{$type}-cache", $this->_getFiles()
 			->getAdminBaseRoute() . "/" . $url, $target, [
@@ -384,7 +384,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->mouseenter("#admin-elements .item", '$(this).children("i").addClass("green basic").removeClass("circular ' . $this->style . '");$(this).find(".description").css("color","#21ba45");$(this).transition("pulse","400ms");');
 		$this->jquery->mouseleave("#admin-elements .item", '$(this).children("i").removeClass("green basic").addClass("circular ' . $this->style . '");$(this).find(".description").css("color","");');
 		if ($this->config['first-use'] ?? false) {
-			echo $this->showSimpleMessage('This is your first use of devtools. You can select the tools you want to display.', 'info', 'Tools displaying', 'info circle', null, 'msgGlobal');
+			echo $this->_showSimpleMessage('This is your first use of devtools. You can select the tools you want to display.', 'info', 'Tools displaying', 'info circle', null, 'msgGlobal');
 			$this->jquery->trigger('#bt-customize', 'click', true);
 		}
 		$this->jquery->compile($this->view);
@@ -551,7 +551,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if (\array_search('controllers', $this->config['info']) === false) {
 			$controllersNS = Startup::getNS('controllers');
 			$controllersDir = \ROOT . \str_replace("\\", \DS, $controllersNS);
-			$this->showSimpleMessage("Controllers directory is <b>" . UFileSystem::cleanPathname($controllersDir) . "</b>", "info", null, "info circle", null, "msgControllers", "controllers");
+			$this->_showSimpleMessage("Controllers directory is <b>" . UFileSystem::cleanPathname($controllersDir) . "</b>", "info", null, "info circle", null, "msgControllers", "controllers");
 		}
 		$frm = $this->jquery->semantic()->htmlForm("frmCtrl");
 		$frm->setValidationParams([
@@ -634,7 +634,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function routes() {
 		$this->getHeader("routes");
 		if (\array_search('routes', $this->config['info']) === false) {
-			$this->showSimpleMessage("Router cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.default") . "</b>", "info", null, "info circle", null, "msgRoutes", 'routes');
+			$this->_showSimpleMessage("Router cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.default") . "</b>", "info", null, "info circle", null, "msgRoutes", 'routes');
 		}
 		$routes = CacheManager::getRoutes();
 		$this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
@@ -680,7 +680,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function cache() {
 		$this->getHeader("cache");
 		if (\array_search('cache', $this->config['info']) === false) {
-			$this->showSimpleMessage(CacheManager::$cache->getCacheInfo(), "info", null, "info circle", null, "msgCache", 'cache');
+			$this->_showSimpleMessage(CacheManager::$cache->getCacheInfo(), "info", null, "info circle", null, "msgCache", 'cache');
 		}
 		$cacheFiles = $this->getCacheFiles($this->config['display-cache-types']);
 		$form = $this->jquery->semantic()->htmlForm('frmCache');
@@ -715,7 +715,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function rest() {
 		$this->getHeader("rest");
 		if (\array_search('rest', $this->config['info']) === false) {
-			$this->showSimpleMessage("Router Rest cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.rest") . "</b>", "info", "Rest service", "info circle", null, "msgRest", 'rest');
+			$this->_showSimpleMessage("Router Rest cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.rest") . "</b>", "info", "Rest service", "info circle", null, "msgRest", 'rest');
 		}
 		$this->_refreshRest();
 		$this->jquery->getOnClick("#bt-init-rest-cache", $this->_getFiles()
@@ -781,7 +781,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->_setStyle($menu);
 
 		if (! $config["debug"]) {
-			$this->showSimpleMessage("Debug mode is not active in config.php file. <br><br><a class='_activateLogs ui blue button'><i class='ui toggle on icon'></i> Activate logging</a>", "info", "Debug", "info circle", null, "logs-message");
+			$this->_showSimpleMessage("Debug mode is not active in config.php file. <br><br><a class='_activateLogs ui blue button'><i class='ui toggle on icon'></i> Activate logging</a>", "info", "Debug", "info circle", null, "logs-message");
 			$this->jquery->getOnClick("._activateLogs", $this->_getFiles()
 				->getAdminBaseRoute() . "/_activateLog", "#main-content");
 		} else {
@@ -871,10 +871,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'hasLoader' => false
 			]);
 			if ($hasMessage)
-				$this->showSimpleMessage("<b>{$gitRepo->getName()}</b> respository is not initialized!", "warning", null, "warning circle", null, "init-message");
+				$this->_showSimpleMessage("<b>{$gitRepo->getName()}</b> respository is not initialized!", "warning", null, "warning circle", null, "init-message");
 		} else {
 			if ($hasMessage) {
-				$this->showSimpleMessage("<b>{$gitRepo->getName()}</b> repository is correctly initialized.", "info", null, "info circle", null, "init-message");
+				$this->_showSimpleMessage("<b>{$gitRepo->getName()}</b> repository is correctly initialized.", "info", null, "info circle", null, "init-message");
 			}
 			$pushPullBts = $semantic->htmlButtonGroups("push-pull-bts", [
 				"3-Push",
@@ -1720,7 +1720,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function mailer() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$this->getHeader("mailer");
-		$this->showSimpleMessage("This part is very recent, feel free to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/56'>github issue [RFC] E-mail module</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
+		$this->_showSimpleMessage("This part is very recent, feel free to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/56'>github issue [RFC] E-mail module</a> in case of problems.", "info", "Mailer", "info circle", null, "msgGlobal");
 		$this->_getAdminViewer()->getMailerDataTable(MailerClass::init());
 		$queue = MailerQueuedClass::initQueue();
 		$this->_getAdminViewer()->getMailerQueueDataTable($queue);
@@ -1804,7 +1804,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$callback .= (HtmlLabel::tag('', "<i class='ui warning circle icon'></i> no route associated with callback"))->addClass('orange');
 			}
 		} else {
-			$callback = $this->showSimpleMessage('Callback URL is missing in config file!', 'warning', 'Callback', 'warning circle');
+			$callback = $this->_showSimpleMessage('Callback URL is missing in config file!', 'warning', 'Callback', 'warning circle');
 		}
 
 		$this->jquery->getOnClick('#config-btn', $baseRoute . '/_globalConfigFrm', '#response', [
@@ -1829,7 +1829,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function security() {
 		$this->getHeader('security');
-		$this->showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/110'>github issue</a> in case of problems.", "info", "Security", "info circle", null, "msgGlobal");
+		$this->_showSimpleMessage("This part is very recent, do not hesitate to submit your feedback in this <a target='_blank' href='https://github.com/phpMv/ubiquity/issues/110'>github issue</a> in case of problems.", "info", "Security", "info circle", null, "msgGlobal");
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewSecurityIndex(), [
@@ -1917,7 +1917,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			} else {}
 		} else {
 			$button = "<div class='ui divider'></div>Or you can do it automatically:<br><div class='ui orange button'><i class='ui icon play'></i>Start AclManager service</div>";
-			$msg = $this->showSimpleMessage('AclManager is not started. You have to add <div class="ui inverted segment"><pre>AclManager::start(/*providers*/)</pre></div> in <b>app/config/services.php</b>' . $button, 'warning', 'Acls management', 'warning circle');
+			$msg = $this->_showSimpleMessage('AclManager is not started. You have to add <div class="ui inverted segment"><pre>AclManager::start(/*providers*/)</pre></div> in <b>app/config/services.php</b>' . $button, 'warning', 'Acls management', 'warning circle');
 
 			$this->loadViewCompo($msg);
 		}

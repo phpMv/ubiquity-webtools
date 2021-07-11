@@ -37,9 +37,9 @@ trait SeoTrait {
 
 	abstract public function seo();
 
-	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	abstract protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "");
 
@@ -77,7 +77,7 @@ trait SeoTrait {
 		]);
 		$dtCtrl->setValueFunction('see', function ($value, $instance, $fi, $index) {
 			if ($instance->urlExists()) {
-				$bt = new HtmlButton('see-' . $index, '', '_see circular basic right floated '.$this->style);
+				$bt = new HtmlButton('see-' . $index, '', '_see circular basic right floated ' . $this->style);
 				$bt->setProperty("data-ajax", $instance->getName());
 				$bt->asIcon('eye');
 				return $bt;
@@ -93,7 +93,7 @@ trait SeoTrait {
 			return $value;
 		});
 		$dtCtrl->addDeleteButton(false, [], function ($bt) {
-			$bt->setProperty('class', 'ui circular basic red right floated icon button _delete '.$this->style);
+			$bt->setProperty('class', 'ui circular basic red right floated icon button _delete ' . $this->style);
 		});
 		$dtCtrl->setTargetSelector([
 			"delete" => "#messages"
@@ -117,7 +117,7 @@ trait SeoTrait {
 		$this->jquery->getOnClick("._see", $baseRoute . "/_seeSeoUrl", "#messages", [
 			"attr" => "data-ajax"
 		]);
-		$dtCtrl->setEmptyMessage($this->showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "teal", "SEO Controllers", "info circle"));
+		$dtCtrl->setEmptyMessage($this->_showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "teal", "SEO Controllers", "info circle"));
 		$this->_setStyle($dtCtrl);
 		return $dtCtrl;
 	}
@@ -188,16 +188,17 @@ trait SeoTrait {
 			$this->jquery->execAtLast($this->jquery->execOn('change', '#frm-dtSiteMap input', '$("#saveUrls").show();', [
 				'immediatly' => false
 			]));
-			$this->jquery->renderView($this->_getFiles()->getViewSeoDetails(), [
+			$this->jquery->renderView($this->_getFiles()
+				->getViewSeoDetails(), [
 				'controllerClass' => $controllerClass,
 				'urlsFile' => $controllerSeo->_getUrlsFilename(),
-				'inverted'=>$this->style
+				'inverted' => $this->style
 			]);
 		} else {
 			if ($controllerClass == null) {
-				$msg = $this->showSimpleMessage('No controller selected!', 'info', 'SEO controller', 'info circle');
+				$msg = $this->_showSimpleMessage('No controller selected!', 'info', 'SEO controller', 'info circle');
 			} else {
-				$msg = $this->showSimpleMessage("The controller <b>`{$controllerClass}`</b> does not exists!", "warning", "SEO controller", "warning circle");
+				$msg = $this->_showSimpleMessage("The controller <b>`{$controllerClass}`</b> does not exists!", "warning", "SEO controller", "warning circle");
 			}
 			$this->loadViewCompo($msg);
 		}
@@ -221,14 +222,14 @@ trait SeoTrait {
 				$appDir = Startup::getApplicationDir();
 				$content = \implode("\n", $content);
 				UFileSystem::save($appDir . \DS . 'robots.txt', $content);
-				$msg = $this->showSimpleMessage("The file <b>robots.txt</b> has been generated in " . $appDir, "success", "Robots generation", "info circle");
+				$msg = $this->_showSimpleMessage("The file <b>robots.txt</b> has been generated in " . $appDir, "success", "Robots generation", "info circle");
 				$this->jquery->get($this->_getFiles()
 					->getAdminBaseRoute() . "/_seoRefresh", "#seoCtrls", [
 					'hasLoader' => false,
 					'jqueryDone' => 'replaceWith'
 				]);
 			} else {
-				$msg = $this->showSimpleMessage("Can not generate <b>robots.txt</b> if no SEO controller is selected.", "warning", "Robots.txt generation", "warning circle");
+				$msg = $this->_showSimpleMessage("Can not generate <b>robots.txt</b> if no SEO controller is selected.", "warning", "Robots.txt generation", "warning circle");
 			}
 			$this->loadViewCompo($msg);
 		}
@@ -307,10 +308,12 @@ trait SeoTrait {
 			$path = URequest::post("path");
 			$variables["%path%"] = $path;
 			if (isset($path)) {
-				$uses=new AclUses();
-				$variables["%routePath%"]=$path;
-				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', ['path' => $path])->asAnnotation();
-				$variables['%uses%']=$uses->getUsesStr();
+				$uses = new AclUses();
+				$variables["%routePath%"] = $path;
+				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', [
+					'path' => $path
+				])->asAnnotation();
+				$variables['%uses%'] = $uses->getUsesStr();
 			}
 			$variables["%urlsFile%"] = URequest::post("urlsFile", "urls");
 			$variables["%sitemapTemplate%"] = URequest::post("sitemapTemplate", "@framework/Seo/sitemap.xml.html");
@@ -365,9 +368,9 @@ trait SeoTrait {
 				$r = new \ReflectionClass($seoController);
 				$this->_displaySiteMap($r->getNamespaceName(), $r->getShortName());
 				$filename = $seoController->_getUrlsFilename();
-				$message = $this->showSimpleMessage(UString::pluralize(\sizeof($selections), '<b>`' . $filename . '`</b> saved with no url.', '<b>`' . $filename . '`</b> saved with {count} url.', '<b>`' . $filename . '`</b> saved with {count} urls.'), "success", 'URLs saving', "info circle");
+				$message = $this->_showSimpleMessage(UString::pluralize(\sizeof($selections), '<b>`' . $filename . '`</b> saved with no url.', '<b>`' . $filename . '`</b> saved with {count} url.', '<b>`' . $filename . '`</b> saved with {count} urls.'), "success", 'URLs saving', "info circle");
 			} catch (\Ubiquity\exceptions\CacheException $e) {
-				$message = $this->showSimpleMessage("Unable to write urls file `" . $filename . "`", "warning", 'URLs saving', "warning");
+				$message = $this->_showSimpleMessage("Unable to write urls file `" . $filename . "`", "warning", 'URLs saving', "warning");
 			}
 			$this->jquery->html("#messages", $message, true);
 			echo $this->jquery->compile($this->view);
@@ -379,7 +382,7 @@ trait SeoTrait {
 		if (sizeof($_POST) > 0) {
 			$controllerName = \urldecode($_POST["data"]);
 			if ($this->_deleteController($controllerName)) {
-				$message = $this->showSimpleMessage("Deletion of SEO controller `<b>" . $controllerName . "</b>`", "success", "SEO controller deletion", "remove", 4000);
+				$message = $this->_showSimpleMessage("Deletion of SEO controller `<b>" . $controllerName . "</b>`", "success", "SEO controller deletion", "remove", 4000);
 				$this->jquery->get($this->_getFiles()
 					->getAdminBaseRoute() . "/_seoRefresh", "#frm-seoCtrls", [
 					'hasLoader' => false,
@@ -387,10 +390,10 @@ trait SeoTrait {
 					'jsCallback' => '$("#seo-details").html("");'
 				]);
 			} else {
-				$message = $this->showSimpleMessage("Can not delete SEO controller `" . $controllerName . "`", "warning", "warning");
+				$message = $this->_showSimpleMessage("Can not delete SEO controller `" . $controllerName . "`", "warning", "warning");
 			}
 		} else {
-			$message = $this->showConfMessage("Do you confirm the deletion of SEO controller `<b>" . $controllerName . "</b>`?", "error", "SEO controller deletion", "remove circle", $this->_getFiles()
+			$message = $this->_showConfMessage("Do you confirm the deletion of SEO controller `<b>" . $controllerName . "</b>`?", "error", "SEO controller deletion", "remove circle", $this->_getFiles()
 				->getAdminBaseRoute() . "/_deleteSeoController/{$params[0]}/{$params[1]}", "#messages", \urlencode($controllerName));
 		}
 		$this->loadViewCompo($message);

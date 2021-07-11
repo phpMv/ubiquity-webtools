@@ -21,7 +21,7 @@ class ControllerAction {
 	private $dValues;
 
 	private $annots;
-	
+
 	private $acl;
 
 	private static $excludeds = [
@@ -36,20 +36,18 @@ class ControllerAction {
 		"getView",
 		"message",
 		"loadDefaultView",
-		"getDefaultViewName",
-		"showSimpleMessage",
-		"showConfMessage"
+		"getDefaultViewName"
 	];
 
 	public static $controllers = [];
 
-	public function __construct($controller = "", $action = "", $parameters = [], $dValues = [], $annots = [],$acl=null) {
+	public function __construct($controller = "", $action = "", $parameters = [], $dValues = [], $annots = [], $acl = null) {
 		$this->controller = $controller;
 		$this->action = $action;
 		$this->parameters = $parameters;
 		$this->dValues = $dValues;
 		$this->annots = $annots;
-		$this->acl=$acl;
+		$this->acl = $acl;
 	}
 
 	public static function initWithPath($url) {
@@ -117,7 +115,7 @@ class ControllerAction {
 
 	private static function scanMethod($controllerClass, \ReflectionMethod $method) {
 		$result = null;
-		$methodName=$method->name;
+		$methodName = $method->name;
 		if (\array_search($methodName, self::$excludeds) === false && ! UString::startswith($methodName, "_")) {
 			$annots = Router::getAnnotations($controllerClass, $methodName);
 			$parameters = $method->getParameters();
@@ -127,11 +125,11 @@ class ControllerAction {
 					$defaults[$param->name] = $param->getDefaultValue();
 				}
 			}
-			$acl=null;
-			if(\class_exists('\\Ubiquity\\security\\acl\\AclManager')){
-				$acl=AclManager::getPermissionMap()->getRessourcePermission($controllerClass, $methodName);
+			$acl = null;
+			if (\class_exists('\\Ubiquity\\security\\acl\\AclManager')) {
+				$acl = AclManager::getPermissionMap()->getRessourcePermission($controllerClass, $methodName);
 			}
-			$result = new ControllerAction($controllerClass, $methodName, $parameters, $defaults, $annots,$acl);
+			$result = new ControllerAction($controllerClass, $methodName, $parameters, $defaults, $annots, $acl);
 		}
 		return $result;
 	}
@@ -189,7 +187,9 @@ class ControllerAction {
 	public function getId() {
 		return $this->getPath();
 	}
+
 	/**
+	 *
 	 * @return mixed
 	 */
 	public function getAcl() {
@@ -197,10 +197,10 @@ class ControllerAction {
 	}
 
 	/**
+	 *
 	 * @param mixed $acl
 	 */
 	public function setAcl($acl) {
 		$this->acl = $acl;
 	}
-
 }

@@ -339,9 +339,9 @@ trait ModelsConfigTrait {
 			if (Startup::saveConfig($result)) {
 				$this->config['activeDb'] = $postValues['connection-name'];
 				$this->_saveConfig();
-				$this->showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "opMessage");
+				$this->_showSimpleMessage("The connection has been successfully created!", "positive", "check square", null, "opMessage");
 			} else {
-				$this->showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "opMessage");
+				$this->_showSimpleMessage("Impossible to add this connection.", "negative", "warning circle", null, "opMessage");
 			}
 			$this->reloadConfig($originalConfig);
 		}
@@ -423,7 +423,7 @@ trait ModelsConfigTrait {
 					$db->connect();
 				} catch (\Exception $e) {
 					$isValid = false;
-					$this->showSimpleMessage($e->getMessage(), 'error', 'Connection to database: SQL file importation', 'warning', null, 'opMessage');
+					$this->_showSimpleMessage($e->getMessage(), 'error', 'Connection to database: SQL file importation', 'warning', null, 'opMessage');
 				}
 			}
 			if ($isValid) {
@@ -441,16 +441,16 @@ trait ModelsConfigTrait {
 						if ($db->inTransaction()) {
 							$db->commit();
 						}
-						$this->showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+						$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
 					} catch (\Error $e) {
 						if ($db->inTransaction()) {
 							$db->rollBack();
 						}
-						$this->showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
+						$this->_showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
 					}
 				} else {
 					$db->execute($sql);
-					$this->showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+					$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
 				}
 			}
 

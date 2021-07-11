@@ -32,14 +32,14 @@ trait MaintenanceTrait {
 
 	abstract public function loadView($viewName, $pData = NULL, $asString = false);
 
-	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected function _displayActiveMaintenance(MaintenanceMode $maintenance) {
 		$semantic = $this->jquery->semantic();
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$bt = $semantic->htmlButton('bt-de-activate', 'Activate', 'fluid '.$this->style);
+		$bt = $semantic->htmlButton('bt-de-activate', 'Activate', 'fluid ' . $this->style);
 		if (! \class_exists($maintenance->getController())) {
 			$this->_createNonExistingMaintenanceController($maintenance->getController());
 		}
@@ -52,7 +52,7 @@ trait MaintenanceTrait {
 		$bt->getOnClick($baseRoute . "/_activateMaintenance/" . $maintenance->getId(), "#main-content", [
 			'hasLoader' => 'internal'
 		]);
-		$bt = $semantic->htmlButton('bt-edit-maintenance', 'Edit...', 'fluid '.$this->style);
+		$bt = $semantic->htmlButton('bt-edit-maintenance', 'Edit...', 'fluid ' . $this->style);
 		$bt->addIcon('edit');
 		$bt->getOnClick($baseRoute . '/_frmMaintenance/' . $maintenance->getId(), '#maintenance', [
 			'hasLoader' => 'internal',
@@ -62,7 +62,7 @@ trait MaintenanceTrait {
 		return $this->jquery->renderView('@admin/maintenance/display.html', [
 			'maintenance' => $maintenance,
 			'selectedColor' => $maintenance->getActive() ? 'green' : '',
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		], true);
 	}
 
@@ -83,7 +83,7 @@ trait MaintenanceTrait {
 		} else {
 			$this->config['maintenance']['on'] = false;
 			$this->_initCache('controllers');
-			$this->showSimpleMessage("<b>{$maintenanceId}</b> successfully deactivated!", "success", "Maintenance", "info circle", null, "msgInfo");
+			$this->_showSimpleMessage("<b>{$maintenanceId}</b> successfully deactivated!", "success", "Maintenance", "info circle", null, "msgInfo");
 		}
 
 		$this->_saveConfig();
@@ -153,7 +153,7 @@ trait MaintenanceTrait {
 			'maintenance' => $maintenance,
 			'ports' => implode(',', $maintenance->getPorts()),
 			'urls' => implode(',', $maintenance->getUrls()),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -251,7 +251,7 @@ trait MaintenanceTrait {
 			}
 			$this->maintenance();
 		} else {
-			$message = $this->showConfMessage("Do you confirm the deletion of `<b>" . $idMaintenance . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
+			$message = $this->_showConfMessage("Do you confirm the deletion of `<b>" . $idMaintenance . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
 				->getAdminBaseRoute() . "/_deleteMaintenanceById/{$idMaintenance}", "#main-content", $idMaintenance);
 			$this->jquery->renderView('@admin/main/elements.html', [
 				'compo' => $message
@@ -274,7 +274,7 @@ trait MaintenanceTrait {
 		$bt->setProperty('title', "Stop active maintenance");
 		$bt->asIcon('stop');
 		echo "<div class='ui container' id='maintenance-active' style='display:inline;'>";
-		echo $this->showSimpleMessage('<i class="ui icon ' . $maintenance->getIcon() . '"></i>&nbsp;<b>' . $maintenance->getId() . '</b> maintenance is active.&nbsp;' . $bt, 'compact inverted', null, null, '');
+		echo $this->_showSimpleMessage('<i class="ui icon ' . $maintenance->getIcon() . '"></i>&nbsp;<b>' . $maintenance->getId() . '</b> maintenance is active.&nbsp;' . $bt, 'compact inverted', null, null, '');
 		echo "&nbsp;</div>";
 		$this->jquery->getOnClick("#bt-stop-maintenance", $this->_getFiles()
 			->getAdminBaseRoute() . "/_stopMaintenance/", '#maintenance-active', [

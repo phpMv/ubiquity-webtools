@@ -26,11 +26,11 @@ use Ajax\semantic\html\base\constants\TextAlignment;
  *
  * @property \Ajax\php\ubiquity\JsUtils $jquery
  * @author jcheron <myaddressmail@gmail.com>
- *
+ *        
  */
 trait TranslateTrait {
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected $newTransRowId;
 
@@ -67,7 +67,7 @@ trait TranslateTrait {
 		])
 			->setWidth(8);
 		$input->addAction("Add locale", true, "plus", true)
-			->addClass("teal ".$this->style)
+			->addClass("teal " . $this->style)
 			->asSubmit();
 		$bt = $fields->addButton('bt-delete-translations-cache', 'Remove cache', 'basic red');
 		$bt->setTagName('div')->addIcon('remove');
@@ -122,7 +122,7 @@ trait TranslateTrait {
 		$ck->addClass($this->style);
 		$ck->getField()->setProperty('name', 'ck-all-locales');
 		$input->addAction("Add domain", true, "plus", true)
-			->addClass("teal ".$this->style)
+			->addClass("teal " . $this->style)
 			->asSubmit();
 		$frm->setSubmitParams($baseRoute . "/_addDomain/" . $locale, "#translations-refresh");
 		if (TranslatorManager::cacheExist($locale)) {
@@ -151,12 +151,12 @@ trait TranslateTrait {
 			if (is_array($value)) {
 				$nb = count($value);
 			}
-			$lbl= new HtmlLabel('', $nb, 'mail');
+			$lbl = new HtmlLabel('', $nb, 'mail');
 			return $lbl->addClass($this->style);
 		});
 		$dt->setIdentifierFunction('getDomain');
 		$dt->addEditButton(false, [], function ($bt) use ($locale) {
-			$bt->addClass($locale.' '.$this->style);
+			$bt->addClass($locale . ' ' . $this->style);
 		});
 		$dt->setActiveRowSelector();
 		$dt->onPreCompile(function ($dTable) {
@@ -227,8 +227,10 @@ trait TranslateTrait {
 			});
 		}
 
-		$dt->addDeleteButton(true,[],function($bt){return $bt->addClass($this->style);});
-		$dt->insertDefaultButtonIn(2, 'list', 'basic _multi '.$this->style);
+		$dt->addDeleteButton(true, [], function ($bt) {
+			return $bt->addClass($this->style);
+		});
+		$dt->insertDefaultButtonIn(2, 'list', 'basic _multi ' . $this->style);
 		$dt->setEdition(true);
 		$dt->setUrls([
 			'refresh' => $baseRoute . '/_refreshDomain/' . $locale . '/' . $domain
@@ -301,7 +303,7 @@ trait TranslateTrait {
 		$dd = $this->jquery->semantic()->htmlDropdown('dd-locales-' . $locale, 'Compare to...', \array_combine($locales, $locales));
 		$dd->addInput('compareTo');
 		$dd->asButton();
-		$dd->addClass('basic '.$this->style);
+		$dd->addClass('basic ' . $this->style);
 		$dd->onClick('$("#compare-to-' . $locale . '").removeClass("disabled");');
 		$dd->setLibraryId('dd-locales');
 		$messages = $this->getMessagesDomain($locale, $domain);
@@ -348,7 +350,7 @@ trait TranslateTrait {
 		$this->jquery->renderView('@admin/translate/domain.html', [
 			'locale' => $locale,
 			'domain' => $domain,
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -521,7 +523,7 @@ trait TranslateTrait {
 				$messagesUpdates->delete();
 			} catch (\Exception $e) {}
 		}
-		$this->jquery->html('#messages', $this->showSimpleMessage("Modifications saved for domain {$domain} of locale {$locale}.", 'success', 'Saving modifications', 'save'), true);
+		$this->jquery->html('#messages', $this->_showSimpleMessage("Modifications saved for domain {$domain} of locale {$locale}.", 'success', 'Saving modifications', 'save'), true);
 		$this->_loadDomain($locale, $domain);
 	}
 
@@ -599,14 +601,14 @@ trait TranslateTrait {
 		foreach ($locales as $locale) {
 			TranslatorManager::getCatalogue($locale);
 		}
-		self::showSimpleMessage("Cache loaded for locales:" . new HtmlList('', $locales), 'success', 'CacheManager', 'refresh', null, 'msgGlobal');
+		$this->_showSimpleMessage("Cache loaded for locales:" . new HtmlList('', $locales), 'success', 'CacheManager', 'refresh', null, 'msgGlobal');
 		$this->_translate(URequest::getDefaultLanguage(), $this->_getFiles()
 			->getAdminBaseRoute());
 	}
 
 	public function _deleteTranslationCache() {
 		CacheFile::delete(\ROOT . \DS . CacheManager::getCacheDirectory() . 'translations');
-		self::showSimpleMessage("Cache deleted for all locales", 'success', 'CacheManager', 'remove', null, 'msgGlobal');
+		$this->_showSimpleMessage("Cache deleted for all locales", 'success', 'CacheManager', 'remove', null, 'msgGlobal');
 		$this->_translate(URequest::getDefaultLanguage(), $this->_getFiles()
 			->getAdminBaseRoute());
 	}

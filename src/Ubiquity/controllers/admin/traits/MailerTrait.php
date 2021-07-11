@@ -30,9 +30,7 @@ trait MailerTrait {
 
 	abstract public function loadView($viewName, $pData = NULL, $asString = false);
 
-	abstract protected function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
-
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected $defaultMailerConfigs = [
 		'Google' => [
@@ -140,7 +138,7 @@ trait MailerTrait {
 			'disabled' => $disabled ? 'disabled' : '',
 			'class' => $mailerClass,
 			'queue' => true,
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -156,7 +154,9 @@ trait MailerTrait {
 			'jsCallback' => $jsClose
 		]);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewSeeMailForm(),['inverted'=>$this->style]);
+			->getViewSeeMailForm(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	public function _editSentMail($index) {
@@ -379,7 +379,9 @@ trait MailerTrait {
 		$this->jquery->click('#cancel-btn', '$("#frm").html("");', false);
 		$this->jquery->click('td', '$(this).closest("tr").find("input[type=radio]")[0].click();', false, false, true);
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerDefinePeriod(), $this->getQueuePeriodeValues($qp)+['inverted'=>$this->style]);
+			->getViewMailerDefinePeriod(), $this->getQueuePeriodeValues($qp) + [
+			'inverted' => $this->style
+		]);
 	}
 
 	private function queuePeriodToString($qp) {
@@ -587,7 +589,7 @@ trait MailerTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewNewMailerFrm(), [
 			"mailerNS" => MailerManager::getNamespace(),
-			'inverted'=>$this->style
+			'inverted' => $this->style
 		]);
 	}
 
@@ -630,7 +632,7 @@ trait MailerTrait {
 		$configs = \array_keys($this->defaultMailerConfigs);
 		$dd = $this->jquery->semantic()->htmlDropdown('btDefaultConfig', 'Add default config', \array_combine($configs, $configs));
 		$dd->addClass($this->style);
-		$dd->asButton(true)->setColor('olive '.$this->style);
+		$dd->asButton(true)->setColor('olive ' . $this->style);
 		$dd->addIcons($this->getDefaultMailerConfigIcons());
 		$this->jquery->postFormOnClick('#btDefaultConfig a.item', $baseRoute . '/_applyConfig', 'frmConfig', '#frmMailerConfig', [
 			'hasLoader' => false,
@@ -651,7 +653,9 @@ trait MailerTrait {
 		]);
 
 		$this->jquery->renderView($this->_getFiles()
-			->getViewMailerConfig(),['inverted'=>$this->style]);
+			->getViewMailerConfig(), [
+			'inverted' => $this->style
+		]);
 	}
 
 	private function getConfigPartFrmDataForm($config, $identifier = 'frmMailerConfig') {
@@ -691,12 +695,12 @@ trait MailerTrait {
 		$this->removeEmpty($result);
 		try {
 			if (MailerManager::saveConfig($result)) {
-				$msg = $this->showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "Configuration", "check square", null, "msgConfig");
 			} else {
-				$msg = $this->showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
+				$msg = $this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "Configuration", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$msg = $this->showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
+			$msg = $this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "Configuration", "warning circle", null, "msgConfig");
 		}
 		$this->jquery->execAtLast('$("._menu").removeClass("disabled");');
 		$this->loadViewCompo($msg);

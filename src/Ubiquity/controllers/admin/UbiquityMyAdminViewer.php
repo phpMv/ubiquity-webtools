@@ -204,7 +204,7 @@ class UbiquityMyAdminViewer {
 			$errors = \array_merge($errors, $route->getMessages());
 		}
 		if (\sizeof($errors) > 0) {
-			$messages = $this->controller->showSimpleMessage($errors, "error", "Error", "warning");
+			$messages = $this->controller->_showSimpleMessage($errors, "error", "Error", "warning");
 		}
 		$dt = $this->jquery->semantic()->dataTable($dtName, "Ubiquity\controllers\admin\popo\Route", $routes);
 		$dt->setIdentifierFunction(function ($i, $instance) {
@@ -1281,7 +1281,7 @@ class UbiquityMyAdminViewer {
 				$tab->menuTab->addLabel("error")
 					->setColor("red")
 					->addIcon("warning sign");
-				$tab->addContent($this->controller->showSimpleMessage(\array_values($errors), "error", null, "warning"), true);
+				$tab->addContent($this->controller->_showSimpleMessage(\array_values($errors), "error", null, "warning"), true);
 			}
 			if ($doc !== "") {
 				$tab->menuTab->addIcon("help circle blue")->onClick("$('#" . $doc->getIdentifier() . "').transition('horizontal flip');");
@@ -2220,9 +2220,9 @@ class UbiquityMyAdminViewer {
 
 	public function displayViolations($instancesViolations) {
 		if (($nb = \count($instancesViolations)) == 0) {
-			echo $this->controller->showSimpleMessage('No violations!', 'success', 'Instances validation', 'check');
+			echo $this->controller->_showSimpleMessage('No violations!', 'success', 'Instances validation', 'check');
 		} else {
-			echo $this->controller->showSimpleMessage($nb . ' instance(s) with violations!', 'warning', 'Instances validation', 'exclamation triangle');
+			echo $this->controller->_showSimpleMessage($nb . ' instance(s) with violations!', 'warning', 'Instances validation', 'exclamation triangle');
 			$dt = new DataTable('dtInstancesViolations', InstanceViolations::class, InstanceViolations::initFromArray($instancesViolations));
 			$dt->setFields([
 				'instance',

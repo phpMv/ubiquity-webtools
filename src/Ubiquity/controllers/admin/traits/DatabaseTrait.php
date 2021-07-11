@@ -27,8 +27,6 @@ trait DatabaseTrait {
 
 	abstract public function loadView($viewName, $pData = NULL, $asString = false);
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
-
 	protected function getModels() {
 		$db = $this->getActiveDb();
 		$config = Startup::getConfig();

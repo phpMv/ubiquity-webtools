@@ -20,7 +20,7 @@ use Ajax\semantic\html\elements\html5\HtmlDatalist;
  */
 trait ComposerTrait {
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	protected $libraries = [
 		'require' => [
@@ -325,7 +325,7 @@ trait ComposerTrait {
 	}
 
 	public function _refreshComposer() {
-		$this->showSimpleMessage("<b>Composer</b> successfully updated!", "success", "Composer", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("<b>Composer</b> successfully updated!", "success", "Composer", "info circle", null, "msgInfo");
 		$this->getComposerDataTable();
 		$this->jquery->renderView($this->_getFiles()
 			->getViewExecComposer());

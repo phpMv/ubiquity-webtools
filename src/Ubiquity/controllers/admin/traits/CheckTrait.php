@@ -40,7 +40,7 @@ trait CheckTrait {
 
 	abstract protected function displayModelsMessages($type, $messagesToDisplay);
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	abstract public function _isModelsCompleted();
 
@@ -58,7 +58,7 @@ trait CheckTrait {
 		\ob_start();
 		(new DbModelsCreator())->create($config, false, $singleTable, $offset);
 		$result = \ob_get_clean();
-		$message = $this->showSimpleMessage("", "success", "Models creation", "check mark", null, "msg-create-models");
+		$message = $this->_showSimpleMessage("", "success", "Models creation", "check mark", null, "msg-create-models");
 		$message->addList(\explode("\n", \str_replace("\n\n", "\n", \trim($result))));
 		$this->models(true);
 		echo $message;

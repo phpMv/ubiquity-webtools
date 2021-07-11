@@ -10,11 +10,11 @@ use Ubiquity\utils\http\URequest;
  *
  * @property \Ajax\JsUtils $jquery
  * @author jcheron <myaddressmail@gmail.com>
- *
+ *        
  */
 trait ThemesTrait {
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	abstract public function _saveConfig();
 
@@ -45,13 +45,13 @@ trait ThemesTrait {
 		echo $this->showConsoleMessage($output, "Theme creation", $hasError);
 		if (! $hasError) {
 			if ($run === false) {
-				echo $this->showSimpleMessage("Command executed with errors", "error", "Theme creation", "warning circle");
+				echo $this->_showSimpleMessage("Command executed with errors", "error", "Theme creation", "warning circle");
 			} else {
 				$msg = sprintf("Theme <b>%s</b> successfully created !", $themeName);
 				if ($extend != null) {
 					$msg = sprintf("Theme <b>%s</b> based on <b>%s</b> successfully created !", $themeName, $extend);
 				}
-				echo $this->showSimpleMessage($msg, "success", "Theme creation", "check square outline");
+				echo $this->_showSimpleMessage($msg, "success", "Theme creation", "check square outline");
 			}
 		}
 
@@ -69,10 +69,10 @@ trait ThemesTrait {
 			echo $this->showConsoleMessage($output, "Theme installation", $hasError);
 			if (! $hasError) {
 				if ($run === false) {
-					echo $this->showSimpleMessage("Command executed with errors", "error", "Theme installation", "warning circle");
+					echo $this->_showSimpleMessage("Command executed with errors", "error", "Theme installation", "warning circle");
 				} else {
 					$msg = sprintf("Theme <b>%s</b> successfully installed !", $themeName);
-					echo $this->showSimpleMessage($msg, "success", "Theme installation", "check square outline");
+					echo $this->_showSimpleMessage($msg, "success", "Theme installation", "check square outline");
 				}
 			}
 		}
@@ -106,7 +106,7 @@ trait ThemesTrait {
 			$res = $this->showConsoleMessage(\nl2br(\str_replace("\n\n", "\n", $return_var)), "Ubiquity devtools", $hasError, "success", "check square");
 			$this->jquery->exec('$("._checkDevtools").toggleClass("green check square",true);$("._checkDevtools").toggleClass("red warning circle",false);$(".devtools-related").dimmer("hide");', true);
 		} else {
-			$res = $this->showSimpleMessage(sprintf("Devtools are not available at %s", $path), "error", 'Devtools command path', 'warning circle');
+			$res = $this->_showSimpleMessage(sprintf("Devtools are not available at %s", $path), "error", 'Devtools command path', 'warning circle');
 			$this->jquery->exec('$("._checkDevtools").toggleClass("green check square",false);$("._checkDevtools").toggleClass("red warning circle",true);$(".devtools-related").dimmer("show").dimmer({closable:false});', true);
 		}
 		return $res;
@@ -120,7 +120,7 @@ trait ThemesTrait {
 				$icon = "warning circle";
 				$hasError = true;
 			}
-			return $this->showSimpleMessage($originalMessage, $type, $title, $icon);
+			return $this->_showSimpleMessage($originalMessage, $type, $title, $icon);
 		}
 	}
 

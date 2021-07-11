@@ -24,18 +24,18 @@ use Ubiquity\controllers\admin\traits\acls\AclUses;
  */
 trait AclsTrait {
 
-	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	abstract protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "");
 
 	protected function _getAclTabs() {
 		$tab = $this->jquery->semantic()->htmlTab('acls');
 		$tab->getMenu()->addClass($this->style);
-		$this->addTab($tab, AclManager::getAcls(), 'Acls', '_getAclElementsDatatable',$this->style);
-		$this->addTab($tab, AclManager::getPermissionMap()->getObjectMap(), 'Map', '_getPermissionMapDatatable',$this->style);
-		$this->addTab($tab, AclManager::getRoles(), 'Roles', '_getRolesDatatable',$this->style);
-		$this->addTab($tab, AclManager::getResources(), 'Resources', '_getResourcesDatatable',$this->style);
-		$this->addTab($tab, AclManager::getPermissions(), 'Permissions', '_getPermissionsDatatable',$this->style);
+		$this->addTab($tab, AclManager::getAcls(), 'Acls', '_getAclElementsDatatable', $this->style);
+		$this->addTab($tab, AclManager::getPermissionMap()->getObjectMap(), 'Map', '_getPermissionMapDatatable', $this->style);
+		$this->addTab($tab, AclManager::getRoles(), 'Roles', '_getRolesDatatable', $this->style);
+		$this->addTab($tab, AclManager::getResources(), 'Resources', '_getResourcesDatatable', $this->style);
+		$this->addTab($tab, AclManager::getPermissions(), 'Permissions', '_getPermissionsDatatable', $this->style);
 		$this->jquery->postOnClick('._delete', $this->_getFiles()
 			->getAdminBaseRoute() . '/_removeAcl', '{class: $(event.target).closest("tr").attr("data-class"),id:$(event.target).closest("button").attr("data-ajax")}', '#response', [
 			'hasLoader' => 'internal'
@@ -81,7 +81,7 @@ trait AclsTrait {
 			}
 		} else {
 			$class = \urldecode($_POST["class"]);
-			$conf = $this->showConfMessage('Do you want to delete the instance <b>' . \urldecode($_POST['id']) . '</b> of ' . $class, 'error', 'Acl removing confirmation', 'alert', $baseRoute . '/_removeAcl', "#response", \json_encode([
+			$conf = $this->_showConfMessage('Do you want to delete the instance <b>' . \urldecode($_POST['id']) . '</b> of ' . $class, 'error', 'Acl removing confirmation', 'alert', $baseRoute . '/_removeAcl', "#response", \json_encode([
 				'id' => \urldecode($_POST['id']),
 				'class' => \str_replace('\\', '\\\\', \urldecode($_POST['class']))
 			]), [
@@ -101,7 +101,7 @@ trait AclsTrait {
 		$sStarter->addService('aclManager');
 		$sStarter->save();
 		Startup::reloadServices();
-		$this->showSimpleMessage("Service <b>aclManager</b> successfully started!", "success", "Services", "info circle", null, "msgInfo");
+		$this->_showSimpleMessage("Service <b>aclManager</b> successfully started!", "success", "Services", "info circle", null, "msgInfo");
 		$this->acls();
 	}
 
@@ -140,7 +140,7 @@ trait AclsTrait {
 	public function _newAclController() {
 		$modal = $this->jquery->semantic()->htmlModal("modalNewAcl", "Creating a new Acl controller");
 		$frm = $this->jquery->semantic()->htmlForm("frmNewAcl");
-		
+
 		$fc = $frm->addField('controllerName')->addRules([
 			'empty',
 			[
@@ -200,13 +200,13 @@ trait AclsTrait {
 			$path = URequest::post("path", null);
 			$variables["%path%"] = $path;
 			if (isset($path) && $path != null) {
-				$uses=new AclUses();
-				$variables["%routePath%"]=$path;
+				$uses = new AclUses();
+				$variables["%routePath%"] = $path;
 				$variables["%route%"] = CacheManager::getAnnotationsEngineInstance()->getAnnotation($uses, 'route', [
 					'path' => $path,
 					'automated' => true
 				])->asAnnotation();
-				$variables['%uses%']=$uses->getUsesStr();
+				$variables['%uses%'] = $uses->getUsesStr();
 				$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
 					->getAdminBaseRoute() . "/_initCacheRouter/0", "#response", [
 					"dataType" => "html",
@@ -215,7 +215,7 @@ trait AclsTrait {
 				]);
 			}
 
-			$resp = $this->_createController($_POST["controllerName"], $variables, 'aclController.tpl',isset($_POST['ck-add-view']));
+			$resp = $this->_createController($_POST["controllerName"], $variables, 'aclController.tpl', isset($_POST['ck-add-view']));
 
 			$this->loadViewCompo($resp);
 		}

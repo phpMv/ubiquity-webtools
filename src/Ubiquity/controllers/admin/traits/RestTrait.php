@@ -43,7 +43,7 @@ trait RestTrait {
 	 * @param string $staticName
 	 * @return HtmlMessage
 	 */
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function _initRestCache($refresh = true) {
 		$config = Startup::getConfig();
@@ -51,7 +51,7 @@ trait RestTrait {
 		CacheManager::initCache($config, "rest");
 		CacheManager::initCache($config, "controllers");
 		$message = \ob_get_clean();
-		echo $this->showSimpleMessage(\nl2br($message), "info", "Rest", "info", 4000);
+		echo $this->_showSimpleMessage(\nl2br($message), "info", "Rest", "info", 4000);
 		if ($refresh === true)
 			$this->_refreshRest(true);
 		echo $this->jquery->compile($this->view);
@@ -64,10 +64,10 @@ trait RestTrait {
 			if (\sizeof($restRoutes) > 0) {
 				$result = $this->_getAdminViewer()->getRestRoutesTab($restRoutes);
 			} else {
-				$result = $this->showSimpleMessage("No resource Rest found. You can add a new resource.", "", "Rest", "warning circle", null, "tabsRest");
+				$result = $this->_showSimpleMessage("No resource Rest found. You can add a new resource.", "", "Rest", "warning circle", null, "tabsRest");
 			}
 		} catch (UbiquityException $e) {
-			$result .= $this->showSimpleMessage(\nl2br($e->getMessage()), "error", "Rest error", "warning circle", null, "tabsRest");
+			$result .= $this->_showSimpleMessage(\nl2br($e->getMessage()), "error", "Rest error", "warning circle", null, "tabsRest");
 		}
 		$this->_addRestDataTableBehavior();
 		if ($refresh) {
@@ -136,7 +136,7 @@ trait RestTrait {
 
 	protected function _displayActionDoc($controller, $action) {
 		$docParser = DocParser::docMethodParser($controller, $action);
-		$msg = $this->showSimpleMessage($docParser->getDescriptionAsHtml(), "", "", "help circle blue", null, "msg-help-" . $action . $controller);
+		$msg = $this->_showSimpleMessage($docParser->getDescriptionAsHtml(), "", "", "help circle blue", null, "msg-help-" . $action . $controller);
 		$msg->addHeader("Method " . $action);
 		$msg->addList($docParser->getMethodParamsReturnAsHtml());
 		$msg->addClass("hidden transition");

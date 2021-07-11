@@ -29,7 +29,7 @@ class AdminScaffoldController extends ScaffoldController {
 	}
 
 	public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null) {
-		return $this->controller->showSimpleMessage($content, $type, $title, $icon, $timeout, $staticName);
+		return $this->controller->_showSimpleMessage($content, $type, $title, $icon, $timeout, $staticName);
 	}
 
 	protected function _addMessageForRouteCreation($path, $jsCallback = "") {

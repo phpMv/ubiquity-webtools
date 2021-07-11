@@ -45,9 +45,9 @@ trait ModelsTrait {
 
 	abstract public function _getFiles();
 
-	abstract public function showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
+	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	abstract public function showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
+	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 
 	public function _showModel($oModel, $id = null) {
 		$model = \str_replace(".", "\\", $oModel);
@@ -116,7 +116,7 @@ trait ModelsTrait {
 			}
 			$this->_getAdminViewer()->displayViolations($result);
 		} else {
-			echo $this->showSimpleMessage("{$model} class does not exists!", "Instances validation", "error", 'error');
+			echo $this->_showSimpleMessage("{$model} class does not exists!", "Instances validation", "error", 'error');
 		}
 	}
 
@@ -280,7 +280,7 @@ trait ModelsTrait {
 				->setType("error")
 				->setIcon("warning circle");
 		}
-		echo $this->_showSimpleMessage($message, "updateMsg", true);
+		echo $this->_showSimpleMessage_($message, "updateMsg", true);
 		echo $this->jquery->compile($this->view);
 	}
 
@@ -292,7 +292,7 @@ trait ModelsTrait {
 		if (isset($instance)) {
 			return $instance;
 		}
-		echo $this->showSimpleMessage("This object does not exist!", "warning", "Get object", "warning circle");
+		echo $this->_showSimpleMessage("This object does not exist!", "warning", "Get object", "warning circle");
 		echo $this->jquery->compile($this->view);
 		exit(1);
 	}
@@ -305,14 +305,14 @@ trait ModelsTrait {
 			$instanceString = get_class($instance);
 		if (\count($_POST) > 0) {
 			if (DAO::remove($instance)) {
-				$message = $this->showSimpleMessage("Deletion of `<b>" . $instanceString . "</b>`", "info", "Deletion", "info", null, null, null, true);
+				$message = $this->_showSimpleMessage("Deletion of `<b>" . $instanceString . "</b>`", "info", "Deletion", "info", null, null, null, true);
 				$this->jquery->exec("$('tr[data-ajax={$ids}]').remove();", true);
 				$this->updateModelCount(\get_class($instance));
 			} else {
-				$message = $this->showSimpleMessage("Can not delete `" . $instanceString . "`", "warning", "Error", "warning");
+				$message = $this->_showSimpleMessage("Can not delete `" . $instanceString . "`", "warning", "Error", "warning");
 			}
 		} else {
-			$message = $this->showConfMessage("Do you confirm the deletion of `<b>" . $instanceString . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
+			$message = $this->_showConfMessage("Do you confirm the deletion of `<b>" . $instanceString . "</b>`?", "error", "Remove confirmation", "question circle", $this->_getFiles()
 				->getAdminBaseRoute() . "/_deleteModel/{$ids}", "#table-messages", $ids);
 		}
 		$this->loadViewCompo($message);
@@ -366,7 +366,7 @@ trait ModelsTrait {
 				$menu->onClick("$('.ui.label.left.pointing.teal').removeClass('left pointing teal');$(this).find('.ui.label').addClass('left pointing teal');");
 			} catch (\Exception $e) {
 				throw $e;
-				$this->showSimpleMessage("Models cache is not created!&nbsp;", "error", "Exception", "warning circle", null, "errorMsg");
+				$this->_showSimpleMessage("Models cache is not created!&nbsp;", "error", "Exception", "warning circle", null, "errorMsg");
 			}
 			$this->_checkModelsUpdates($config, false);
 
