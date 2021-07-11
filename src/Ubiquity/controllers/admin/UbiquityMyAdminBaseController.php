@@ -574,20 +574,23 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			->addClass("teal " . $this->style)
 			->asSubmit();
 		$input->addClass($this->style);
-		$frm->setSubmitParams($baseRoute . "/createController", "#main-content");
+		$frm->setSubmitParams($baseRoute . "/createController", "#main-content", [
+			'hasLoader' => 'internal'
+		]);
 		$activeTheme = ThemesManager::getActiveTheme();
 
 		$bt = $fields->addDropdown("crud-bt", [
-			"_frmAddCrudController" => "CRUD controller",
-			"_frmAddAuthController" => "Auth controller"
-		], "Create special controller");
+			'_frmAddIndexCrudController' => 'Index CRUD controller',
+			'_frmAddCrudController' => 'CRUD controller',
+			'_frmAddAuthController' => 'Auth controller'
+		], 'Create special controller');
 		$bt->getField()->addClass($this->style);
 		$bt->asButton();
 
-		$bt->addIcon("plus");
+		$bt->addIcon('plus');
 		if ($activeTheme == null) {
-			$this->jquery->getOnClick("#dropdown-crud-bt [data-value]", $baseRoute, "#frm", [
-				"attr" => "data-value",
+			$this->jquery->getOnClick('#dropdown-crud-bt [data-value]', $baseRoute, '#frm', [
+				'attr' => 'data-value',
 				'hasLoader' => 'internal-x'
 			]);
 		} else {
@@ -1432,7 +1435,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 						if ($keys[$i] != null)
 							$postParams[$keys[$i]] = $values[$i];
 					}
-					if (\sizeof($postParams) > 0) {
+					if (\count($postParams) > 0) {
 						$this->_setPostCookie(\json_encode($postParams));
 					}
 				} else {
@@ -1442,7 +1445,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 			$modal = $this->jquery->semantic()->htmlModal("rModal", \strtoupper($method) . ":" . $url);
 			$params = $this->getRequiredRouteParameters($url, $newParams);
-			if (\sizeof($params) > 0) {
+			if (\count($params) > 0) {
 				$toPost = \array_merge($postParams, [
 					"method" => $method,
 					"url" => $url
@@ -1463,6 +1466,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					->getAdminBaseRoute() . "/_runAction/frmGetParams", "#modal", [
 					"params" => \json_encode($toPost)
 				]);
+				$frm->setStyle($this->style);
 				$modal->setContent($frm);
 				$modal->addAction("Validate");
 				$this->jquery->click("#action-rModal-0", "$('#frmGetParams').form('submit');");

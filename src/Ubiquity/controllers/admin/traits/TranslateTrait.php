@@ -124,7 +124,9 @@ trait TranslateTrait {
 		$input->addAction("Add domain", true, "plus", true)
 			->addClass("teal " . $this->style)
 			->asSubmit();
-		$frm->setSubmitParams($baseRoute . "/_addDomain/" . $locale, "#translations-refresh");
+		$frm->setSubmitParams($baseRoute . "/_addDomain/" . $locale, "#translations-refresh", [
+			'hasLoader' => 'internal'
+		]);
 		if (TranslatorManager::cacheExist($locale)) {
 			$bt = $fields->addButton('bt-delete-translations-cache-' . $locale, null, 'basic red');
 			$bt->setTagName('div')->asIcon('remove');
