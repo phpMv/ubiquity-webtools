@@ -581,7 +581,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$bt = $fields->addDropdown("crud-bt", [
 			'_frmAddIndexCrudController' => 'Index CRUD controller',
-			'_frmAddCrudController' => 'CRUD controller',
+			'_frmAddCrudController' => 'Resource CRUD controller',
 			'_frmAddAuthController' => 'Auth controller'
 		], 'Create special controller');
 		$bt->getField()->addClass($this->style);
