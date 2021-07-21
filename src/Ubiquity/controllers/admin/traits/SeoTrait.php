@@ -108,14 +108,15 @@ trait SeoTrait {
 		$dtCtrl->setHasCheckboxes(true);
 		$dtCtrl->setSubmitParams($baseRoute . '/_generateRobots', "#messages", [
 			'attr' => '',
-			'ajaxTransition' => 'random'
+			'hasLoader' => false
 		]);
 		$dtCtrl->addErrorMessage();
 		$dtCtrl->addExtraFieldRule('selection[]', 'minCount', 'You must select at least one SEO controller!', 1);
 
 		$dtCtrl->setActiveRowSelector('olive');
 		$this->jquery->getOnClick("._see", $baseRoute . "/_seeSeoUrl", "#messages", [
-			"attr" => "data-ajax"
+			"attr" => "data-ajax",
+			'hasLoader'=>'internal'
 		]);
 		$dtCtrl->setEmptyMessage($this->_showSimpleMessage("<p>No SEO controller available!</p><a class='ui teal button addNewSeo'><i class='ui sitemap icon'></i>Add a new one...</a>", "teal", "SEO Controllers", "info circle"));
 		$this->_setStyle($dtCtrl);
@@ -178,7 +179,8 @@ trait SeoTrait {
 			$dt->asForm();
 			$dt->setSubmitParams($this->_getFiles()
 				->getAdminBaseRoute() . '/_saveUrls', '#seo-details', [
-				'attr' => ''
+				'attr' => '',
+				'hasLoader'=>'internal'
 			]);
 			$this->_setStyle($dt);
 			$this->jquery->execOn('click', '#saveUrls', '$("#frm-dtSiteMap").form("submit");');
@@ -241,8 +243,9 @@ trait SeoTrait {
 
 	public function _newSeoController() {
 		$modal = $this->jquery->semantic()->htmlModal("modalNewSeo", "Creating a new Seo controller");
-		$modal->setInverted();
+		$modal->addClass($this->style);
 		$frm = $this->jquery->semantic()->htmlForm("frmNewSeo");
+		$frm->addClass($this->style);
 		$fc = $frm->addField('controllerName')->addRules([
 			'empty',
 			[
