@@ -619,7 +619,7 @@ trait TranslateTrait {
 		TranslatorManager::start();
 		TranslatorManager::clearLocaleCache($locale);
 		TranslatorManager::getCatalogue($locale);
-		self::showSimpleMessage("Cache loaded for locale <b>{$locale}</b>", 'success', 'CacheManager', 'refresh', null, 'msgGlobal');
+		self::_showSimpleMessage("Cache loaded for locale <b>{$locale}</b>", 'success', 'CacheManager', 'refresh', null, 'msgGlobal');
 		$this->_translate($locale, $this->_getFiles()
 			->getAdminBaseRoute());
 	}
@@ -627,7 +627,7 @@ trait TranslateTrait {
 	public function _deleteTranslationLocaleCache($locale) {
 		TranslatorManager::start();
 		TranslatorManager::clearLocaleCache($locale);
-		self::showSimpleMessage("Cache deleted for locale <b>{$locale}</b>", 'success', 'CacheManager', 'remove', null, 'msgGlobal');
+		self::_showSimpleMessage("Cache deleted for locale <b>{$locale}</b>", 'success', 'CacheManager', 'remove', null, 'msgGlobal');
 		$this->_translate($locale, $this->_getFiles()
 			->getAdminBaseRoute());
 	}
