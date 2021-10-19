@@ -31,6 +31,7 @@ use Ubiquity\controllers\admin\popo\InstanceViolations;
 use Ubiquity\controllers\admin\popo\RepositoryGit;
 use Ubiquity\controllers\admin\popo\Route;
 use Ubiquity\db\Database;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\log\HtmlLogFormatter;
 use Ubiquity\log\LogMessage;
 use Ubiquity\log\Logger;
@@ -1006,7 +1007,7 @@ class UbiquityMyAdminViewer {
 	public function getActionViews($controllerFullname, $controller, $action, \ReflectionMethod $r, $lines) {
 		$result = [];
 		$loadedViews = UIntrospection::getLoadedViews($r, $lines);
-		$templateEngine = Startup::getTemplateEngineInstance();
+		$templateEngine = Startup::$templateEngine;
 		foreach ($loadedViews as $view) {
 			if ($templateEngine->exists($view)) {
 				$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $view, null, "browser", "span");
@@ -1020,7 +1021,8 @@ class UbiquityMyAdminViewer {
 			$result[] = $lbl;
 		}
 		$viewname = $controller . "/" . $action . ".html";
-		if (! \file_exists(\ROOT . \DS . "views" . \DS . $viewname)) {
+		$viewFolder=DDDManager::getActiveViewFolder();
+		if (! \file_exists($viewFolder . $viewname)) {
 			$bt = new HtmlButton("");
 			$bt->setProperty("data-action", $action);
 			$bt->setProperty("data-controller", $controller);

@@ -2,6 +2,7 @@
 namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\php\ubiquity\JsUtils;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\orm\DAO;
 use Ajax\service\JString;
@@ -280,7 +281,7 @@ trait ModelsTrait {
 				->setType("error")
 				->setIcon("warning circle");
 		}
-		echo $this->showSimpleMessage_($message, "updateMsg", true);
+		echo $this->_showSimpleMessage_($message, "updateMsg", true);
 		echo $this->jquery->compile($this->view);
 	}
 
@@ -336,13 +337,20 @@ trait ModelsTrait {
 	public function _modelDatabase($hasHeader = true, $update = false, $databaseOffset = 'default') {
 		$semantic = $this->jquery->semantic();
 		if ($update !== false) {
-			$this->config['activeDb'] = $databaseOffset;
+			$domain=$this->getActiveDomain();
+			if(DDDManager::hasDomains()) {
+				$this->config['activeDb']=[$domain=> $databaseOffset];
+			}else{
+				$this->config['activeDb'] = $databaseOffset;
+			}
 			$this->_saveConfig();
 		}
 		if (($hasHeader = UString::isBooleanTrue($hasHeader))) {
 			$stepper = $this->_getModelsStepper();
 		}
+
 		if ($this->_isModelsCompleted() || $hasHeader !== true) {
+
 			$config = Startup::getConfig();
 			try {
 				$models = CacheManager::getModels($config, true, $databaseOffset);
@@ -377,6 +385,7 @@ trait ModelsTrait {
 			]);
 		} else {
 			echo $stepper;
+			echo "<div id='temp-form'></div>";
 			echo "<div id='models-main'>";
 			echo $this->jquery->semantic()->getHtmlComponent('opMessage');
 			$this->_loadModelStep();

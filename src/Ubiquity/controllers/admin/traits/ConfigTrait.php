@@ -3,6 +3,7 @@ namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ubiquity\controllers\Startup;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\base\UString;
@@ -12,7 +13,7 @@ use Ubiquity\orm\DAO;
 /**
  *
  * @author jc
- * @property \Ajax\JsUtils $jquery
+ * @property \Ajax\php\Ubiquity\JsUtils $jquery
  * @property \Ubiquity\views\View $view
  */
 trait ConfigTrait {
@@ -239,5 +240,18 @@ trait ConfigTrait {
 		$this->jquery->execAtLast('$("#db-' . $n . 'status").popup("show");');
 		echo $icon;
 		echo $this->jquery->compile($this->view);
+	}
+	
+	public function _domainFrm(){
+		$frm=$this->jquery->semantic()->htmlForm('frm-domain');
+		$fields=$frm->addFields();
+		$base=DDDManager::getBase();
+		$input=$fields->addInput('base','Base for all domains','text','domains','Enter a folder ');
+		if(\count(DDDManager::getDomains())>0){
+			$input->setDisabled(true);
+		}
+		$input=$fields->addInput('name','Domain name','text','','Enter a new name for your domain');
+		$input->setFluid();
+		$this->jquery->renderView($this->_getFiles()->getViewDomainForm());
 	}
 }

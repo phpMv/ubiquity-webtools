@@ -235,4 +235,8 @@ class UbiquityMyAdminFiles {
 	public function getViewAclsIndex() {
 		return $this->viewBase . "/acls/index.html";
 	}
+
+	public function getViewDomainForm(){
+		return $this->viewBase . "/config/domainFrm.html";
+	}
 }

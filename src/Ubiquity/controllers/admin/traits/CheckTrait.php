@@ -2,6 +2,7 @@
 namespace Ubiquity\controllers\admin\traits;
 
 use Ubiquity\controllers\Startup;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\orm\DAO;
 use Ubiquity\utils\base\UString;
 use Ubiquity\cache\CacheManager;
@@ -99,7 +100,7 @@ trait CheckTrait {
 				$this->checkModels($config);
 				if ($this->engineering === "forward") {
 					$modelsWithoutTable = $this->getModelsWithoutTable($config, $activeDb);
-					if (sizeof($modelsWithoutTable) > 0) {
+					if (\count($modelsWithoutTable) > 0) {
 						foreach ($modelsWithoutTable as $model) {
 							$table = Reflexion::getTableName($model);
 							$this->_addErrorMessage("warning", "The table <b>" . $table . "</b> does not exists for the model <b>" . $model . "</b>.");
@@ -133,7 +134,7 @@ trait CheckTrait {
 
 	protected function checkModels($config, $infoIcon = "sticky note") {
 		if ($this->missingKeyInConfigMessage("Models namespace is not well configured in <b>app/config/config.php</b>", Startup::checkModelsConfig()) === false) {
-			$modelsNS = @$config["mvcNS"]["models"];
+			$modelsNS = Startup::getNS('models');
 			$this->_addInfoMessage($infoIcon, "Models namespace <b>" . $modelsNS . "</b> is ok.");
 			$dir = UFileSystem::cleanPathname(\ROOT . \DS . $modelsNS);
 			if (\file_exists($dir) === false) {
@@ -148,7 +149,7 @@ trait CheckTrait {
 					foreach ($models as $model) {
 						$r = new \ReflectionClass($model);
 						$ns = $r->getNamespaceName();
-						if (! UString::startswith($ns, $modelsNS)) {
+						if (! UString::startswith($ns.'\\', $modelsNS)) {
 							$this->_addErrorMessage("warning", "The namespace <b>" . $ns . "</b> would start with <b>" . $modelsNS . "</b> for the class <b>" . $model . "</b>.");
 						} else {
 							$this->_addInfoMessage($infoIcon, "The namespace for the class <b>" . $model . "</b> is ok.");
@@ -241,6 +242,10 @@ trait CheckTrait {
 	protected function checkModelsCacheFiles($config, $infoIcon = "lightning") {
 		$activeDb = $this->getActiveDb();
 		CacheManager::startProd($config);
+		if($activeDb!='default' && CacheManager::getModelsDatabases()===[]){
+			$this->_addErrorMessage("warning", "The <b>_modelsDatabases</b> cache file doesn't exist! Please reinit the models cache.");
+			return;
+		}
 		$models = CacheManager::getModels($config, true, $activeDb);
 		foreach ($models as $model) {
 			if (! CacheManager::modelCacheExists($model)) {
@@ -270,6 +275,7 @@ trait CheckTrait {
 	protected function showActions($activeDb) {
 		$buttons = $this->jquery->semantic()->htmlButtonGroups("step-actions");
 		$step = $this->getActiveModelStep();
+		$activeDomain=DDDManager::getActiveDomain();
 		switch ($step[1]) {
 			case "Connexion":
 			case "Database":
@@ -307,7 +313,7 @@ trait CheckTrait {
 				break;
 			case "Models":
 				if ($this->engineering === "forward") {
-					if (sizeof($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
+					if (\count($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton()->addClass($this->style);
 						$ddBtn->getOnClick($this->_getFiles()
@@ -370,7 +376,9 @@ trait CheckTrait {
 			} else {
 				$bt->addClass("disabled");
 			}
-			$this->jquery->execAtLast('$("#btNewConnection").hide();');
+			if($activeDomain=='') {
+				$this->jquery->execAtLast('$("#btNewConnection").hide();');
+			}
 		} else {
 			$bt = $buttons->addItem("See datas")->addClass("black " . $this->style);
 			$bt->addIcon("unhide");
@@ -382,7 +390,9 @@ trait CheckTrait {
 				$this->jquery->execAtLast('$("#btNewConnection").show();');
 			} else {
 				$bt->addClass("disabled");
-				$this->jquery->execAtLast('$("#btNewConnection").hide();');
+				if($activeDomain=='') {
+					$this->jquery->execAtLast('$("#btNewConnection").hide();');
+				}
 			}
 		}
 		echo "<div>" . $buttons . "</div><br>";
