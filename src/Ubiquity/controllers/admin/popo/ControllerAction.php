@@ -90,7 +90,7 @@ class ControllerAction {
 		}
 
 		foreach ($files as $file) {
-			if (is_file($file)) {
+			if (\is_file($file)) {
 				$controllerClass = ClassUtils::getClassFullNameFromFile($file);
 				self::initFromClassname($result, $controllerClass, $restCtrls);
 			}
@@ -99,7 +99,7 @@ class ControllerAction {
 	}
 
 	public static function initFromClassname(&$result, $controllerClass, $restCtrls = []) {
-		if (class_exists($controllerClass, true) && isset($restCtrls[$controllerClass]) === false) {
+		if (\class_exists($controllerClass, true) && isset($restCtrls[$controllerClass]) === false) {
 			self::$controllers[] = $controllerClass;
 			$reflect = new \ReflectionClass($controllerClass);
 			if (! $reflect->isAbstract() && $reflect->isSubclassOf(Controller::class) && ! $reflect->isSubclassOf(SeoController::class)) {
