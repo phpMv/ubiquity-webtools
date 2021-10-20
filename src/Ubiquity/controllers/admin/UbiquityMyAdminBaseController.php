@@ -303,7 +303,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 			$bt=$fields->addButton('bt-new-domain','Create a new Domain (Domain Driven design)','teal');
 			$bt->addIcon('plus',true,true);
-			$frm->addItem(new HtmlDoubleElement('frm-domain-container'));
+			$frm->wrap('','<div  id="frm-domain-container"></div>');
 			$this->jquery->getOnClick('#bt-new-domain',$this->_getFiles()->getAdminBaseRoute().'/_domainFrm','#frm-domain-container',['hasLoader'=>'internal']);
 			return $frm;
 	}

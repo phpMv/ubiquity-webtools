@@ -288,7 +288,8 @@ trait ControllersTrait {
 	}
 
 	public function _filterControllers() {
-		USession::set("filtered-controllers", URequest::post("filtered-controllers", []));
+		$domain=DDDManager::getActiveDomain();
+		USession::set('filtered-controllers'.$domain, URequest::post("filtered-controllers", []));
 		$this->_refreshControllers("refresh");
 	}
 

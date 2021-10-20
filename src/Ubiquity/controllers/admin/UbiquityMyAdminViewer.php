@@ -265,7 +265,8 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getControllersDataTable($controllers) {
-		$filteredCtrls = USession::init('filtered-controllers', UArray::remove(ControllerAction::$controllers, [
+		$domain=DDDManager::getActiveDomain();
+		$filteredCtrls = USession::init('filtered-controllers'.$domain, UArray::remove(ControllerAction::$controllers, [
 			'controllers\\Admin',
 			'controllers\\MaintenanceController'
 		]));
@@ -1482,12 +1483,14 @@ class UbiquityMyAdminViewer {
 			$mvcDe->setFields([
 				"models",
 				"controllers",
-				"rest"
+				"rest",
+				"domains"
 			]);
 			$mvcDe->setCaptions([
 				"Models",
 				"Controllers",
-				"Rest"
+				"Rest",
+				"Base domains"
 			]);
 			return $mvcDe;
 		});
@@ -1758,18 +1761,20 @@ class UbiquityMyAdminViewer {
 			$mvcDe->setFields([
 				"models",
 				"controllers",
-				"rest"
+				"rest",
+				"domains"
 			]);
 			$mvcDe->setCaptions([
 				"Models",
 				"Controllers",
-				"Rest"
+				"Rest",
+				"Base domains"
 			]);
 			$mvcDe->setStyle("display: none;");
 
 			return $mvcDe;
 		});
-		if (isset($config["di"]) && sizeof($config["di"]) > 0) {
+		if (isset($config["di"]) && \count($config["di"]) > 0) {
 			$de->setValueFunction("di", function ($v, $instance, $index) use ($config) {
 				$diDe = new DataElement("di", $v);
 				$diDe->setDefaultValueFunction(function ($name, $value) {
@@ -2000,7 +2005,7 @@ class UbiquityMyAdminViewer {
 			'Go',
 			'To'
 		);
-		return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+		return \round(\pow(1024, $base - \floor($base)), $precision) . ' ' . $suffixes[\floor($base)];
 	}
 
 	public function getMainIndexItems($identifier, $array): HtmlItems {
