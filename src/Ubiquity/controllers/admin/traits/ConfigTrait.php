@@ -247,11 +247,21 @@ trait ConfigTrait {
 		$fields=$frm->addFields();
 		$base=DDDManager::getBase();
 		$input=$fields->addInput('base','Base for all domains','text','domains','Enter a folder ');
+		$input->labeled('app\\','left','tree');
 		if(\count(DDDManager::getDomains())>0){
 			$input->setDisabled(true);
 		}
-		$input=$fields->addInput('name','Domain name','text','','Enter a new name for your domain');
+		$input=$fields->addInput('domains','Domain name','text','','Enter a new name for your domain');
 		$input->setFluid();
+		$this->jquery->click('#cancel-btn','$("#frm-domain-container").html("");');
+		$this->jquery->click('#validate-btn','$("#frm-domain").submit();');
+		$frm->setSubmitParams($this->_getFiles()->getAdminBaseRoute().'/_addDomainBased','body',['hasLoader'=>'internal', 'params' => \json_encode(['action' => Startup::getAction(), 'params' => Startup::getActionParams()])]);
 		$this->jquery->renderView($this->_getFiles()->getViewDomainForm());
+	}
+
+	public function _addDomainBased(){
+		DDDManager::start($_POST['base']??'domains');
+		DDDManager::createDomain($_POST['domains']);
+		$this->updateDomain();
 	}
 }
