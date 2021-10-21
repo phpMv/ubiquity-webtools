@@ -763,6 +763,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function rest() {
+		$this->displayDomains();
 		$this->getHeader("rest");
 		if (\array_search('rest', $this->config['info']) === false) {
 			$this->_showSimpleMessage("Router Rest cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.rest") . "</b>", "info", "Rest service", "info circle", null, "msgRest", 'rest');
