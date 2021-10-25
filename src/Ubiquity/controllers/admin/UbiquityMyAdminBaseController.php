@@ -1474,6 +1474,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			unset($_POST["method"]);
 			$newParams = null;
 			$postParams = $_POST;
+			if($this->getActiveDomain()!=''){
+				$routeInfo=Router::getRouteInfoByDefaultRouting($url);
+				if(isset($routeInfo['path'])){
+					$url=Router::path($routeInfo['name'],$newParams??[]);
+				}else {
+					$url = $this->_getBaseRoute() . '/_defaultRoutingErrorMessage';
+				}
+			}
 			if (\count($_POST) > 0) {
 				if (\strtoupper($method) === "POST" && $frm !== "frmGetParams") {
 					$postParams = [];
@@ -1519,10 +1527,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$modal->addAction("Validate");
 				$this->jquery->click("#action-rModal-0", "$('#frmGetParams').form('submit');");
 			} else {
-				if($this->getActiveDomain()!=''){
-					$routeInfo=Router::getRouteInfoByDefaultRouting($url);
-					$url=$routeInfo['path']??($this->_getBaseRoute().'/_defaultRoutingErrorMessage');
-				}
 				$this->jquery->ajax($method, $url, '#content-rModal.content', [
 					"params" => \json_encode($postParams)
 				]);

@@ -149,7 +149,7 @@ trait CreateControllersTrait {
 				$views = $_POST["crud-views"] ?? null;
 			}
 			$route = $_POST["path"] ?? '';
-
+			$this->scaffold->setActiveDb($this->getActiveDb());
 			$this->scaffold->addIndexCrudController(\ucfirst(\trim($_POST["crud-name"])), $_POST["crud-datas"] ?? null, $_POST["crud-viewer"] ?? null, $_POST["crud-events"] ?? null, $views, $route, isset($_POST["ck-use-inheritance"]));
 			$this->jquery->get($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
