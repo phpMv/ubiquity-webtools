@@ -8,6 +8,7 @@ use Ubiquity\cache\ClassUtils;
 use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\utils\Constants;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\base\UFileSystem;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\USession;
@@ -41,8 +42,8 @@ trait ControllersTrait {
 	public function createController($force = null) {
 		if (URequest::isPost()) {
 			$this->_createController($_POST["name"], [
-				"%baseClass%" => "ControllerBase"
-			], 'controller.tpl', isset($_POST["lbl-ck-div-name"]));
+				"%baseClass%" => "\\controllers\\ControllerBase"
+			], 'controller.tpl', isset($_POST["lbl-ck-div-name"]),'');
 		}
 		$this->controllers();
 	}
@@ -54,7 +55,7 @@ trait ControllersTrait {
 			$controllerFullname = $_POST["controllerFullname"];
 			$viewName = $controller . "/" . $action . ".html";
 			$this->_createViewOp($controller, $action);
-			if (\file_exists(\ROOT . \DS . "views" . \DS . $viewName)) {
+			if (\file_exists(DDDManager::getActiveViewFolder(). $viewName)) {
 				$this->jquery->exec('$("#msgControllers").transition("show");$("#msgControllers .content").transition("show").append("<br><b>' . $viewName . '</b> created !");', true);
 			}
 			$r = new \ReflectionMethod($controllerFullname, $action);
@@ -69,10 +70,11 @@ trait ControllersTrait {
 	}
 
 	private function _createViewOp($controller, $action) {
+		$viewTemplateDir=DDDManager::getActiveViewFolder();
 		$viewName = $controller . "/" . $action . ".html";
-		UFileSystem::safeMkdir(\ROOT . \DS . "views" . \DS . $controller);
+		UFileSystem::safeMkdir($viewTemplateDir. $controller);
 		$templateDir = $this->scaffold->getTemplateDir();
-		UFileSystem::openReplaceWriteFromTemplateFile($templateDir . "/view.tpl", \ROOT . \DS . "views" . \DS . $viewName, [
+		UFileSystem::openReplaceWriteFromTemplateFile($templateDir . "/view.tpl", $viewTemplateDir. $viewName, [
 			"%controllerName%" => $controller,
 			"%actionName%" => $action
 		]);
@@ -286,7 +288,12 @@ trait ControllersTrait {
 	}
 
 	public function _filterControllers() {
-		USession::set("filtered-controllers", URequest::post("filtered-controllers", []));
+		$domain=DDDManager::getActiveDomain();
+		USession::set('filtered-controllers'.$domain, URequest::post("filtered-controllers", []));
 		$this->_refreshControllers("refresh");
+	}
+
+	public function _defaultRoutingErrorMessage(){
+		echo $this->_showSimpleMessage("Default routing does not work for controllers created in a domain.<br>You must create a route to make this action available.",'error','Error','warning' );
 	}
 }

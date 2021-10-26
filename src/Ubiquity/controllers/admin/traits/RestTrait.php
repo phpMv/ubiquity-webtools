@@ -61,7 +61,7 @@ trait RestTrait {
 		$result = "";
 		try {
 			$restRoutes = CacheManager::getRestRoutes();
-			if (\sizeof($restRoutes) > 0) {
+			if (\count($restRoutes) > 0) {
 				$result = $this->_getAdminViewer()->getRestRoutesTab($restRoutes);
 			} else {
 				$result = $this->_showSimpleMessage("No resource Rest found. You can add a new resource.", "", "Rest", "warning circle", null, "tabsRest");

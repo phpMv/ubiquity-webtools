@@ -95,7 +95,7 @@ trait ModelsConfigTrait {
 		$stepper = $this->jquery->semantic()->htmlStep("stepper");
 		$stepper->setStartStep(1);
 		$steps = $this->steps[$this->engineering];
-		$count = \sizeof($steps);
+		$count = \count($steps);
 		$completed = ($this->_isModelsCompleted()) ? "completed" : "";
 		for ($index = 0; $index < $count; $index ++) {
 			$step = $steps[$index];
@@ -123,7 +123,7 @@ trait ModelsConfigTrait {
 	}
 
 	public function _isModelsCompleted() {
-		return \sizeof($this->steps[$this->engineering]) === $this->activeStep;
+		return \count($this->steps[$this->engineering]) === $this->activeStep;
 	}
 
 	public function _changeEngineering($oldEngineering, $completed = null) {

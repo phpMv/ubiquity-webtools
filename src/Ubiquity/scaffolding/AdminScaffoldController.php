@@ -41,9 +41,9 @@ class AdminScaffoldController extends ScaffoldController {
 		$this->jquery->getOnClick("#bt-init-cache", $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_refreshCacheControllers", "#messages", [
 			"attr" => "",
-			"hasLoader" => false,
+			"hasLoader" => 'internal',
 			"dataType" => "html",
-			"jsCallback" => $jsCallback
+			"jsCallback" => $jsCallback.'$(self).closest(".success.message").remove();'
 		]);
 		return $msgContent;
 	}
