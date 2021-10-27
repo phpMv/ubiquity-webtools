@@ -107,7 +107,8 @@ trait CreateControllersTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddIndexCrudController(), [
 			'controllerNS' => Startup::getNS("controllers"),
-			'inverted' => $this->style
+			'inverted' => $this->style,
+			'domain' => DDDManager::getActiveDomain()
 		]);
 	}
 
