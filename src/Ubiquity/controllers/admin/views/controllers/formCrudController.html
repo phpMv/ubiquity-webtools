@@ -68,6 +68,11 @@
 			</div>
 		</div>
 	</div>
+	{% if domain %}
+		<div class="ui warning visible bottom attached message">
+		The active domain is <strong>{{domain}}</strong>.
+		</div>
+	{% endif %}
 </form>
 <div class="ui {{inverted}} segment">
   <button id="validate-btn" class="ui button {{inverted}} positive">

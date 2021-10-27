@@ -10,6 +10,7 @@ use Ubiquity\utils\base\UString;
 use Ubiquity\cache\ClassUtils;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\scaffolding\AdminScaffoldController;
+use Ubiquity\domains\DDDManager;
 
 /**
  *
@@ -47,7 +48,8 @@ trait CreateControllersTrait {
 		$this->jquery->renderView($this->_getFiles()
 			->getViewAddCrudController(), [
 			'controllerNS' => Startup::getNS("controllers"),
-			'inverted' => $this->style
+			'inverted' => $this->style,
+			'domain' => DDDManager::getActiveDomain()
 		]);
 	}
 
