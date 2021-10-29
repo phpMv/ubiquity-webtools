@@ -345,7 +345,7 @@ trait SeoTrait {
 			header('Content-type: application/json');
 			$controller = $ctrlNS . $_POST["controllerName"];
 			$result["result"] = (\array_search($controller, $controllers) === false);
-			echo json_encode($result);
+			echo \json_encode($result);
 		}
 	}
 
@@ -382,7 +382,7 @@ trait SeoTrait {
 
 	public function _deleteSeoController(...$params) {
 		$controllerName = \implode("\\", $params);
-		if (sizeof($_POST) > 0) {
+		if (\count($_POST) > 0) {
 			$controllerName = \urldecode($_POST["data"]);
 			if ($this->_deleteController($controllerName)) {
 				$message = $this->_showSimpleMessage("Deletion of SEO controller `<b>" . $controllerName . "</b>`", "success", "SEO controller deletion", "remove", 4000);

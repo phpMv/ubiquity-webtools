@@ -7,6 +7,7 @@ use Ubiquity\cache\CacheManager;
 use Ubiquity\contents\validation\ValidatorsManager;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\popo\MaintenanceMode;
+use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\orm\DAO;
 
@@ -43,8 +44,15 @@ trait CacheTrait {
 	private function getCacheFiles(array $caches) {
 		$cacheFiles = [];
 		foreach ($caches as $cache) {
-			if ($cache == 'models' || $cache == 'controllers') {
+			if ($cache == 'controllers') {
 				$cacheFiles = \array_merge($cacheFiles, CacheManager::$cache->getCacheFiles($cache));
+			} elseif ($cache == 'models') {
+				if (($d = DDDManager::getActiveDomain()) != '') {
+					$base = DDDManager::getBase();
+					$cacheFiles = \array_merge($cacheFiles, CacheManager::$cache->getCacheFiles($base . \DS . $d . \DS . $cache));
+				} else {
+					$cacheFiles = \array_merge($cacheFiles, CacheManager::$cache->getCacheFiles($cache));
+				}
 			} else {
 				$cacheFiles = \array_merge($cacheFiles, CacheFile::initFromFiles(\ROOT . \DS . CacheManager::getCacheDirectory() . $cache, \ucfirst($cache)));
 			}
@@ -102,7 +110,7 @@ trait CacheTrait {
 				$modal->setContent($frm);
 				$modal->addAction("Close");
 				$this->_setStyle($modal);
-				$this->jquery->exec("$('.dimmer.modals.page').html('');$('#file').modal('show');",true);
+				$this->jquery->exec("$('.dimmer.modals.page').html('');$('#file').modal('show');", true);
 				echo $modal;
 				echo $this->jquery->compile($this->view);
 			}

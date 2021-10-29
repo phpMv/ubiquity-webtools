@@ -276,36 +276,46 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		DAO::start();
 		$config = Startup::$config;
 		CacheManager::start($config);
-		if(DDDManager::hasDomains()){
-			$activeDomain=$this->getActiveDomain();
-			if($activeDomain!=null){
+		if (DDDManager::hasDomains()) {
+			$activeDomain = $this->getActiveDomain();
+			if ($activeDomain != null) {
 				DDDManager::setDomain($activeDomain);
 			}
 		}
 	}
-	
+
 	private function getActiveDomain(): string {
-		return $this->config['domain']??'';
+		return $this->config['domain'] ?? '';
 	}
-	
-	private function displayDomains(){
-			$activeDomain=$this->getActiveDomain();
-			$frm=$this->jquery->semantic()->htmlForm('domains-frm');
-			$fields=$frm->addFields();
-			$domains=DDDManager::getDomains();
-			if(count($domains)>0) {
-				$dd = $fields->addDropdown('domains', array_combine($domains, $domains), null, $activeDomain);
-				$dd->getField()->setDefaultText('Select a domain');
-				$dd->setClearable(true);
-				$dd->addIcon('sitemap');
-				$frm->setSubmitParams($this->_getFiles()->getAdminBaseRoute() . '/updateDomain', 'body', ['hasLoader' => 'internal', 'params' => json_encode(['action' => Startup::getAction(), 'params' => Startup::getActionParams()])]);
-				$this->jquery->change('[name=domains]', '$("#domains-frm").form("submit");');
-			}
-			$bt=$fields->addButton('bt-new-domain','Create a new Domain (Domain Driven design)','teal');
-			$bt->addIcon('plus',true,true);
-			$frm->wrap('','<div  id="frm-domain-container"></div>');
-			$this->jquery->getOnClick('#bt-new-domain',$this->_getFiles()->getAdminBaseRoute().'/_domainFrm','#frm-domain-container',['hasLoader'=>'internal']);
-			return $frm;
+
+	private function displayDomains() {
+		$activeDomain = $this->getActiveDomain();
+		$frm = $this->jquery->semantic()->htmlForm('domains-frm');
+		$fields = $frm->addFields();
+		$domains = DDDManager::getDomains();
+		if (count($domains) > 0) {
+			$dd = $fields->addDropdown('domains', array_combine($domains, $domains), null, $activeDomain);
+			$dd->getField()->setDefaultText('Select a domain');
+			$dd->setClearable(true);
+			$dd->addIcon('sitemap');
+			$frm->setSubmitParams($this->_getFiles()
+				->getAdminBaseRoute() . '/updateDomain', 'body', [
+				'hasLoader' => 'internal',
+				'params' => json_encode([
+					'action' => Startup::getAction(),
+					'params' => Startup::getActionParams()
+				])
+			]);
+			$this->jquery->change('[name=domains]', '$("#domains-frm").form("submit");');
+		}
+		$bt = $fields->addButton('bt-new-domain', 'Create a new Domain (Domain Driven design)', 'teal');
+		$bt->addIcon('plus', true, true);
+		$frm->wrap('', '<div  id="frm-domain-container"></div>');
+		$this->jquery->getOnClick('#bt-new-domain', $this->_getFiles()
+			->getAdminBaseRoute() . '/_domainFrm', '#frm-domain-container', [
+			'hasLoader' => 'internal'
+		]);
+		return $frm;
 	}
 
 	public function finalize() {
@@ -316,11 +326,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 	}
 
-	public function updateDomain(){
-		$domain=$_POST['domains'];
-		$this->config['domain']=$_POST['domains'];
+	public function updateDomain() {
+		$domain = $_POST['domains'];
+		$this->config['domain'] = $_POST['domains'];
 		$this->_saveConfig();
-		UResponse::header('location',(URequest::post('action','index')??'index').\implode('/',URequest::post('params',[])).'?_refresh=1');
+		UResponse::header('location', (URequest::post('action', 'index') ?? 'index') . \implode('/', URequest::post('params', [])) . '?_refresh=1');
 	}
 
 	protected function startTemplateEngine() {
@@ -541,10 +551,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected function getActiveDb() {
 		$dbs = DAO::getDatabases();
-		if(DDDManager::hasDomains()){
-			$domain=$this->getActiveDomain();
-			$db=$this->config['activeDb'][$domain]??'default';
-		}else{
+		if (DDDManager::hasDomains()) {
+			$domain = $this->getActiveDomain();
+			$db = $this->config['activeDb'][$domain] ?? 'default';
+		} else {
 			$db = $this->config['activeDb'] ?? 'default';
 		}
 		if (\in_array($db, $dbs)) {
@@ -556,7 +566,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function models($hasHeader = true) {
 		$header = "";
 		$activeDb = $this->getActiveDb();
-		$domain=DDDManager::getActiveDomain();
+		$domain = DDDManager::getActiveDomain();
 		if ($hasHeader === true) {
 			$config = Startup::$config;
 			$baseRoute = $this->_getFiles()->getAdminBaseRoute();
@@ -571,7 +581,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$item = $menu->addItem($db);
 				$item->setProperty('data-ajax', $db);
 			}
-			if (\count($dbs) >= 1 || ($config['database']['dbName'] ?? '') != null || $domain!='') {
+			if (\count($dbs) >= 1 || ($config['database']['dbName'] ?? '') != null || $domain != '') {
 				$bt = new HtmlButton('btNewConnection', 'Add new connection...', 'teal ' . $this->style);
 				$menu->addItem($bt);
 				$bt->getOnClick($this->_getBaseRoute() . '/_frmAddNewDbConnection/', '#temp-form', [
@@ -687,7 +697,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->_showSimpleMessage("Router cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.default") . "</b>", "info", null, "info circle", null, "msgRoutes", 'routes');
 		}
 		$routes = CacheManager::getRoutes();
-		$this->_getAdminViewer()->getRoutesDataTable(Route::init($routes,$this->config['domain']??''));
+		$this->_getAdminViewer()->getRoutesDataTable(Route::init($routes, $this->config['domain'] ?? ''));
 		$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
 			->getAdminBaseRoute() . "/_initCacheRouter", "#divRoutes", [
 			"dataType" => "html",
@@ -729,6 +739,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function cache() {
 		$this->getHeader("cache");
+		$this->displayDomains();
 		if (\array_search('cache', $this->config['info']) === false) {
 			$this->_showSimpleMessage(CacheManager::$cache->getCacheInfo(), "info", null, "info circle", null, "msgCache", 'cache');
 		}
@@ -1474,11 +1485,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			unset($_POST["method"]);
 			$newParams = null;
 			$postParams = $_POST;
-			if($this->getActiveDomain()!=''){
-				$routeInfo=Router::getRouteInfoByDefaultRouting($url);
-				if(isset($routeInfo['path'])){
-					$url=Router::path($routeInfo['name'],$newParams??[]);
-				}else {
+			if ($this->getActiveDomain() != '') {
+				$routeInfo = Router::getRouteInfoByDefaultRouting($url);
+				if (isset($routeInfo['path'])) {
+					$url = Router::path($routeInfo['name'], $newParams ?? []);
+				} else {
 					$url = $this->_getBaseRoute() . '/_defaultRoutingErrorMessage';
 				}
 			}
