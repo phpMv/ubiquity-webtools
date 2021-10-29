@@ -242,32 +242,52 @@ trait ConfigTrait {
 		echo $icon;
 		echo $this->jquery->compile($this->view);
 	}
-	
-	public function _domainFrm(){
-		$frm=$this->jquery->semantic()->htmlForm('frm-domain');
-		$fields=$frm->addFields();
-		$base=DDDManager::getBase();
-		$input=$fields->addInput('base','Base for all domains','text','domains','Enter a folder ');
-		$input->labeled('app\\','left','tree');
-		if(\count(DDDManager::getDomains())>0){
+
+	public function _domainFrm() {
+		$frm = $this->jquery->semantic()->htmlForm('frm-domain');
+		$fields = $frm->addFields();
+		$base = DDDManager::getBase();
+		$input = $fields->addInput('base', 'Base for all domains', 'text', 'domains', 'Enter a folder ');
+		$input->labeled('app\\', 'left', 'tree');
+		if (\count(DDDManager::getDomains()) > 0) {
 			$input->setDisabled(true);
 		}
-		$input=$fields->addInput('domains','Domain name','text','','Enter a new name for your domain');
-		$input->addRules([['type'=>'checkDomain','prompt'=>'The domain {value} already exists!'],'empty']);
+		$input = $fields->addInput('domains', 'Domain name', 'text', '', 'Enter a new name for your domain');
+		$input->addRules([
+			[
+				'type' => 'checkDomain',
+				'prompt' => 'The domain {value} already exists!'
+			],
+			'empty'
+		]);
 		$input->setFluid();
 		$this->jquery->exec(Rule::ajax($this->jquery, "checkDomain", $this->_getFiles()
-				->getAdminBaseRoute() . "/_domainExists/domains", "{}", "result=data.result;", "postForm", [
+			->getAdminBaseRoute() . "/_domainExists/domains", "{}", "result=data.result;", "postForm", [
 			"form" => "frm-domain"
 		]), true);
-		$frm->setValidationParams(['on'=>'blur','inline'=>true]);
-		$this->jquery->click('#cancel-btn','$("#frm-domain-container").html("");');
-		$this->jquery->click('#validate-btn','$("#frm-domain").submit();');
-		$frm->setSubmitParams($this->_getFiles()->getAdminBaseRoute().'/_addDomainBased','body',['hasLoader'=>'internal', 'params' => \json_encode(['action' => Startup::getAction(), 'params' => Startup::getActionParams()])]);
-		$this->jquery->renderView($this->_getFiles()->getViewDomainForm());
+		$frm->setValidationParams([
+			'on' => 'blur',
+			'inline' => true
+		]);
+		$frm->addClass($this->style);
+		$this->jquery->click('#cancel-btn', '$("#frm-domain-container").html("");');
+		$this->jquery->click('#validate-btn', '$("#frm-domain").submit();');
+		$frm->setSubmitParams($this->_getFiles()
+			->getAdminBaseRoute() . '/_addDomainBased', 'body', [
+			'hasLoader' => 'internal',
+			'params' => \json_encode([
+				'action' => Startup::getAction(),
+				'params' => Startup::getActionParams()
+			])
+		]);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewDomainForm(), [
+			'inverted' => $this->style
+		]);
 	}
 
-	public function _addDomainBased(){
-		DDDManager::setBase($base=$_POST['base']??'domains');
+	public function _addDomainBased() {
+		DDDManager::setBase($base = $_POST['base'] ?? 'domains');
 		DDDManager::start();
 		DDDManager::createDomain($_POST['domains']);
 		$this->updateDomain();
@@ -279,7 +299,7 @@ trait ConfigTrait {
 			header('Content-type: application/json');
 			$domain = $_POST[$fieldname];
 			$domains = DDDManager::getDomains();
-			$result["result"] = (\array_search($domain,$domains)===false);
+			$result["result"] = (\array_search($domain, $domains) === false);
 			echo \json_encode($result);
 		}
 	}

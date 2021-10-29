@@ -298,6 +298,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$dd->getField()->setDefaultText('Select a domain');
 			$dd->setClearable(true);
 			$dd->addIcon('sitemap');
+			$dd->getField()->addClass($this->style);
 			$frm->setSubmitParams($this->_getFiles()
 				->getAdminBaseRoute() . '/updateDomain', 'body', [
 				'hasLoader' => 'internal',
@@ -308,9 +309,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			]);
 			$this->jquery->change('[name=domains]', '$("#domains-frm").form("submit");');
 		}
-		$bt = $fields->addButton('bt-new-domain', 'Create a new Domain (Domain Driven design)', 'teal');
+		$bt = $fields->addButton('bt-new-domain', 'Create a new Domain (Domain Driven design)', 'teal ' . $this->style);
 		$bt->addIcon('plus', true, true);
 		$frm->wrap('', '<div  id="frm-domain-container"></div>');
+		$frm->addClass($this->style);
 		$this->jquery->getOnClick('#bt-new-domain', $this->_getFiles()
 			->getAdminBaseRoute() . '/_domainFrm', '#frm-domain-container', [
 			'hasLoader' => 'internal'
