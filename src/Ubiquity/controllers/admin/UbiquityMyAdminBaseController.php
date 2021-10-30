@@ -1910,6 +1910,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function acls() {
 		$this->getHeader('acls');
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		if (AclManager::isStarted()) {
 			$providers = AclManager::getAclList()->getProviders();
 			if (\count($providers) > 0) {
@@ -1945,8 +1946,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 						$bt2->addIcon("plus");
 						$bt2->addClass('_DAO ' . $this->style);
 						$bts->addElement($bt2);
-						$this->jquery->getOnClick('#new-acl-bt a.item', $this->_getFiles()
-							->getAdminBaseRoute(), '#form', [
+						$this->jquery->getOnClick('#new-acl-bt a.item', $baseRoute, '#form', [
 							'hasLoader' => false,
 							'attr' => 'data-value',
 							'historize' => false
@@ -1967,17 +1967,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				AclManager::reloadFromSelectedProviders($selectedProviders);
 				$this->_getAclTabs();
 				$this->_setStyle($cards);
-				$this->jquery->getOnClick('._activate', $this->_getFiles()
-					->getAdminBaseRoute() . '/_activateProvider', '#aclsPart', [
+				$this->jquery->getOnClick('._activate', $baseRoute . '/_activateProvider', '#aclsPart', [
 					'hasLoader' => 'internal',
 					'attr' => 'data-class'
 				]);
-				$this->jquery->getOnClick('.addNewAclController', $this->_getFiles()
-					->getAdminBaseRoute() . '/_newAclController', '#response', [
+				$this->jquery->getOnClick('.addNewAclController', $baseRoute . '/_newAclController', '#response', [
 					'hasLoader' => 'internal'
 				]);
-				$this->jquery->getOnClick('._cache', $this->_getFiles()
-					->getAdminBaseRoute() . '/_refreshAclCache', '#aclsPart', [
+				$this->jquery->getOnClick('._cache', $baseRoute . '/_refreshAclCache', '#aclsPart', [
 					'hasLoader' => 'internal',
 					'attr' => 'data-class'
 				]);
@@ -1989,7 +1986,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		} else {
 			$button = "<div class='ui divider'></div>Or you can do it automatically:<br><div class='ui orange button'><i class='ui icon play'></i>Start AclManager service</div>";
 			$msg = $this->_showSimpleMessage('AclManager is not started. You have to add <div class="ui inverted segment"><pre>AclManager::start(/*providers*/)</pre></div> in <b>app/config/services.php</b>' . $button, 'warning', 'Acls management', 'warning circle');
-
+			$this->jquery->getOnClick('#start-acls-bt', $baseRoute . '/_startAclService', '#main-content', [
+				'hasLoader' => 'internal'
+			]);
 			$this->loadViewCompo($msg);
 		}
 	}
