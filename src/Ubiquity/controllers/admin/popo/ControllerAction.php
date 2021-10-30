@@ -52,16 +52,11 @@ class ControllerAction {
 
 	public static function initWithPath($url) {
 		$result = [];
-		$config = Startup::getConfig();
-		$ns = $config["mvcNS"]["controllers"];
-		if ($ns !== "" && $ns !== null) {
-			$ns .= "\\";
-		}
+		$ns = Startup::getNS();
 		if (! $url) {
 			$url = "_default";
 		}
-		if (UString::endswith($url, "/"))
-			$url = \substr($url, 0, strlen($url) - 1);
+		$url = \rtrim($url, '/');
 		$u = \explode("/", $url);
 		$u[0] = $ns . $u[0];
 		if (\class_exists($u[0])) {

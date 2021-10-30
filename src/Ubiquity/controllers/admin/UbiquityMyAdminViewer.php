@@ -998,7 +998,8 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getFilterControllers($controllers) {
-		$selecteds = USession::init("filtered-controllers", UArray::remove($controllers, "controllers\Admin"));
+		$domain=DDDManager::getActiveDomain();
+		$selecteds = USession::init("filtered-controllers".$domain, UArray::remove($controllers, "controllers\Admin"));
 		$list = $this->jquery->semantic()->htmlList("lst-filter");
 		$list->addCheckedList(\array_combine($controllers, $controllers), "<i class='heartbeat icon'></i>&nbsp;Controllers", $selecteds, false, "filtered-controllers[]");
 		$list->addClass($this->style);

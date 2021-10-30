@@ -196,15 +196,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		];
 		if (\class_exists('\\Cz\\Git\\GitRepository')) {
 			$defaultConfig['git-macros'] = [
-				"Status" => "git status",
-				"commit & push" => "git+add+.%0Agit+commit+-m+%22%3Cyour+message%3E%22%0Agit+push%0A",
-				"checkout" => "git+checkout+%3Cbranch-name%3E",
-				"remove file from remote repository" => "git+rm+--cached+%3Cfilename%3E%0Agit+commit+-m+%22Removed+file+from+repository%22%0Agit+push",
-				"remove folder from remote repository" => "git+rm+--cached+-r+%3Cdir_name%3E%0Agit+commit+-m+%22Removed+folder+from+repository%22%0Agit+push",
-				"undo last commit (soft)" => "git+reset+--soft+HEAD%5E",
-				"undo last commit (hard)" => "git+reset+--hard+HEAD%5E",
-				"unstage file(s) from index" => "git+rm+--cached+%3Cfile-name%3E",
-				"stash & pull (overwrite local changes with pull)" => "git+stash%0Agit+pull%0A"
+				'Status' => 'git status',
+				'commit & push' => "git+add+.%0Agit+commit+-m+%22%3Cyour+message%3E%22%0Agit+push%0A",
+				'checkout' => "git+checkout+%3Cbranch-name%3E",
+				'remove file from remote repository' => "git+rm+--cached+%3Cfilename%3E%0Agit+commit+-m+%22Removed+file+from+repository%22%0Agit+push",
+				'remove folder from remote repository' => "git+rm+--cached+-r+%3Cdir_name%3E%0Agit+commit+-m+%22Removed+folder+from+repository%22%0Agit+push",
+				'undo last commit (soft)' => "git+reset+--soft+HEAD%5E",
+				'undo last commit (hard)' => "git+reset+--hard+HEAD%5E",
+				'unstage file(s) from index' => "git+rm+--cached+%3Cfile-name%3E",
+				'stash & pull (overwrite local changes with pull)' => "git+stash%0Agit+pull%0A"
 			];
 		}
 		if (\file_exists(self::$configFile)) {
@@ -238,20 +238,20 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$mainMenuElements = $this->_getAdminViewer()->getMainMenuElements();
 			$mainMenuElements = $this->getMenuElements($mainMenuElements);
 			$elements = [
-				"Webtools"
+				'Webtools'
 			];
 			$dataAjax = [
-				"index"
+				'index'
 			];
 			$siteUrl = \rtrim(Startup::$config['siteUrl'], '/') . '/';
 			$baseRoute = \trim($this->_getFiles()->getAdminBaseRoute(), '/');
 			$hrefs = [
-				$siteUrl . $baseRoute . "/index"
+				$siteUrl . $baseRoute . '/index'
 			];
 			foreach ($mainMenuElements as $elm => $values) {
 				$elements[] = $elm;
 				$dataAjax[] = $values[0];
-				$hrefs[] = $siteUrl . $baseRoute . "/" . $values[0];
+				$hrefs[] = $siteUrl . $baseRoute . '/' . $values[0];
 			}
 			$mn = $semantic->htmlMenu('mainMenu', $elements);
 			$mn->getItem(0)
@@ -322,8 +322,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function finalize() {
 		if (! URequest::isAjax()) {
-			$this->loadView("@admin/main/vFooter.html", [
-				"js" => $this->initializeJs()
+			$this->loadView('@admin/main/vFooter.html', [
+				'js' => $this->initializeJs()
 			]);
 		}
 	}
@@ -338,8 +338,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function startTemplateEngine() {
 		Startup::startDefaultTemplateEngine()->addPath(implode(\DS, [
 			\dirname(__FILE__),
-			"views"
-		]) . \DS, "admin");
+			'views'
+		]) . \DS, 'admin');
 	}
 
 	protected function reloadConfig($originalConfig) {
@@ -381,10 +381,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		echo $this->_showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
 		echo "&nbsp;</div>";
 		$this->jquery->getOnClick("#bt-mini-init-{$type}-cache", $this->_getFiles()
-			->getAdminBaseRoute() . "/" . $url, $target, [
-			"dataType" => "html",
-			"attr" => "",
-			"hasLoader" => "internal"
+			->getAdminBaseRoute() . '/' . $url, $target, [
+			'dataType' => 'html',
+			'attr' => '',
+			'hasLoader' => 'internal'
 		] + $js);
 	}
 
@@ -420,20 +420,20 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function index() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$array = $this->_getAdminViewer()->getMainMenuElements();
-		$this->_getAdminViewer()->getMainIndexItems("part1", $this->getMenuElements($array, 'part1'));
-		$this->_getAdminViewer()->getMainIndexItems("part2", $this->getMenuElements($array, 'part2'));
+		$this->_getAdminViewer()->getMainIndexItems('part1', $this->getMenuElements($array, 'part1'));
+		$this->_getAdminViewer()->getMainIndexItems('part2', $this->getMenuElements($array, 'part2'));
 		$config = Startup::getConfig();
 		$this->_checkModelsUpdates($config, true);
 		$this->_checkRouterUpdates($config, true);
 		if ($this->hasMaintenance()) {
 			$this->_smallMaintenanceActive(true, MaintenanceMode::getActiveMaintenance($this->config["maintenance"]));
 		}
-		$this->jquery->getOnClick("#bt-customize", $baseRoute . "/_indexCustomizing", "#dialog", [
+		$this->jquery->getOnClick('#bt-customize', $baseRoute . '/_indexCustomizing', '#dialog', [
 			'hasLoader' => 'internal',
 			'jsCallback' => '$("#admin-elements").hide();$("#bt-customize").addClass("active");'
 		]);
-		$this->jquery->mouseenter("#admin-elements .item", '$(this).children("i").addClass("green basic").removeClass("circular ' . $this->style . '");$(this).find(".description").css("color","#21ba45");$(this).transition("pulse","400ms");');
-		$this->jquery->mouseleave("#admin-elements .item", '$(this).children("i").removeClass("green basic").addClass("circular ' . $this->style . '");$(this).find(".description").css("color","");');
+		$this->jquery->mouseenter('#admin-elements .item', '$(this).children("i").addClass("green basic").removeClass("circular ' . $this->style . '");$(this).find(".description").css("color","#21ba45");$(this).transition("pulse","400ms");');
+		$this->jquery->mouseleave('#admin-elements .item', '$(this).children("i").removeClass("green basic").addClass("circular ' . $this->style . '");$(this).find(".description").css("color","");');
 		if ($this->config['first-use'] ?? false) {
 			echo $this->_showSimpleMessage('This is your first use of devtools. You can select the tools you want to display.', 'info', 'Tools displaying', 'info circle', null, 'msgGlobal');
 			$this->jquery->trigger('#bt-customize', 'click', true);
@@ -528,8 +528,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function _indexCustomizingSubmit() {
 		$part1Str = URequest::post('t-part1', []);
 		$part2Str = URequest::post('t-part2', []);
-		$this->config["part1"] = explode(',', $part1Str);
-		$this->config["part2"] = explode(',', $part2Str);
+		$this->config['part1'] = explode(',', $part1Str);
+		$this->config['part2'] = explode(',', $part2Str);
 		$ckTheme = URequest::filled('ck-theme');
 		if ($ckTheme) {
 			if ($this->style === 'inverted') {
@@ -539,15 +539,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 		}
 		$this->_saveConfig();
-		$_GET["_refresh"] = true;
-		$_REQUEST["_userInfo"] = true;
+		$_GET['_refresh'] = true;
+		$_REQUEST['_userInfo'] = true;
 		$this->forward(static::class, 'index', [], true, true);
 	}
 
 	public function _resetConfigParams() {
 		$this->config = [];
 		$this->_saveConfig();
-		$_GET["_refresh"] = true;
+		$_GET['_refresh'] = true;
 		$this->forward(static::class, 'index', [], true, true);
 	}
 
@@ -572,13 +572,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if ($hasHeader === true) {
 			$config = Startup::$config;
 			$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-			$header = $this->getHeader("models");
+			$header = $this->getHeader('models');
 			echo $this->displayDomains();
 			echo $header;
 			$dbs = DAO::getDatabases();
 			$semantic = $this->jquery->semantic();
 			$menu = $semantic->htmlMenu('menu-db');
-			$menu->addHeader("Databases");
+			$menu->addHeader('Databases');
 			foreach ($dbs as $db) {
 				$item = $menu->addItem($db);
 				$item->setProperty('data-ajax', $db);
@@ -604,25 +604,26 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function controllers() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$this->getHeader("controllers");
+		$this->getHeader('controllers');
 		$this->displayDomains();
+		$activeDomain = $this->getActiveDomain();
 		if (\array_search('controllers', $this->config['info']) === false) {
 			$controllersNS = Startup::getNS('controllers');
 			$controllersDir = \ROOT . \str_replace("\\", \DS, $controllersNS);
 			$this->_showSimpleMessage("Controllers directory is <b>" . UFileSystem::cleanPathname($controllersDir) . "</b>", "info", null, "info circle", null, "msgControllers", "controllers");
 		}
-		$frm = $this->jquery->semantic()->htmlForm("frmCtrl");
+		$frm = $this->jquery->semantic()->htmlForm('frmCtrl');
 		$frm->setValidationParams([
-			"on" => "blur",
-			"inline" => true
+			'on' => 'blur',
+			'inline' => true
 		]);
 		$fields = $frm->addFields();
 		$fields->setInline();
 		$input = $fields->addInput("name", null, "text", "", "Controller name")
 			->addRules([
 			[
-				"empty",
-				"Controller name must have a value"
+				'empty',
+				'Controller name must have a value'
 			],
 			"regExp[/^[A-Za-z]\w*$/]"
 		])
@@ -637,7 +638,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 		$activeTheme = ThemesManager::getActiveTheme();
 
-		$bt = $fields->addDropdown("crud-bt", [
+		$bt = $fields->addDropdown('crud-bt', [
 			'_frmAddIndexCrudController' => 'Index CRUD controller',
 			'_frmAddCrudController' => 'Resource CRUD controller',
 			'_frmAddAuthController' => 'Auth controller'
@@ -656,7 +657,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$bt->addPopup("Scaffolding", "No scaffolding with an active theme!", $this->style);
 		}
 		$btExt = '';
-		if (USession::exists('filtered-controllers')) {
+		if (USession::exists('filtered-controllers' . $activeDomain)) {
 			$btExt = '[*]';
 		}
 		$bt = $fields->addButton("filter-bt", "Filter controllers " . $btExt);
@@ -694,23 +695,23 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function routes() {
 		$this->displayDomains();
-		$this->getHeader("routes");
+		$this->getHeader('routes');
 		if (\array_search('routes', $this->config['info']) === false) {
-			$this->_showSimpleMessage("Router cache entry is <b>" . CacheManager::$cache->getEntryKey("controllers\\routes.default") . "</b>", "info", null, "info circle", null, "msgRoutes", 'routes');
+			$this->_showSimpleMessage('Router cache entry is <b>' . CacheManager::$cache->getEntryKey('controllers\\routes.default') . '</b>', 'info', null, 'info circle', null, 'msgRoutes', 'routes');
 		}
 		$routes = CacheManager::getRoutes();
 		$this->_getAdminViewer()->getRoutesDataTable(Route::init($routes, $this->config['domain'] ?? ''));
-		$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
-			->getAdminBaseRoute() . "/_initCacheRouter", "#divRoutes", [
-			"dataType" => "html",
-			"attr" => "",
-			"hasLoader" => "internal"
+		$this->jquery->getOnClick('#bt-init-cache', $this->_getFiles()
+			->getAdminBaseRoute() . '/_initCacheRouter', '#divRoutes', [
+			'dataType' => 'html',
+			'attr' => '',
+			'hasLoader' => 'internal'
 		]);
-		$this->jquery->postOnClick("#bt-filter-routes", $this->_getFiles()
-			->getAdminBaseRoute() . "/_filterRoutes", "{filter:$('#filter-routes').val()}", "#divRoutes", [
-			"ajaxTransition" => "random"
+		$this->jquery->postOnClick('#bt-filter-routes', $this->_getFiles()
+			->getAdminBaseRoute() . '/_filterRoutes', "{filter:$('#filter-routes').val()}", '#divRoutes', [
+			'hasLoader' => 'internal'
 		]);
-		if (isset($_POST["filter"]))
+		if (isset($_POST['filter']))
 			$this->jquery->exec("$(\"tr:contains('" . $_POST["filter"] . "')\").addClass('warning');", true);
 		$this->addNavigationTesting();
 		$config = Startup::getConfig();
@@ -718,8 +719,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->renderView($this->_getFiles()
 			->getViewRoutesIndex(), [
-			"inverted" => $this->style,
-			"url" => Startup::getConfig()["siteUrl"]
+			'inverted' => $this->style,
+			'url' => Startup::getConfig()['siteUrl']
 		]);
 	}
 
@@ -1004,9 +1005,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function themes() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$devtoolsPath = $this->config["devtools-path"] ?? 'Ubiquity';
-		$this->getHeader("themes");
-		$this->jquery->semantic()->htmlLabel("activeTheme");
+		$devtoolsPath = $this->config['devtools-path'] ?? 'Ubiquity';
+		$this->getHeader('themes');
+		$this->jquery->semantic()->htmlLabel('activeTheme');
 		$activeTheme = ThemesManager::getActiveTheme() ?? 'no theme';
 		$themes = ThemesManager::getAvailableThemes();
 		$notInstalled = ThemesManager::getNotInstalledThemes();
@@ -1114,13 +1115,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function _updateDiagram() {
 		if (URequest::isPost()) {
-			if (isset($_POST["model"])) {
-				$model = $_POST["model"];
+			if (isset($_POST['model'])) {
+				$model = $_POST['model'];
 				$model = \str_replace("|", "\\", $model);
-				$type = $_POST["type"];
-				$size = $_POST["size"];
+				$type = $_POST['type'];
+				$size = $_POST['size'];
 				$yuml = $this->_getClassToYuml($model, $_POST);
-				echo $this->_getYumlImage($type . $size, $yuml . "");
+				echo $this->_getYumlImage($type . $size, $yuml . '');
 				echo $this->jquery->compile($this->view);
 			}
 		}
@@ -1425,9 +1426,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$result = [];
 		$params = [];
 		\parse_str(urldecode($urlEncodedParams), $params);
-		if (isset($params["name"])) {
-			$names = $params["name"];
-			$values = $params["value"];
+		if (isset($params['name'])) {
+			$names = $params['name'];
+			$values = $params['value'];
 			$count = \sizeof($names);
 			for ($i = 0; $i < $count; $i ++) {
 				$name = $names[$i];
@@ -1481,13 +1482,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function _runAction($frm = null) {
 		if (URequest::isPost()) {
-			$url = URequest::cleanUrl($_POST["url"]);
-			unset($_POST["url"]);
-			$method = $_POST["method"] ?? 'GET';
-			unset($_POST["method"]);
+			$url = URequest::cleanUrl($_POST['url']);
+			unset($_POST['url']);
+			$method = $_POST['method'] ?? 'GET';
+			unset($_POST['method']);
 			$newParams = null;
 			$postParams = $_POST;
-			if ($this->getActiveDomain() != '') {
+			if (Router::getRoute($url) === false && $this->getActiveDomain() != '') {
 				$routeInfo = Router::getRouteInfoByDefaultRouting($url);
 				if (isset($routeInfo['path'])) {
 					$url = Router::path($routeInfo['name'], $newParams ?? []);
@@ -1516,35 +1517,35 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$params = $this->getRequiredRouteParameters($url, $newParams);
 			if (\count($params) > 0) {
 				$toPost = \array_merge($postParams, [
-					"method" => $method,
-					"url" => $url
+					'method' => $method,
+					'url' => $url
 				]);
 				$frm = $this->jquery->semantic()->htmlForm("frmGetParams");
 				$frm->addMessage("msg", "You must complete the following parameters before continuing navigation testing", "Required URL parameters", "info circle");
 				$paramsValues = $this->_getParametersFromCookie($url, $params);
 				foreach ($paramsValues as $param => $value) {
 					$frm->addInput($param, \ucfirst($param))
-						->addRule("empty")
+						->addRule('empty')
 						->setValue($value);
 				}
 				$frm->setValidationParams([
-					"on" => "blur",
-					"inline" => true
+					'on' => 'blur',
+					'inline' => true
 				]);
 				$frm->setSubmitParams($this->_getFiles()
-					->getAdminBaseRoute() . "/_runAction/frmGetParams", "#modal", [
-					"params" => \json_encode($toPost)
+					->getAdminBaseRoute() . '/_runAction/frmGetParams', '#modal', [
+					'params' => \json_encode($toPost)
 				]);
 				$frm->setStyle($this->style);
 				$modal->setContent($frm);
-				$modal->addAction("Validate");
-				$this->jquery->click("#action-rModal-0", "$('#frmGetParams').form('submit');");
+				$modal->addAction('Validate');
+				$this->jquery->click('#action-rModal-0', "$('#frmGetParams').form('submit');");
 			} else {
 				$this->jquery->ajax($method, $url, '#content-rModal.content', [
-					"params" => \json_encode($postParams)
+					'params' => \json_encode($postParams)
 				]);
 			}
-			$modal->addAction("Close");
+			$modal->addAction('Close');
 			$this->_setStyle($modal);
 			$this->jquery->exec("$('.dimmer.modals.page').html('');", true);
 			$this->jquery->execAtLast("$('#rModal').modal('show');");
@@ -1554,10 +1555,10 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	private function _getParametersFromCookie($url, $params) {
-		$result = \array_fill_keys($params, "");
-		if (isset($_COOKIE["get"])) {
-			if (isset($_COOKIE["get"][$url])) {
-				$values = \json_decode($_COOKIE["get"][$url], true);
+		$result = \array_fill_keys($params, '');
+		if (isset($_COOKIE['get'])) {
+			if (isset($_COOKIE['get'][$url])) {
+				$values = \json_decode($_COOKIE['get'][$url], true);
 				foreach ($params as $p) {
 					$result[$p] = @$values[$p];
 				}
@@ -1573,17 +1574,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$ns = Startup::getNS();
 			$u = \explode("/", $url);
 			$controller = $ns . $u[0];
-			if (\count($u) > 1)
-				$action = $u[1];
-			else
-				$action = "index";
+			$action = $u[1] ?? 'index';
 			if (isset($newParams) && \count($newParams) > 0) {
-				$url = $u[0] . "/" . $action . "/" . \implode("/", \array_values($newParams));
+				$url = $u[0] . '/' . $action . '/' . \implode('/', \array_values($newParams));
 				return [];
 			}
 		} else {
 			if (isset($newParams) && \count($newParams) > 0) {
-				$routeParameters = $route["parameters"];
+				$routeParameters = $route['parameters'];
 				$i = 0;
 				foreach ($newParams as $v) {
 					if (isset($routeParameters[$i]))
@@ -1594,8 +1592,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				$url = vsprintf(\preg_replace('#\([^\)]+\)#', '%s', $url), $result);
 				return [];
 			}
-			$controller = $route["controller"];
-			$action = $route["action"];
+			$controller = $route['controller'];
+			$action = $route['action'];
 		}
 		if (! \is_string($controller)) {
 			if (\is_callable($controller)) {
@@ -1622,22 +1620,22 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->renderView('@framework/main/component.html');
 	}
 
-	protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = "") {
+	protected function _createController($controllerName, $variables = [], $ctrlTemplate = 'controller.tpl', $hasView = false, $jsCallback = '') {
 		return $this->scaffold->_createController($controllerName, $variables, $ctrlTemplate, $hasView, $jsCallback);
 	}
 
-	protected function _addMessageForRouteCreation($path, $jsCallback = "") {
-		$msgContent = "<br>Created route : <b>" . $path . "</b>";
-		$msgContent .= "<br>You need to re-init Router cache to apply this update:";
-		$btReinitCache = new HtmlButton("bt-init-cache", "(Re-)Init router cache", "orange");
-		$btReinitCache->addIcon("refresh");
-		$msgContent .= "&nbsp;" . $btReinitCache;
-		$this->jquery->getOnClick("#bt-init-cache", $this->_getFiles()
-			->getAdminBaseRoute() . "/_refreshCacheControllers", "#messages", [
-			"attr" => "",
-			"hasLoader" => false,
-			"dataType" => "html",
-			"jsCallback" => $jsCallback
+	protected function _addMessageForRouteCreation($path, $jsCallback = '') {
+		$msgContent = '<br>Created route : <b>' . $path . '</b>';
+		$msgContent .= '<br>You need to re-init Router cache to apply this update:';
+		$btReinitCache = new HtmlButton('bt-init-cache', '(Re-)Init router cache', 'orange');
+		$btReinitCache->addIcon('refresh');
+		$msgContent .= '&nbsp;' . $btReinitCache;
+		$this->jquery->getOnClick('#bt-init-cache', $this->_getFiles()
+			->getAdminBaseRoute() . '/_refreshCacheControllers', '#messages', [
+			'attr' => '',
+			'hasLoader' => false,
+			'dataType' => "html",
+			'jsCallback' => $jsCallback
 		]);
 		return $msgContent;
 	}
@@ -1670,7 +1668,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	 * @return CRUDDatas
 	 */
 	public function _getAdminData(): CRUDDatas {
-		return $this->getSingleton($this->adminData, "getAdminData");
+		return $this->getSingleton($this->adminData, 'getAdminData');
 	}
 
 	/**
@@ -1678,7 +1676,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	 * @return ModelViewer
 	 */
 	public function _getModelViewer() {
-		return $this->getSingleton($this->adminModelViewer, "getUbiquityMyAdminModelViewer");
+		return $this->getSingleton($this->adminModelViewer, 'getUbiquityMyAdminModelViewer');
 	}
 
 	/**
@@ -1686,7 +1684,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	 * @return UbiquityMyAdminViewer
 	 */
 	public function _getAdminViewer() {
-		return $this->getSingleton($this->adminViewer, "getUbiquityMyAdminViewer");
+		return $this->getSingleton($this->adminViewer, 'getUbiquityMyAdminViewer');
 	}
 
 	/**
@@ -1694,7 +1692,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	 * @return UbiquityMyAdminFiles
 	 */
 	public function _getFiles() {
-		return $this->getSingleton($this->adminFiles, "getUbiquityMyAdminFiles");
+		return $this->getSingleton($this->adminFiles, 'getUbiquityMyAdminFiles');
 	}
 
 	protected function getTableNames($offset = 'default') {
@@ -1706,7 +1704,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	public function _getInstancesFilter($model) {
-		return "1=1";
+		return '1=1';
 	}
 
 	public function _getConfig() {
@@ -1723,7 +1721,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function maintenance() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
-		$this->getHeader("maintenance");
+		$this->getHeader('maintenance');
 
 		$maintenance = $this->config['maintenance'];
 		$active = MaintenanceMode::getActiveMaintenance($maintenance);

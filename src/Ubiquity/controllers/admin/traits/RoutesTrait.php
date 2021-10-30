@@ -32,7 +32,7 @@ trait RoutesTrait {
 		$config = Startup::getConfig();
 		\ob_start();
 		try {
-			CacheManager::initCache($config, "controllers");
+			CacheManager::initCache($config, 'controllers');
 			if ($this->hasMaintenance()) {
 				$maintenance = MaintenanceMode::getActiveMaintenance($this->config['maintenance']);
 				if (isset($maintenance)) {
@@ -41,7 +41,7 @@ trait RoutesTrait {
 			}
 		} catch (RestException $e) {}
 		$message = \ob_get_clean();
-		echo $this->_showSimpleMessage(\nl2br($message), "info", "Router cache", "info", 4000, null, true);
+		echo $this->_showSimpleMessage(\nl2br($message), 'info', 'Router cache', 'info', 4000, null, true);
 		if ($displayRoutes === true) {
 			$routes = CacheManager::getRoutes();
 			echo $this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
@@ -51,16 +51,17 @@ trait RoutesTrait {
 	}
 
 	public function _filterRoutes() {
-		$filter = $_POST["filter"];
+		$filter = $_POST['filter'];
 		$ctrls = [];
 		if (UString::isNotNull($filter)) {
-			$filter = \trim($_POST["filter"]);
+			$filter = \trim($_POST['filter']);
 			$ctrls = ControllerAction::initWithPath($filter);
 			$routes = Router::filterRoutes($filter);
-		} else
+		} else {
 			$routes = CacheManager::getRoutes();
+		}
 		echo $this->_getAdminViewer()->getRoutesDataTable(Route::init($routes));
-		if (\sizeof($ctrls) > 0) {
+		if (\count($ctrls) > 0) {
 			echo $this->_getAdminViewer()->getControllersDataTable($ctrls);
 		}
 		$this->addNavigationTesting();
