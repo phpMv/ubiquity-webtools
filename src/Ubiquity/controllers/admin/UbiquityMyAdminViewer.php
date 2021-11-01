@@ -265,8 +265,8 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getControllersDataTable($controllers) {
-		$domain=DDDManager::getActiveDomain();
-		$filteredCtrls = USession::init('filtered-controllers'.$domain, UArray::remove(ControllerAction::$controllers, [
+		$domain = DDDManager::getActiveDomain();
+		$filteredCtrls = USession::init('filtered-controllers' . $domain, UArray::remove(ControllerAction::$controllers, [
 			'controllers\\Admin',
 			'controllers\\MaintenanceController'
 		]));
@@ -998,8 +998,8 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function getFilterControllers($controllers) {
-		$domain=DDDManager::getActiveDomain();
-		$selecteds = USession::init("filtered-controllers".$domain, UArray::remove($controllers, "controllers\Admin"));
+		$domain = DDDManager::getActiveDomain();
+		$selecteds = USession::init("filtered-controllers" . $domain, UArray::remove($controllers, "controllers\Admin"));
 		$list = $this->jquery->semantic()->htmlList("lst-filter");
 		$list->addCheckedList(\array_combine($controllers, $controllers), "<i class='heartbeat icon'></i>&nbsp;Controllers", $selecteds, false, "filtered-controllers[]");
 		$list->addClass($this->style);
@@ -1023,7 +1023,7 @@ class UbiquityMyAdminViewer {
 			$result[] = $lbl;
 		}
 		$viewname = $controller . "/" . $action . ".html";
-		$viewFolder=DDDManager::getActiveViewFolder();
+		$viewFolder = DDDManager::getActiveViewFolder();
 		if (! \file_exists($viewFolder . $viewname)) {
 			$bt = new HtmlButton("");
 			$bt->setProperty("data-action", $action);
@@ -1755,6 +1755,10 @@ class UbiquityMyAdminViewer {
 			return $teoDe;
 		});
 		$de->setValueFunction("mvcNS", function ($v, $instance, $index) {
+			$v->domains ??= 'domains';
+			if ($v->domains == '') {
+				$v->domains = 'domains';
+			}
 			$mvcDe = new DataElement("deMvcNS", $v);
 			$mvcDe->setDefaultValueFunction(function ($name, $value) {
 				return new HtmlFormInput("mvcNS-" . $name, null, "text", $value);
