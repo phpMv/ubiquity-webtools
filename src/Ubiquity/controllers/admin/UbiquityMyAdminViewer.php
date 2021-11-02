@@ -266,6 +266,9 @@ class UbiquityMyAdminViewer {
 
 	public function getControllersDataTable($controllers) {
 		$domain = DDDManager::getActiveDomain();
+		$viewFolder = DDDManager::getActiveViewFolder();
+		$viewNamespace=DDDManager::getViewNamespace();
+
 		$filteredCtrls = USession::init('filtered-controllers' . $domain, UArray::remove(ControllerAction::$controllers, [
 			'controllers\\Admin',
 			'controllers\\MaintenanceController'
@@ -310,7 +313,7 @@ class UbiquityMyAdminViewer {
 			$bt->onClick("$(\"tr[data-ajax='" . \urlencode($instance->getController()) . "'] td:not([rowspan]):not(.rowspanned)\").toggle(!$(this).hasClass('active'));");
 			return $bts;
 		});
-		$dt->setValueFunction("action", function ($v, $instance, $index) {
+		$dt->setValueFunction("action", function ($v, $instance, $index) use ($viewNamespace,$viewFolder){
 			$action = $v;
 			$controller = ClassUtils::getClassSimpleName($instance->getController());
 			$r = new \ReflectionMethod($instance->getController(), $action);
@@ -349,7 +352,7 @@ class UbiquityMyAdminViewer {
 			$v = \array_merge([
 				$v,
 				"<span class='_views-container'>"
-			], $this->getActionViews($instance->getController(), $controller, $action, $r, $lines));
+			], $this->getActionViews($instance->getController(), $controller, $action, $r, $lines,$viewNamespace,$viewFolder));
 			$v[] = "</span>";
 			return $v;
 		});
@@ -1006,7 +1009,7 @@ class UbiquityMyAdminViewer {
 		return $list;
 	}
 
-	public function getActionViews($controllerFullname, $controller, $action, \ReflectionMethod $r, $lines) {
+	public function getActionViews($controllerFullname, $controller, $action, \ReflectionMethod $r, $lines,$viewNamespace,$viewFolder) {
 		$result = [];
 		$loadedViews = UIntrospection::getLoadedViews($r, $lines);
 		$templateEngine = Startup::$templateEngine;
@@ -1023,7 +1026,6 @@ class UbiquityMyAdminViewer {
 			$result[] = $lbl;
 		}
 		$viewname = $controller . "/" . $action . ".html";
-		$viewFolder = DDDManager::getActiveViewFolder();
 		if (! \file_exists($viewFolder . $viewname)) {
 			$bt = new HtmlButton("");
 			$bt->setProperty("data-action", $action);
@@ -1034,7 +1036,7 @@ class UbiquityMyAdminViewer {
 				->asIcon("plus");
 			$bt->setProperty('title', 'Create view ' . $viewname);
 			$result[] = $bt;
-		} elseif (\array_search($viewname, $loadedViews) === false) {
+		} elseif (\array_search($viewNamespace.$viewname, $loadedViews) === false) {
 			$lbl = new HtmlLabel("lbl-view-" . $controller . $action . $viewname, null, "browser", "span");
 			$lbl->addClass('tag ' . $this->style);
 			$lbl->addPopupHtml("<i class='icon orange warning circle'></i>&nbsp;<b>" . $viewname . "</b> exists but is never loaded in action <b>" . $action . "</b>.", 'very wide ' . $this->style);
