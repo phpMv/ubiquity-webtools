@@ -889,6 +889,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function seo() {
 		$this->getHeader("seo");
+		$this->displayDomains();
 		$this->_seo();
 		$this->jquery->execOn('click', '#generateRobots', '$("#frm-seoCtrls").form("submit");');
 		$this->jquery->getOnClick('.addNewSeo', $this->_getFiles()
