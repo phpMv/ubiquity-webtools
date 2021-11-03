@@ -281,7 +281,7 @@ trait ModelsTrait {
 				->setType("error")
 				->setIcon("warning circle");
 		}
-		echo $this->_showSimpleMessage_($message, "updateMsg", true);
+		echo $this->showSimpleMessage_($message, "updateMsg", true);
 		echo $this->jquery->compile($this->view);
 	}
 
