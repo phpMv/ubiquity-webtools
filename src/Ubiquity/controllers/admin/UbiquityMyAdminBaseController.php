@@ -1484,8 +1484,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	public function _runAction($frm = null,$fromRoutes=false) {
 		if (URequest::isPost()) {
 			$simulateRoute=false;
-			$url = URequest::cleanUrl($_POST['url']);
-			$oUrl=$_POST['url'];
+			$url=\str_replace('\\d+','%numeric%',$_POST['url']);
+			$url = str_replace('%numeric%','\\d+',$url);
 			unset($_POST['url']);
 			$method = $_POST['method'] ?? 'GET';
 			unset($_POST['method']);
