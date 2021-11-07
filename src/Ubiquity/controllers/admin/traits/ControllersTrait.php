@@ -54,13 +54,14 @@ trait ControllersTrait {
 			$controller = $_POST["controller"];
 			$controllerFullname = $_POST["controllerFullname"];
 			$viewName = $controller . "/" . $action . ".html";
+			$viewFolder=DDDManager::getActiveViewFolder();
 			$this->_createViewOp($controller, $action);
-			if (\file_exists(DDDManager::getActiveViewFolder(). $viewName)) {
+			if (\file_exists($viewFolder. $viewName)) {
 				$this->jquery->exec('$("#msgControllers").transition("show");$("#msgControllers .content").transition("show").append("<br><b>' . $viewName . '</b> created !");', true);
 			}
 			$r = new \ReflectionMethod($controllerFullname, $action);
 			$lines = file($r->getFileName());
-			$views = $this->_getAdminViewer()->getActionViews($controllerFullname, $controller, $action, $r, $lines);
+			$views = $this->_getAdminViewer()->getActionViews($controllerFullname, $controller, $action, $r, $lines,DDDManager::getViewNamespace(),$viewFolder);
 			foreach ($views as $view) {
 				echo $view->compile($this->jquery);
 				echo "&nbsp;";
