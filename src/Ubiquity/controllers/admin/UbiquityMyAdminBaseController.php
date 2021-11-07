@@ -724,13 +724,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]);
 	}
 
-	protected function addNavigationTesting($from='') {
+	protected function addNavigationTesting($from = '') {
 		$this->jquery->postOnClick("._get", $this->_getFiles()
-			->getAdminBaseRoute() . "/_runAction".$from, "{method:'get',url:$(this).attr('data-url')}", "#modal", [
+			->getAdminBaseRoute() . "/_runAction" . $from, "{method:'get',url:$(this).attr('data-url')}", "#modal", [
 			"hasLoader" => false
 		]);
 		$this->jquery->postOnClick("._post", $this->_getFiles()
-			->getAdminBaseRoute() . "/_runAction".$from, "{method:'post',url:$(this).attr('data-url')}", "#modal", [
+			->getAdminBaseRoute() . "/_runAction" . $from, "{method:'post',url:$(this).attr('data-url')}", "#modal", [
 			"hasLoader" => false
 		]);
 		$this->jquery->postOnClick("._postWithParams", $this->_getFiles()
@@ -1008,6 +1008,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$devtoolsPath = $this->config['devtools-path'] ?? 'Ubiquity';
 		$this->getHeader('themes');
+		$this->displayDomains();
 		$this->jquery->semantic()->htmlLabel('activeTheme');
 		$activeTheme = ThemesManager::getActiveTheme() ?? 'no theme';
 		$themes = ThemesManager::getAvailableThemes();
@@ -1481,21 +1482,21 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		setcookie("get[" . $index . "]", $content, \time() + 36000, "/", "127.0.0.1");
 	}
 
-	public function _runAction($frm = null,$fromRoutes=false) {
+	public function _runAction($frm = null, $fromRoutes = false) {
 		if (URequest::isPost()) {
-			$simulateRoute=false;
-			$url=\str_replace('\\d+','%numeric%',$_POST['url']);
-			$url = str_replace('%numeric%','\\d+',URequest::cleanUrl($url));
+			$simulateRoute = false;
+			$url = \str_replace('\\d+', '%numeric%', $_POST['url']);
+			$url = str_replace('%numeric%', '\\d+', URequest::cleanUrl($url));
 			unset($_POST['url']);
 			$method = $_POST['method'] ?? 'GET';
 			unset($_POST['method']);
 			$newParams = null;
 			$postParams = $_POST;
 
-			if ($fromRoutes!=='routes' && (Router::getRoute($url) === false && $this->getActiveDomain() != '')) {
+			if ($fromRoutes !== 'routes' && (Router::getRoute($url) === false && $this->getActiveDomain() != '')) {
 				$routeInfo = Router::getRouteInfoByDefaultRouting($url);
 				if (isset($routeInfo['path'])) {
-					$simulateRoute=true;
+					$simulateRoute = true;
 				} else {
 					$url = $this->_getBaseRoute() . '/_defaultRoutingErrorMessage';
 				}
@@ -1518,15 +1519,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				}
 			}
 			$modal = $this->jquery->semantic()->htmlModal("rModal", \strtoupper($method) . ":" . $url);
-			if($simulateRoute){
+			if ($simulateRoute) {
 				if (isset($newParams) && \count($newParams) > 0) {
 					$url = $routeInfo['path'];
 				}
-				$params=$this->getSimulateRouteParameters($url,$routeInfo,$newParams);
-				if(\count($params)===0 && $frm!=="frmGetParams"){
-					$url=$routeInfo['path'];
+				$params = $this->getSimulateRouteParameters($url, $routeInfo, $newParams);
+				if (\count($params) === 0 && $frm !== "frmGetParams") {
+					$url = $routeInfo['path'];
 				}
-			}else {
+			} else {
 				$params = $this->getRequiredRouteParameters($url, $newParams);
 			}
 			if (\count($params) > 0) {
@@ -1547,7 +1548,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 					'inline' => true
 				]);
 				$frm->setSubmitParams($this->_getFiles()
-					->getAdminBaseRoute() . '/_runAction/frmGetParams/'.$fromRoutes, '#modal', [
+					->getAdminBaseRoute() . '/_runAction/frmGetParams/' . $fromRoutes, '#modal', [
 					'params' => \json_encode($toPost)
 				]);
 				$frm->setStyle($this->style);
@@ -1584,7 +1585,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	private function getRequiredRouteParameters(&$url, $newParams = null) {
 		$url = \stripslashes($url);
 		$route = Router::getRouteInfo($url);
-		$params=[];
+		$params = [];
 		if ($route === false) {
 			$ns = Startup::getNS();
 			$u = \explode("/", $url);
@@ -1596,42 +1597,42 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			}
 		} else {
 			if (isset($newParams) && \count($newParams) > 0) {
-				$url=$this->updateUrlWithNewParams($url,$route,$newParams);
+				$url = $this->updateUrlWithNewParams($url, $route, $newParams);
 				return [];
 			}
 			$controller = $route['controller'];
 			$action = $route['action'];
-			$params=$route['main.params']??[];
+			$params = $route['main.params'] ?? [];
 		}
-		return \array_merge($params,$this->getRequiredControllerActionParameters($controller,$action));
+		return \array_merge($params, $this->getRequiredControllerActionParameters($controller, $action));
 	}
 
-	private function getSimulateRouteParameters(&$url,$routeInfo,$newParams=null){
+	private function getSimulateRouteParameters(&$url, $routeInfo, $newParams = null) {
 		if (isset($newParams) && \count($newParams) > 0) {
-			$url=$this->updateUrlWithNewParams($url,$routeInfo,$newParams);
+			$url = $this->updateUrlWithNewParams($url, $routeInfo, $newParams);
 			return [];
 		}
-		return \array_merge($routeInfo['main.params']??[],$this->getRequiredControllerActionParameters($routeInfo['controller'],$routeInfo['action']));
+		return \array_merge($routeInfo['main.params'] ?? [], $this->getRequiredControllerActionParameters($routeInfo['controller'], $routeInfo['action']));
 	}
 
-	private function updateUrlWithNewParams($url,$routeInfos,$newParams=[]){
-		$result=[];
+	private function updateUrlWithNewParams($url, $routeInfos, $newParams = []) {
+		$result = [];
 		$routeParameters = $routeInfos['parameters'];
-		$mainParams=$routeInfos['main.params']??[];
+		$mainParams = $routeInfos['main.params'] ?? [];
 		$i = 0;
-		$mp=0;
+		$mp = 0;
 		foreach ($newParams as $v) {
-			if(isset($mainParams[$mp])){
-				$result[]=$v;
-				$mp++;
-			}elseif (isset($routeParameters[$i]))
-				$result[((int) $routeParameters[$i ++])+$mp] = $v;
+			if (isset($mainParams[$mp])) {
+				$result[] = $v;
+				$mp ++;
+			} elseif (isset($routeParameters[$i]))
+				$result[((int) $routeParameters[$i ++]) + $mp] = $v;
 		}
 		\ksort($result);
 		return vsprintf(\preg_replace('#\([^\)]+\)#', '%s', $url), $result);
 	}
 
-	private function getRequiredControllerActionParameters($controller,$action, $newParams = null) {
+	private function getRequiredControllerActionParameters($controller, $action, $newParams = null) {
 		if (! \is_string($controller)) {
 			if (\is_callable($controller)) {
 				$func = new \ReflectionFunction($controller);
@@ -1652,7 +1653,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return [];
 	}
 
-		protected function loadViewCompo(BaseWidget $elm) {
+	protected function loadViewCompo(BaseWidget $elm) {
 		$elm->setLibraryId('_compo_');
 		$this->jquery->renderView('@framework/main/component.html');
 	}
