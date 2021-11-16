@@ -142,7 +142,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.11';
+	public const version = '2.4.12';
 
 	public $style;
 
