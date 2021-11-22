@@ -112,6 +112,10 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/database/create.html";
 	}
 
+	public function getViewDatabaseMigrate() {
+		return $this->viewBase . "/database/migrate.html";
+	}
+
 	public function getViewDatasExport() {
 		return $this->viewBase . "/database/export.html";
 	}

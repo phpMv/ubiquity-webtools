@@ -83,9 +83,9 @@ trait ModelsConfigTrait {
 				"Models cache generation"
 			],
 			[
-				"database plus",
+				"database-plus",
 				"Database",
-				"Database creation"
+				"Database migrations"
 			]
 		]
 	];
@@ -404,57 +404,6 @@ trait ModelsConfigTrait {
 					'dbName' => $matches[1] ?? $db
 				]);
 			}
-		}
-	}
-
-	public function _createDbFromSql() {
-		$dbName = URequest::post('dbName');
-		$sql = URequest::post('sql');
-		$isValid = true;
-		if (isset($dbName) && isset($sql)) {
-			$sql = preg_replace('/(USE\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
-			$sql = preg_replace('/(CREATE\sDATABASE\s(?:IF NOT EXISTS){0,1}\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
-			$activeDbOffset = $this->getActiveDb();
-
-			$db = $this->getDbInstance($activeDbOffset);
-			if (! $db->isConnected()) {
-				$db->setDbName('');
-				try {
-					$db->connect();
-				} catch (\Exception $e) {
-					$isValid = false;
-					$this->_showSimpleMessage($e->getMessage(), 'error', 'Connection to database: SQL file importation', 'warning', null, 'opMessage');
-				}
-			}
-			if ($isValid) {
-				if ($db->getDbName() !== $dbName) {
-					$config = Startup::$config;
-					DAO::updateDatabaseParams($config, [
-						'dbName' => $dbName
-					], $activeDbOffset);
-					Startup::saveConfig($config);
-					Startup::reloadConfig();
-				}
-				if ($db->beginTransaction()) {
-					try {
-						$db->execute($sql);
-						if ($db->inTransaction()) {
-							$db->commit();
-						}
-						$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
-					} catch (\Error $e) {
-						if ($db->inTransaction()) {
-							$db->rollBack();
-						}
-						$this->_showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
-					}
-				} else {
-					$db->execute($sql);
-					$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
-				}
-			}
-
-			$this->models();
 		}
 	}
 

@@ -51,7 +51,7 @@ trait DatabaseTrait {
 				$actualDb = DAO::$db[$activeDb]->getDbName();
 			}
 			$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
-			$generator->createDatabase($db);
+			$generator->migrate();
 			$frm = $this->jquery->semantic()->htmlForm("form-sql");
 			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");
 			$text->getField()->setProperty("style", "background-color: #002B36;");
@@ -61,7 +61,7 @@ trait DatabaseTrait {
 				$btExport = $bts->addElement("Export datas script : " . $actualDb . " => " . $db);
 				$btExport->addIcon("exchange");
 				$btExport->postOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_exportDatasScript", "{}", "#div-datas");
+					->getAdminBaseRoute() . "/_exportDatasScript", "{}", "#div-datas",['hasLoader'=>'internal']);
 			}
 			$frm->addDivider();
 			$this->jquery->exec("setAceEditor('sql');", true);
@@ -80,5 +80,67 @@ trait DatabaseTrait {
 		$this->jquery->compile($this->view);
 		$this->loadView($this->_getFiles()
 			->getViewDatasExport());
+	}
+
+	public function _createDbFromSql() {
+		$dbName = URequest::post('dbName');
+		$sql = URequest::post('sql');
+		if (isset($dbName) && isset($sql)) {
+			$sql = preg_replace('/(USE\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
+			$sql = preg_replace('/(CREATE\sDATABASE\s(?:IF NOT EXISTS){0,1}\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
+			$this->_executeSQLTransaction($sql,$dbName);
+			$this->models();
+		}
+	}
+
+	public function _migrateDb() {
+		$sql = URequest::post('sql');
+		$this->_executeSQLTransaction($sql);
+		$this->_loadModelStep('reverse',3);
+	}
+
+	private function _executeSQLTransaction(string $sql,$dbName=null){
+		$isValid = true;
+		if (isset($sql)) {
+			$activeDbOffset = $this->getActiveDb();
+
+			$db = $this->getDbInstance($activeDbOffset);
+			if (!$db->isConnected()) {
+				$db->setDbName('');
+				try {
+					$db->connect();
+				} catch (\Exception $e) {
+					$isValid = false;
+					$this->_showSimpleMessage($e->getMessage(), 'error', 'Server connexion', 'warning', null, 'opMessage');
+				}
+			}
+			if ($isValid) {
+				if ($dbName!=null && $db->getDbName() !== $dbName) {
+					$config = Startup::$config;
+					DAO::updateDatabaseParams($config, [
+						'dbName' => $dbName
+					], $activeDbOffset);
+					Startup::saveConfig($config);
+					Startup::reloadConfig();
+				}
+				if ($db->beginTransaction()) {
+					try {
+						$db->execute($sql);
+						if ($db->inTransaction()) {
+							$db->commit();
+						}
+						$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+					} catch (\Error $e) {
+						if ($db->inTransaction()) {
+							$db->rollBack();
+						}
+						$this->_showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
+					}
+				} else {
+					$db->execute($sql);
+					$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+				}
+			}
+		}
 	}
 }

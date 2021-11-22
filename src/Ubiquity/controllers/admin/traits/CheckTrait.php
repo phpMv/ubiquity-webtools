@@ -2,8 +2,11 @@
 namespace Ubiquity\controllers\admin\traits;
 
 use Ubiquity\controllers\Startup;
+use Ubiquity\db\reverse\DbGenerator;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\orm\DAO;
+use Ubiquity\orm\reverse\DatabaseChecker;
+use Ubiquity\orm\reverse\DatabaseReversor;
 use Ubiquity\utils\base\UString;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\controllers\admin\popo\InfoMessage;
@@ -53,6 +56,8 @@ trait CheckTrait {
 	 */
 	abstract public function _getFiles();
 
+	private $dbNeedsMigration=false;
+
 	public function _createModels($singleTable = null) {
 		$config = Startup::getConfig();
 		$offset = $this->getActiveDb();
@@ -86,15 +91,16 @@ trait CheckTrait {
 		$config = Startup::getConfig();
 		switch ($name) {
 			case "Conf":
-			case "Database":
 				if ($this->missingKeyInConfigMessage("Database is not well configured in <b>app/config/config.php</b>", Startup::checkDbConfig($activeDb)) === false) {
 					$this->_addInfoMessage("settings", "Database is well configured");
 				}
 				break;
-			case "Connexion":
 			case "Database":
-				$this->checkDatabase($config, "database", $activeDb);
+				$this->checkForDatabaseMigrations($activeDb);
 				break;
+			case "Connexion":
+				$this->checkDatabase($config, "database", $activeDb);
+			break;
 			case "Models":
 				CacheManager::start($config);
 				$this->checkModels($config);
@@ -111,6 +117,63 @@ trait CheckTrait {
 			case "Cache":
 				$this->checkModelsCache($config);
 				break;
+		}
+	}
+
+	protected function checkForDatabaseMigrations($activeDb){
+		$checker=new DatabaseChecker($activeDb);
+		$dbResults=$checker->checkAll();
+		$this->dbNeedsMigration=$checker->hasErrors();
+		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
+			foreach ($notExistingTables as $model=>$table) {
+				$this->_addErrorMessage("warning", "The table <b>" . $table . "</b> does not exists for the model <b>" . $model . "</b>.");
+			}
+		}
+		if(\count($uFields=$checker->getResultUpdatedFields())>0){
+			foreach ($uFields as $table=>$updatedFieldInfos){
+				if(isset($updatedFieldInfos['missing'])) {
+					$model = \array_key_first($updatedFieldInfos['missing']);
+					if (\count($fInfos = $updatedFieldInfos['missing'][$model] ?? []) > 0) {
+						$names = $checker->concatArrayKeyValue($fInfos,function($value){
+								return $value['name'];
+						});
+						$this->_addWarningMessage('warning circle', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+					}
+				}
+				if(isset($updatedFieldInfos['updated'])) {
+					$model = \array_key_first($updatedFieldInfos['updated']);
+					if (\count($fInfos = $updatedFieldInfos['updated'][$model] ?? []) > 0) {
+						$names = $checker->concatArrayKeyValue($fInfos,function($value){
+							return $value['name'];
+						});
+						$this->_addWarningMessage('warning circle', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+					}
+				}
+			}
+		}
+		if(\count($pks=$checker->getResultPrimaryKeys())>0){
+			foreach ($pks as $table=>$pksFieldInfos){
+				$model=$pksFieldInfos['model'];
+				$names=implode(',',$pksFieldInfos['primaryKeys']);
+				$this->_addWarningMessage('warning circle', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
+			}
+		}
+		if(\count($manyToOnes=$checker->getResultManyToOne())>0){
+			foreach ($manyToOnes as $table=>$manyToOneFieldInfos){
+				$names = $checker->concatArrayKeyValue($manyToOneFieldInfos,function($value){
+					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+				});
+				$this->_addWarningMessage('warning circle', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
+			}
+		}
+
+		if(\count($manyToManys=$checker->getResultManyToMany())>0){
+			foreach ($manyToManys as $table=>$manyToManyFieldInfos){
+				$names = $checker->concatArrayKeyValue($manyToManyFieldInfos,function($value){
+					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
+				});
+				$this->_addWarningMessage('warning circle', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
+			}
 		}
 	}
 
@@ -265,6 +328,12 @@ trait CheckTrait {
 			$messagesElmInfo = $this->displayModelsMessages($this->hasNoError() ? "success" : "info", $this->messages["info"]);
 			echo $messagesElmInfo;
 		}
+
+		if ($this->hasWarning()) {
+			$messagesElmWarning = $this->displayModelsMessages("warning", $this->messages["warning"]);
+			echo $messagesElmWarning;
+		}
+
 		if ($this->hasError()) {
 			$messagesElmError = $this->displayModelsMessages("error", $this->messages["error"]);
 			echo $messagesElmError;
@@ -276,56 +345,57 @@ trait CheckTrait {
 		$buttons = $this->jquery->semantic()->htmlButtonGroups("step-actions");
 		$step = $this->getActiveModelStep();
 		$activeDomain=DDDManager::getActiveDomain();
+		$baseRoute=$this->_getFiles()->getAdminBaseRoute();
 		switch ($step[1]) {
+			case "Conf":
 			case "Connexion":
 			case "Database":
-				if ($this->engineering === "reverse")
-					$buttons->addItem("(Re-)Create database")
-						->addClass($this->style)
-						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/_showDatabaseCreation", "#main-content", [
-						'hasLoader' => 'internal'
-					])
-						->addIcon("database");
-			case "Conf":
+				if($this->dbNeedsMigration){
+					$buttons->addItem('Database migrations')
+						->addClass($this->style.' olive')
+						->getOnclick($baseRoute.'/_displayMigrations','#action-response',['hasLoader'=>'internal'])
+						->addIcon('dove');
+				}
 				$buttons->addItem("Show config file")
 					->addClass($this->style)
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_config", "#action-response", [
+					->getOnClick($baseRoute . "/_config", "#action-response", [
 					'hasLoader' => 'internal'
 				])
 					->addIcon("settings");
 				$buttons->addItem("Edit config file")
 					->addClass($this->style)
 					->addClass("orange")
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_formConfig/check", "#action-response", [
+					->getOnClick($baseRoute . "/_formConfig/check", "#action-response", [
 					'hasLoader' => 'internal'
 				])
 					->addIcon("edit");
 				$buttons->addItem('Import from SQL file')
 					->addClass($this->style)
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_importSQL", "#action-response", [
+					->getOnClick($baseRoute . "/_importSQL", "#action-response", [
 					'hasLoader' => 'internal'
 				])
 					->addIcon("file code");
+				if ($this->engineering === "reverse")
+					$buttons->addItem("Export database")
+						->addClass($this->style)
+						->getOnClick($baseRoute . "/_showDatabaseCreation", "#main-content", [
+							'hasLoader' => 'internal'
+						])
+						->addIcon("upload");
 				break;
 			case "Models":
 				if ($this->engineering === "forward") {
 					if (\count($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
 						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
 						$ddBtn->asButton()->addClass($this->style);
-						$ddBtn->getOnClick($this->_getFiles()
-							->getAdminBaseRoute() . "/_createModels", "#main-content", [
+						$ddBtn->getOnClick($baseRoute . "/_createModels", "#main-content", [
 							"attr" => "data-value"
 						]);
 						$buttons->addItem($ddBtn);
 					}
 					$buttons->addItem("(Re-)Create all models")
 						->addClass($this->style)
-						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/_createModels", "#main-content", [
+						->getOnClick($baseRoute . "/_createModels", "#main-content", [
 						"attr" => "",
 						'hasLoader' => 'internal'
 					])
@@ -333,8 +403,7 @@ trait CheckTrait {
 				} else {
 					$buttons->addItem("Import from Yuml")
 						->addClass($this->style)
-						->getOnClick($this->_getFiles()
-						->getAdminBaseRoute() . "/_importFromYuml", "#models-main", [
+						->getOnClick($baseRoute . "/_importFromYuml", "#models-main", [
 						"attr" => "",
 						'hasLoader' => 'internal'
 					])
@@ -342,8 +411,7 @@ trait CheckTrait {
 				}
 				$bt = $buttons->addItem("Classes diagram")
 					->addClass($this->style)
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_showAllClassesDiagram", "#action-response", [
+					->getOnClick($baseRoute . "/_showAllClassesDiagram", "#action-response", [
 					"attr" => "",
 					"ajaxTransition" => "random",
 					'hasLoader' => 'internal'
@@ -355,8 +423,7 @@ trait CheckTrait {
 			case "Cache":
 				$buttons->addItem("(Re-)Init all models cache")
 					->addClass($this->style)
-					->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_initCache/models/models", "#main-content", [
+					->getOnClick($baseRoute . "/_initCache/models/models", "#main-content", [
 					'hasLoader' => 'internal'
 				])
 					->addIcon("lightning");
@@ -369,8 +436,7 @@ trait CheckTrait {
 			$bt->addLabel($nextStep[2], true, $nextStep[0]);
 			$bt->getContent()[1]->addClass("green " . $this->style);
 			if ($this->hasNoError()) {
-				$bt->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_loadModelStep/" . $this->engineering . "/" . ($this->activeStep + 1), "#models-main", [
+				$bt->getOnClick($baseRoute . "/_loadModelStep/" . $this->engineering . "/" . ($this->activeStep + 1), "#models-main", [
 					'hasLoader' => 'internal'
 				]);
 			} else {
@@ -383,8 +449,7 @@ trait CheckTrait {
 			$bt = $buttons->addItem("See datas")->addClass("black " . $this->style);
 			$bt->addIcon("unhide");
 			if ($this->hasNoError()) {
-				$bt->getOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/models/noHeader/", "#models-main", [
+				$bt->getOnClick($baseRoute . "/models/noHeader/", "#models-main", [
 					'hasLoader' => 'internal'
 				]);
 				$this->jquery->execAtLast('$("#btNewConnection").show();');
@@ -400,44 +465,54 @@ trait CheckTrait {
 	}
 
 	protected function missingKeyInConfigMessage($message, $keys) {
-		if (\sizeof($keys) > 0) {
+		if (\count($keys) > 0) {
 			$this->_addErrorMessage("warning", $message . " : parameters <b>[" . \Ajax\service\JArray::implode(",", $keys) . "]</b> are required.");
 			return true;
 		}
 		return false;
 	}
 
-	protected function _addErrorMessage($type, $content) {
-		$this->_addMessage("error", $type, $content);
+	protected function _addErrorMessage($type, $content): InfoMessage {
+		return $this->_addMessage("error", $type, $content);
 	}
 
-	protected function _addInfoMessage($type, $content) {
-		$this->_addMessage("info", $type, $content);
+	protected function _addInfoMessage($type, $content): InfoMessage {
+		return $this->_addMessage("info", $type, $content);
 	}
 
-	protected function _addMessage($key, $type, $content) {
-		$this->messages[$key][] = new InfoMessage($type, $content);
+	protected function _addWarningMessage($type, $content): InfoMessage {
+		return $this->_addMessage("warning", $type, $content);
+	}
+
+	protected function _addMessage($key, $type, $content): InfoMessage {
+		return $this->messages[$key][] = new InfoMessage($type, $content);
 	}
 
 	protected function hasError() {
-		return \sizeof($this->messages["error"]) > 0;
+		return \count($this->messages["error"]??[]) > 0;
+	}
+
+	protected function hasWarning() {
+		return \count($this->messages["warning"]??[]) > 0;
 	}
 
 	protected function hasNoError() {
-		return \sizeof($this->messages["error"]) == 0;
+		return \count($this->messages["error"]??[]) == 0;
 	}
 
 	protected function hasMessages() {
-		return \sizeof($this->messages["info"]) > 0;
+		return \count($this->messages["info"]??[]) > 0;
 	}
 
 	protected function displayMessages($type, $messagesToDisplay, $header = "", $icon = "") {
 		$messagesElm = $this->jquery->semantic()->htmlMessage("modelsMessages-" . $type);
 		$messagesElm->addHeader($header);
-		if ($this->hasError() && $type === "info")
+		if ($this->hasError() && $type === "info") {
 			$messagesElm->setIcon("info circle");
-		else
+		}
+		else {
 			$messagesElm->setIcon($icon);
+		}
 		$messages = [];
 		foreach ($messagesToDisplay as $msg) {
 			$lines = explode("\n", $msg->getContent());
@@ -451,5 +526,17 @@ trait CheckTrait {
 		$list->addClass('relaxed divided');
 		$messagesElm->addClass($type . ' ' . $this->style);
 		return $messagesElm;
+	}
+
+	public function _displayMigrations(){
+		$activeDb = $this->getActiveDb();
+		$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
+		$generator->migrate();
+		
+		$this->jquery->exec("setAceEditor('sqlx');$('#modelsMessages-success').hide();", true);
+		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
+				->getAdminBaseRoute() . "/_migrateDb", "frm-sql-content", "#models-main",['hasLoader'=>'internal']);
+		$this->jquery->renderView($this->_getFiles()
+			->getViewDatabaseMigrate(),['inverted'=>$this->style,'sql'=>$generator->__toString()]);
 	}
 }

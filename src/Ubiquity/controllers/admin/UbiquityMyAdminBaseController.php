@@ -1279,7 +1279,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$btApply = new HtmlButton("bt-apply", "Create SQL script", "green fluid");
 		$btApply->postFormOnClick($this->_getFiles()
 			->getAdminBaseRoute() . "/_createSQLScript", "menu", "#div-create", [
-			"ajaxTransition" => "random",
+			"hasLoader" => "internal",
 			"attr" => ""
 		]);
 		$list->addItem($btApply);

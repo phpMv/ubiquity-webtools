@@ -1,0 +1,16 @@
+<form id="frm-sql-content">
+    <div class="ui segment {{ inverted }}">
+        <button id="validate-btn" class="ui button positive {{ inverted }}">
+            <i id="icon-bt-okay" class="icon check circle"></i>
+            Execute migrations
+        </button>
+        &nbsp;
+        <button id="cancel-btn" class="ui button {{ inverted }}">
+            <i id="icon-bt-cancel" class="icon remove circle outline"></i>
+            Cancel
+        </button>
+    </div>
+    <pre id="sqlx" class='ui segment editor' style="background-color: rgb(0, 43, 54)">{{sql}}</pre>
+    <input type='hidden' name='sql' id='sql'>
+</form>
+{{ script_foot | raw }}
