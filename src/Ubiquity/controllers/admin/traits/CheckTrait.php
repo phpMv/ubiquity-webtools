@@ -124,64 +124,9 @@ trait CheckTrait {
 		$checker=new DatabaseChecker($activeDb);
 		$dbResults=$checker->checkAll();
 		$this->dbNeedsMigration=$checker->hasErrors();
-		if(isset($dbResults['database'])){
-			$this->_addErrorMessage("database", "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
-		}
-		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
-			foreach ($notExistingTables as $model=>$table) {
-				if(is_string($model)) {
-					$this->_addErrorMessage("table", "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
-				}else{
-					$this->_addErrorMessage("table", "The table <b>" . $table . "</b> does not exist.");
-				}
-			}
-		}
-		if(\count($uFields=$checker->getResultUpdatedFields())>0){
-			foreach ($uFields as $table=>$updatedFieldInfos){
-				if(isset($updatedFieldInfos['missing'])) {
-					$model = \array_key_first($updatedFieldInfos['missing']);
-					if (\count($fInfos = $updatedFieldInfos['missing'][$model] ?? []) > 0) {
-						$names = $checker->concatArrayKeyValue($fInfos,function($value){
-								return $value['name'];
-						});
-						$this->_addWarningMessage('warning circle', "Missing fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
-					}
-				}
-				if(isset($updatedFieldInfos['updated'])) {
-					$model = \array_key_first($updatedFieldInfos['updated']);
-					if (\count($fInfos = $updatedFieldInfos['updated'][$model] ?? []) > 0) {
-						$names = $checker->concatArrayKeyValue($fInfos,function($value){
-							return $value['name'];
-						});
-						$this->_addWarningMessage('warning circle', "Updated fields in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
-					}
-				}
-			}
-		}
-		if(\count($pks=$checker->getResultPrimaryKeys())>0){
-			foreach ($pks as $table=>$pksFieldInfos){
-				$model=$pksFieldInfos['model'];
-				$names=implode(',',$pksFieldInfos['primaryKeys']);
-				$this->_addWarningMessage('warning circle', "Missing primary keys in table <b>`$table`</b> for the model <b>`$model`</b>: <b>($names)</b>");
-			}
-		}
-		if(\count($manyToOnes=$checker->getResultManyToOne())>0){
-			foreach ($manyToOnes as $table=>$manyToOneFieldInfos){
-				$names = $checker->concatArrayKeyValue($manyToOneFieldInfos,function($value){
-					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
-				});
-				$this->_addWarningMessage('warning circle', "Missing foreign keys in table <b>`$table`</b> : <b>($names)</b>");
-			}
-		}
-
-		if(\count($manyToManys=$checker->getResultManyToMany())>0){
-			foreach ($manyToManys as $table=>$manyToManyFieldInfos){
-				$names = $checker->concatArrayKeyValue($manyToManyFieldInfos,function($value){
-					return $value['table'].'.'.$value['column']. ' => '.$value['fkTable'].'.'.$value['fkId'];
-				});
-				$this->_addWarningMessage('warning circle', "Missing foreign keys for manyToMany with table <b>`$table`</b> : <b>($names)</b>");
-			}
-		}
+		$checker->displayAll(function($type,$content){
+			$this->_addErrorMessage($type, $content);
+		});
 	}
 
 	protected function checkDatabase($config, $infoIcon = "database", $offset = 'default') {
