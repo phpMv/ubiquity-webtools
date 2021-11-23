@@ -51,7 +51,7 @@ trait DatabaseTrait {
 				$actualDb = DAO::$db[$activeDb]->getDbName();
 			}
 			$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
-			$generator->migrate();
+			$generator->createDatabase($db);
 			$frm = $this->jquery->semantic()->htmlForm("form-sql");
 			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");
 			$text->getField()->setProperty("style", "background-color: #002B36;");

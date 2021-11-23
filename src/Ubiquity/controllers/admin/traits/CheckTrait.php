@@ -124,9 +124,16 @@ trait CheckTrait {
 		$checker=new DatabaseChecker($activeDb);
 		$dbResults=$checker->checkAll();
 		$this->dbNeedsMigration=$checker->hasErrors();
+		if(isset($dbResults['database'])){
+			$this->_addErrorMessage("database", "The database at offset <b>" . $dbResults['database'] . "</b> does not exist!");
+		}
 		if(\count($notExistingTables=$dbResults['nonExistingTables'])>0){
 			foreach ($notExistingTables as $model=>$table) {
-				$this->_addErrorMessage("warning", "The table <b>" . $table . "</b> does not exists for the model <b>" . $model . "</b>.");
+				if(is_string($model)) {
+					$this->_addErrorMessage("table", "The table <b>" . $table . "</b> does not exist for the model <b>" . $model . "</b>.");
+				}else{
+					$this->_addErrorMessage("table", "The table <b>" . $table . "</b> does not exist.");
+				}
 			}
 		}
 		if(\count($uFields=$checker->getResultUpdatedFields())>0){
@@ -201,7 +208,7 @@ trait CheckTrait {
 			$this->_addInfoMessage($infoIcon, "Models namespace <b>" . $modelsNS . "</b> is ok.");
 			$dir = UFileSystem::cleanPathname(\ROOT . \DS . $modelsNS);
 			if (\file_exists($dir) === false) {
-				$this->_addErrorMessage("warning", "The directory <b>" . $dir . "</b> does not exists.");
+				$this->_addErrorMessage("warning", "The directory <b>" . $dir . "</b> does not exist.");
 			} else {
 				$activeDb = $this->getActiveDb();
 				$this->_addInfoMessage($infoIcon, "The directory for models namespace <b>" . $dir . "</b> exists.");
@@ -287,12 +294,12 @@ trait CheckTrait {
 				$this->_addInfoMessage($infoIcon, "Models cache directory is well configured in config file.");
 				$cacheDirs = CacheManager::getCacheDirectories($config, true);
 				if (\file_exists($cacheDir) === false) {
-					$this->_addErrorMessage("warning", "The cache directory <b>" . $cacheDir . "</b> does not exists.");
+					$this->_addErrorMessage("warning", "The cache directory <b>" . $cacheDir . "</b> does not exist.");
 				} else {
 					$modelsCacheDir = UFileSystem::cleanPathname($cacheDirs["models"]);
 					$this->_addInfoMessage($infoIcon, "Cache directory <b>" . $cacheDir . "</b> exists.");
 					if (\file_exists($modelsCacheDir) === false) {
-						$this->_addErrorMessage("warning", "The models cache directory <b>" . $modelsCacheDir . "</b> does not exists.");
+						$this->_addErrorMessage("warning", "The models cache directory <b>" . $modelsCacheDir . "</b> does not exist.");
 					} else {
 						$this->_addInfoMessage($infoIcon, "Models cache directory <b>" . $modelsCacheDir . "</b> exists.");
 						$this->checkModelsCacheFiles($config, $infoIcon);
@@ -312,7 +319,7 @@ trait CheckTrait {
 		$models = CacheManager::getModels($config, true, $activeDb);
 		foreach ($models as $model) {
 			if (! CacheManager::modelCacheExists($model)) {
-				$this->_addErrorMessage("warning", "The models cache entry does not exists for the class <b>" . $model . "</b>.");
+				$this->_addErrorMessage("warning", "The models cache entry does not exist for the class <b>" . $model . "</b>.");
 			} else {
 				$this->_addInfoMessage($infoIcon, "The models cache entry for <b>" . $model . "</b> exists.");
 			}
@@ -386,7 +393,7 @@ trait CheckTrait {
 			case "Models":
 				if ($this->engineering === "forward") {
 					if (\count($tables = $this->getTablesWithoutModel(Startup::getConfig(), $activeDb))) {
-						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", array_combine($tables, $tables));
+						$ddBtn = new HtmlDropdown("ddTables", "Create models for new tables", \array_combine($tables, $tables));
 						$ddBtn->asButton()->addClass($this->style);
 						$ddBtn->getOnClick($baseRoute . "/_createModels", "#main-content", [
 							"attr" => "data-value"
@@ -533,7 +540,7 @@ trait CheckTrait {
 		$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
 		$generator->migrate();
 		
-		$this->jquery->exec("setAceEditor('sqlx');$('#modelsMessages-success').hide();", true);
+		$this->jquery->exec("setAceEditor('sqlx');$('#modelsMessages-success,#modelsMessages-info').hide();", true);
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 				->getAdminBaseRoute() . "/_migrateDb", "frm-sql-content", "#models-main",['hasLoader'=>'internal']);
 		$this->jquery->renderView($this->_getFiles()

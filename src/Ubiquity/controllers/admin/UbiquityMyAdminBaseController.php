@@ -504,6 +504,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->exec('$("._ckTheme").checkbox();', true);
+		$invertedBg=$this->styles['inverted']['bgColor'];
+		$bg=$this->styles['']['bgColor'];
+		$this->jquery->click('._ckTheme','if ($("#ck-theme").is(":checked")){$(".ui:not(.inverted)").addClass("inverted");$("body").css("background-color","'.$invertedBg.'");}else{$(".ui").removeClass("inverted");$("body").css("background-color","'.$bg.'");}');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewIndexCustomizing(), [
 			'inverted' => $this->style
@@ -532,11 +535,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->config['part2'] = explode(',', $part2Str);
 		$ckTheme = URequest::filled('ck-theme');
 		if ($ckTheme) {
-			if ($this->style === 'inverted') {
-				$this->config['style'] = '';
-			} else {
-				$this->config['style'] = 'inverted';
-			}
+			$this->config['style'] = 'inverted';
+		} else {
+			$this->config['style'] = '';
 		}
 		$this->_saveConfig();
 		$_GET['_refresh'] = true;
