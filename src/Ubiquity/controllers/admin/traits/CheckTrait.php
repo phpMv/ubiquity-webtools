@@ -124,8 +124,8 @@ trait CheckTrait {
 		$checker=new DatabaseChecker($activeDb);
 		$dbResults=$checker->checkAll();
 		$this->dbNeedsMigration=$checker->hasErrors();
-		$checker->displayAll(function($type,$content){
-			$this->_addErrorMessage($type, $content);
+		$checker->displayAll(function($type,$icon,$content){
+			$this->_addMessage($type, $icon,$content);
 		});
 	}
 
