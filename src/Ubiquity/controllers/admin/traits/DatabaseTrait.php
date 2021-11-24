@@ -61,7 +61,9 @@ trait DatabaseTrait {
 				$btExport = $bts->addElement("Export datas script : " . $actualDb . " => " . $db);
 				$btExport->addIcon("exchange");
 				$btExport->postOnClick($this->_getFiles()
-					->getAdminBaseRoute() . "/_exportDatasScript", "{}", "#div-datas",['hasLoader'=>'internal']);
+					->getAdminBaseRoute() . "/_exportDatasScript", "{}", "#div-datas", [
+					'hasLoader' => 'internal'
+				]);
 			}
 			$frm->addDivider();
 			$this->jquery->exec("setAceEditor('sql');", true);
@@ -88,24 +90,24 @@ trait DatabaseTrait {
 		if (isset($dbName) && isset($sql)) {
 			$sql = preg_replace('/(USE\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
 			$sql = preg_replace('/(CREATE\sDATABASE\s(?:IF NOT EXISTS){0,1}\s[`|"|\'])(.*?)([`|"|\'])/m', '$1' . $dbName . '$3', $sql);
-			$this->_executeSQLTransaction($sql,$dbName);
+			$this->_executeSQLTransaction($sql, 'SQL file importation', $dbName);
 			$this->models();
 		}
 	}
 
 	public function _migrateDb() {
 		$sql = URequest::post('sql');
-		$this->_executeSQLTransaction($sql);
-		$this->_loadModelStep('reverse',3);
+		$this->_executeSQLTransaction($sql, 'Database migrations');
+		$this->_loadModelStep('reverse', 3);
 	}
 
-	private function _executeSQLTransaction(string $sql,$dbName=null){
+	private function _executeSQLTransaction(string $sql, string $title, ?string $dbName = null) {
 		$isValid = true;
 		if (isset($sql)) {
 			$activeDbOffset = $this->getActiveDb();
 
 			$db = $this->getDbInstance($activeDbOffset);
-			if (!$db->isConnected()) {
+			if (! $db->isConnected()) {
 				$db->setDbName('');
 				try {
 					$db->connect();
@@ -115,7 +117,7 @@ trait DatabaseTrait {
 				}
 			}
 			if ($isValid) {
-				if ($dbName!=null && $db->getDbName() !== $dbName) {
+				if ($dbName != null && $db->getDbName() !== $dbName) {
 					$config = Startup::$config;
 					DAO::updateDatabaseParams($config, [
 						'dbName' => $dbName
@@ -129,16 +131,16 @@ trait DatabaseTrait {
 						if ($db->inTransaction()) {
 							$db->commit();
 						}
-						$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+						$this->_showSimpleMessage($dbName . ' created/updated with success!', 'success', $title, 'success', null, 'opMessage');
 					} catch (\Error $e) {
 						if ($db->inTransaction()) {
 							$db->rollBack();
 						}
-						$this->_showSimpleMessage($e->getMessage(), 'error', 'SQL file importation', 'warning', null, 'opMessage');
+						$this->_showSimpleMessage($e->getMessage(), 'error', $title, 'warning', null, 'opMessage');
 					}
 				} else {
 					$db->execute($sql);
-					$this->_showSimpleMessage($dbName . ' created with success!', 'success', 'SQL file importation', 'success', null, 'opMessage');
+					$this->_showSimpleMessage($dbName . ' created/updated with success!', 'success', $title, 'success', null, 'opMessage');
 				}
 			}
 		}
