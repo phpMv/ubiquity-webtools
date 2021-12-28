@@ -142,7 +142,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.12';
+	public const version = '2.4.12+';
 
 	public $style;
 
@@ -504,9 +504,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->exec('$("._ckTheme").checkbox();', true);
-		$invertedBg=$this->styles['inverted']['bgColor'];
-		$bg=$this->styles['']['bgColor'];
-		$this->jquery->click('._ckTheme','if ($("#ck-theme").is(":checked")){$(".ui:not(.inverted)").addClass("inverted");$("body").css("background-color","'.$invertedBg.'");}else{$(".ui").removeClass("inverted");$("body").css("background-color","'.$bg.'");}');
+		$invertedBg = $this->styles['inverted']['bgColor'];
+		$bg = $this->styles['']['bgColor'];
+		$this->jquery->click('._ckTheme', 'if ($("#ck-theme").is(":checked")){$(".ui:not(.inverted)").addClass("inverted");$("body").css("background-color","' . $invertedBg . '");}else{$(".ui").removeClass("inverted");$("body").css("background-color","' . $bg . '");}');
 		$this->jquery->renderView($this->_getFiles()
 			->getViewIndexCustomizing(), [
 			'inverted' => $this->style

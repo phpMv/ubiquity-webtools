@@ -2,11 +2,16 @@
 namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\semantic\components\validation\Rule;
+use Ajax\semantic\html\base\HtmlSemDoubleElement;
 use Ajax\semantic\html\elements\HtmlButton;
 use Ajax\semantic\html\elements\HtmlLabel;
+use Ajax\semantic\html\elements\HtmlList;
+use Ajax\semantic\widgets\dataelement\DataElement;
+use Ajax\semantic\widgets\datatable\DataTable;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\popo\ComposerDependency;
 use Ubiquity\scaffolding\starter\ServiceStarter;
+use Ubiquity\security\csp\ContentSecurity;
 use Ubiquity\utils\http\UCookie;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\USession;
@@ -53,10 +58,16 @@ trait SecurityTrait {
 					'storage' => \Ubiquity\security\csrf\CsrfManager::getStorageClass()
 				];
 			}
+			$servicesValues['csp']=$hasCsp=\Ubiquity\security\csp\ContentSecurityManager::isStarted();
+			$servicesNames[]='Csp manager';
+			if($hasCsp){
+				$cspValues=['reportOnly'=>\Ubiquity\security\csp\ContentSecurityManager::isReportOnly(),
+					'nonceGenerator'=>\Ubiquity\security\csp\ContentSecurityManager::getNonceGenerator()->__toString(),
+					'csp'=>\Ubiquity\security\csp\ContentSecurityManager::getCsp()];
+			}
 		}
 		if ($hasShieldon) {
-
-			$servicesValues['shieldon'] = (\Shieldon\Container::get('firewall') !== null);
+			$servicesValues['shieldon'] = (\Shieldon\Firewall\Container::get('firewall') !== null);
 			$servicesNames[] = 'Shieldon firewall';
 		}
 		if ($hasAcl) {
@@ -73,7 +84,7 @@ trait SecurityTrait {
 			'transformer' => UCookie::getTransformerClass() ?? 'Nothing'
 		];
 		$deComponents = $this->jquery->semantic()->dataElement('components', $componentsValues);
-		$deComponents->setFields(array_keys($componentsValues));
+		$deComponents->setFields(\array_keys($componentsValues));
 		$deComponents->setCaptions([
 			'ubiquity-security',
 			'ubiquity-acl',
@@ -93,7 +104,7 @@ trait SecurityTrait {
 			return $this->installOrInstalledSecurityCompo($value, 'shieldon', 'shieldon', 'shieldon', $dependencies);
 		});
 		$this->_setStyle($deComponents);
-		if (count($servicesValues) > 0) {
+		if (\count($servicesValues) > 0) {
 			$deServices = $this->jquery->semantic()->dataElement('services', $servicesValues);
 			$deServices->setFields(\array_keys($servicesValues));
 			$deServices->setCaptions($servicesNames);
@@ -109,6 +120,10 @@ trait SecurityTrait {
 			});
 			$deServices->setValueFunction('csrf', function ($value) {
 				return $this->startOrStartedSecurityService($value, 'csrfManager');
+			});
+
+			$deServices->setValueFunction('csp',function($value){
+				return $this->startOrStartedSecurityService($value, 'contentSecurityManager');
 			});
 
 			$deServices->setValueFunction('acl', function ($value) use ($baseRoute) {
@@ -223,6 +238,39 @@ trait SecurityTrait {
 			$deCsrf->setAttached()->setEdition();
 			$this->_setStyle($deCsrf);
 			$deCsrf->wrap('<div class="ui top attached ' . $this->style . ' orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
+		}
+
+		if($hasCsp){
+			$deCsp = $this->jquery->semantic()->dataElement('csp', $cspValues);
+			$deCsp->setFields(\array_keys($cspValues));
+			$deCsp->setCaptions(['Report only','Nonce generator','Csp'
+			]);
+			$deCsp->setAttached();
+			$deCsp->fieldAsCheckbox('reportOnly');
+			$deCsp->setValueFunction('csp',function($_v,$_i,$index) use($cspValues){
+				$values=$cspValues['csp'];
+				$r=[];
+				$dt=new DataTable('',ContentSecurity::class,$values);
+				$dt->setFields(['policies']);
+				$dt->addClass('compact');
+				$dt->setValueFunction('policies',function($v){
+					$de=new DataElement('',$v);
+					$de->setFields(\array_keys($v));
+					$de->addClass('padded');
+					$de->setDefaultValueFunction(function($name,$policies){
+						$lst=new HtmlList('',array_keys(get_object_vars($policies)));
+						$lst->setDivided();
+						return $lst;
+					});
+					return $de;
+				});
+				$elm=new HtmlLabel('lbl-csp-'.$index,count($values));
+				$elm->addPopupHtml($dt,'very wide');
+				return $elm;
+
+			});
+
+			$deCsp->wrap('<div class="ui top attached '.$this->style.' yellow segment"><i class="ui shield icon"></i> Content Security Policies</div>');
 		}
 
 		$this->jquery->postOnClick('._installComponent', $baseRoute . '/_execComposer/_refreshComponentSecurity/securityPart', '{commands: "composer require "+$(this).attr("data-composer")}', '#partial', [
@@ -362,7 +410,7 @@ trait SecurityTrait {
 			}
 			$csrf = '';
 			if (ServicesChecker::isCsrfStarted()) {
-				$csrf = "\$controlPanel->csrf('_token', \Ubiquity\security\csrf\CsrfManager::generateValue(32));";
+				$csrf = "\$controlPanel->csrf(['_token'=>\Ubiquity\security\csrf\CsrfManager::generateValue(32)]);";
 			}
 			$variables['%csrf%'] = $csrf;
 			echo $this->_createController($_POST["controllerName"], $variables, 'shieldonController.tpl', false, $this->jquery->getDeferred($this->_getFiles()
