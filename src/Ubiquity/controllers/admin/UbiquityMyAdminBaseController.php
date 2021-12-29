@@ -55,6 +55,7 @@ use Ubiquity\log\LoggerParams;
 use Ubiquity\orm\DAO;
 use Ubiquity\orm\OrmUtils;
 use Ubiquity\scaffolding\AdminScaffoldController;
+use Ubiquity\security\csp\ContentSecurityManager;
 use Ubiquity\themes\ThemesManager;
 use Ubiquity\translation\TranslatorManager;
 use Ubiquity\utils\http\USession;
@@ -142,7 +143,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.14';
+	public const version = '2.4.14+';
 
 	public $style;
 
@@ -268,9 +269,16 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'hasLoader' => 'internal-x'
 			]);
 			$this->jquery->activateLink("#mainMenu");
-
+			$security = [];
+			if (ServicesChecker::hasSecurity()) {
+				if (ContentSecurityManager::isStarted()) {
+					$security = [
+						'nonce' => ContentSecurityManager::getNonce('jsUtils')
+					];
+				}
+			}
 			$this->jquery->renderView($this->_getFiles()
-				->getViewHeader(), $this->styles[$this->style]);
+				->getViewHeader(), \array_merge($this->styles[$this->style], $security));
 		}
 		$this->scaffold = new AdminScaffoldController($this, $this->jquery);
 		DAO::start();

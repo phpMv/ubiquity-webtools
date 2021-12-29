@@ -249,23 +249,17 @@ trait SecurityTrait {
 			$deCsp->fieldAsCheckbox('reportOnly');
 			$deCsp->setValueFunction('csp',function($_v,$_i,$index) use($cspValues){
 				$values=$cspValues['csp'];
-				$r=[];
-				$dt=new DataTable('',ContentSecurity::class,$values);
-				$dt->setFields(['policies']);
-				$dt->addClass('compact');
-				$dt->setValueFunction('policies',function($v){
-					$de=new DataElement('',$v);
-					$de->setFields(\array_keys($v));
-					$de->addClass('padded');
-					$de->setDefaultValueFunction(function($name,$policies){
-						$lst=new HtmlList('',array_keys(get_object_vars($policies)));
-						$lst->setDivided();
-						return $lst;
-					});
-					return $de;
-				});
+				$result=[];
+				foreach ($values as $csp){
+					$result[]=$csp->display(function($v){return '<b>'.$v.'</b>&nbsp;';},function($v){return $v.'<br>';});
+				}
+				if(count($result)==0){
+					$result[]='No CSP!';
+				}
+				$list=new HtmlList('',$result);
+				$list->setDivided();
 				$elm=new HtmlLabel('lbl-csp-'.$index,count($values));
-				$elm->addPopupHtml($dt,'very wide');
+				$elm->addPopupHtml($list,'very wide');
 				return $elm;
 
 			});
