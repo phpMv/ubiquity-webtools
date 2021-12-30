@@ -42,6 +42,7 @@ trait SecurityTrait {
 			'acl' => $hasAcl,
 			'shieldon' => $hasShieldon
 		];
+		$hasCsp = false;
 		$servicesValues = [];
 		$servicesNames = [];
 		if ($hasSecurity) {
@@ -58,12 +59,14 @@ trait SecurityTrait {
 					'storage' => \Ubiquity\security\csrf\CsrfManager::getStorageClass()
 				];
 			}
-			$servicesValues['csp']=$hasCsp=\Ubiquity\security\csp\ContentSecurityManager::isStarted();
-			$servicesNames[]='Csp manager';
-			if($hasCsp){
-				$cspValues=['reportOnly'=>\Ubiquity\security\csp\ContentSecurityManager::isReportOnly(),
-					'nonceGenerator'=>\Ubiquity\security\csp\ContentSecurityManager::getNonceGenerator()->__toString(),
-					'csp'=>\Ubiquity\security\csp\ContentSecurityManager::getCsp()];
+			$servicesValues['csp'] = $hasCsp = \Ubiquity\security\csp\ContentSecurityManager::isStarted();
+			$servicesNames[] = 'Csp manager';
+			if ($hasCsp) {
+				$cspValues = [
+					'reportOnly' => \Ubiquity\security\csp\ContentSecurityManager::isReportOnly(),
+					'nonceGenerator' => \Ubiquity\security\csp\ContentSecurityManager::getNonceGenerator()->__toString(),
+					'csp' => \Ubiquity\security\csp\ContentSecurityManager::getCsp()
+				];
 			}
 		}
 		if ($hasShieldon) {
@@ -122,7 +125,7 @@ trait SecurityTrait {
 				return $this->startOrStartedSecurityService($value, 'csrfManager');
 			});
 
-			$deServices->setValueFunction('csp',function($value){
+			$deServices->setValueFunction('csp', function ($value) {
 				return $this->startOrStartedSecurityService($value, 'contentSecurityManager');
 			});
 
@@ -240,31 +243,37 @@ trait SecurityTrait {
 			$deCsrf->wrap('<div class="ui top attached ' . $this->style . ' orange segment"><i class="ui check double icon"></i> Form Csrf</div>');
 		}
 
-		if($hasCsp){
+		if ($hasCsp) {
 			$deCsp = $this->jquery->semantic()->dataElement('csp', $cspValues);
 			$deCsp->setFields(\array_keys($cspValues));
-			$deCsp->setCaptions(['Report only','Nonce generator','Csp'
+			$deCsp->setCaptions([
+				'Report only',
+				'Nonce generator',
+				'Csp'
 			]);
 			$deCsp->setAttached();
 			$deCsp->fieldAsCheckbox('reportOnly');
-			$deCsp->setValueFunction('csp',function($_v,$_i,$index) use($cspValues){
-				$values=$cspValues['csp'];
-				$result=[];
-				foreach ($values as $csp){
-					$result[]=$csp->display(function($v){return '<b>'.$v.'</b>&nbsp;';},function($v){return $v.'<br>';});
+			$deCsp->setValueFunction('csp', function ($_v, $_i, $index) use ($cspValues) {
+				$values = $cspValues['csp'];
+				$result = [];
+				foreach ($values as $csp) {
+					$result[] = $csp->display(function ($v) {
+						return '<b>' . $v . '</b>&nbsp;';
+					}, function ($v) {
+						return $v . '<br>';
+					});
 				}
-				if(count($result)==0){
-					$result[]='No CSP!';
+				if (count($result) == 0) {
+					$result[] = 'No CSP!';
 				}
-				$list=new HtmlList('',$result);
+				$list = new HtmlList('', $result);
 				$list->setDivided();
-				$elm=new HtmlLabel('lbl-csp-'.$index,count($values));
-				$elm->addPopupHtml($list,'very wide');
+				$elm = new HtmlLabel('lbl-csp-' . $index, count($values));
+				$elm->addPopupHtml($list, 'very wide');
 				return $elm;
-
 			});
 
-			$deCsp->wrap('<div class="ui top attached '.$this->style.' yellow segment"><i class="ui shield icon"></i> Content Security Policies</div>');
+			$deCsp->wrap('<div class="ui top attached ' . $this->style . ' yellow segment"><i class="ui shield icon"></i> Content Security Policies</div>');
 		}
 
 		$this->jquery->postOnClick('._installComponent', $baseRoute . '/_execComposer/_refreshComponentSecurity/securityPart', '{commands: "composer require "+$(this).attr("data-composer")}', '#partial', [
