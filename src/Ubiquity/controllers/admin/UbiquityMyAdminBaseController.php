@@ -271,7 +271,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->activateLink("#mainMenu");
 			$security = [];
 			if (ServicesChecker::hasSecurity()) {
-				if (ContentSecurityManager::isStarted()) {
+				if ($this->jquery->getParam('nonce')===true && ContentSecurityManager::isStarted()) {
 					$security = [
 						'nonce' => ContentSecurityManager::getNonce('jsUtils')
 					];
