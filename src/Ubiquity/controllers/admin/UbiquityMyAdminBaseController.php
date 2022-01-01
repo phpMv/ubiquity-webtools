@@ -128,6 +128,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected static $configFile = ROOT . DS . 'config' . DS . 'adminConfig.php';
 
+	protected string $nonce;
+
 	protected $styles = [
 		'inverted' => [
 			'bgColor' => '#303030',
@@ -271,9 +273,9 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->activateLink("#mainMenu");
 			$security = [];
 			if (ServicesChecker::hasSecurity()) {
-				if ($this->jquery->getParam('nonce')===true && ContentSecurityManager::isStarted()) {
+				if ($this->jquery->getParam('nonce') === true && ContentSecurityManager::isStarted()) {
 					$security = [
-						'nonce' => ContentSecurityManager::getNonce('jsUtils')
+						'nonce' => $this->nonce = ContentSecurityManager::getNonce('jsUtils')
 					];
 				}
 			}
@@ -330,9 +332,13 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function finalize() {
 		if (! URequest::isAjax()) {
-			$this->loadView('@admin/main/vFooter.html', [
+			$data = [
 				'js' => $this->initializeJs()
-			]);
+			];
+			if (isset($this->nonce)) {
+				$data['nonce'] = $this->nonce;
+			}
+			$this->loadView('@admin/main/vFooter.html', $data);
 		}
 	}
 
