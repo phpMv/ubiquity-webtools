@@ -368,7 +368,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function _checkModelsUpdates(&$config, $onMainPage) {
 		$models = CacheManager::modelsCacheUpdated($config);
 		if (\is_array($models) && \count($models) > 0) {
-			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'small inverted compact', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#models-refresh' : '#main-content');
+			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'inverted', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#models-refresh' : '#main-content');
 		}
 	}
 
