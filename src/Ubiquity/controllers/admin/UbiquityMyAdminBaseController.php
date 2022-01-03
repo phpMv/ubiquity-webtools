@@ -376,7 +376,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$caches = CacheManager::controllerCacheUpdated($config);
 		if (\is_array($caches) && \count($caches) > 0) {
 			if (! $this->hasMaintenance()) {
-				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'small compact', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
+				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', '', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
 			}
 		}
 	}
