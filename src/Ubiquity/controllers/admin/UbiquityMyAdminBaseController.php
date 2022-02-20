@@ -273,7 +273,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->activateLink("#mainMenu");
 			$security = [];
 			if (ServicesChecker::hasSecurity()) {
-				if ($this->jquery->getParam('csp')!=null && ContentSecurityManager::isStarted()) {
+				if ($this->jquery->getParam('csp') != null && ContentSecurityManager::isStarted()) {
 					$security = [
 						'nonce' => $this->nonce = ContentSecurityManager::getNonce('jsUtils')
 					];
@@ -1752,7 +1752,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $this->_getAdminData()->getTableNames($offset);
 	}
 
-	public function _getBaseRoute() {
+	public function _getBaseRoute(): string {
 		return $this->_getFiles()->getAdminBaseRoute();
 	}
 
