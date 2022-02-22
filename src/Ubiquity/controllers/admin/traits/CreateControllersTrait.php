@@ -2,6 +2,7 @@
 namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\semantic\html\collections\form\HtmlForm;
+use Composer\Autoload\ClassLoader;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\controllers\Startup;
 use Ubiquity\cache\CacheManager;
@@ -170,7 +171,8 @@ trait CreateControllersTrait {
 		$viewList->setDefaultText("Select views");
 		$viewList->addClass('fluid ' . $this->style);
 		$authControllers = CacheManager::getControllers("Ubiquity\\controllers\\auth\\AuthController", false, true);
-		$authControllers = array_combine($authControllers, $authControllers);
+		\array_unshift($authControllers,'Ubiquity\\controllers\\auth\\AuthControllerConfig');
+		$authControllers = \array_combine($authControllers, $authControllers);
 		$ctrlList = $this->jquery->semantic()->htmlDropdown("ctrl-list", "Ubiquity\\controllers\\auth\\AuthController", $authControllers);
 		$ctrlList->addClass($this->style);
 		$ctrlList->asSelect("baseClass");
@@ -228,7 +230,8 @@ trait CreateControllersTrait {
 			if (! UString::startswith($baseClass, "\\")) {
 				$baseClass = "\\" . $baseClass;
 			}
-			$this->scaffold->addAuthController(ucfirst($_POST["auth-name"]), $baseClass, $views, $route, isset($_POST["ck-use-inheritance"]));
+			$className=\ucfirst($_POST["auth-name"]);
+			$this->scaffold->addAuthController($className, $baseClass, $views, $route, isset($_POST["ck-use-inheritance"]));
 			$this->jquery->get($this->_getFiles()
 				->getAdminBaseRoute() . "/_refreshControllers/refresh", "#dtControllers", [
 				"jqueryDone" => "replaceWith",
