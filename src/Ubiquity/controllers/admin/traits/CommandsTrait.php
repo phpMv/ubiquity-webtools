@@ -428,6 +428,9 @@ trait CommandsTrait {
 					return "<b><span class='ui brown text'>$v</span></b>";
 				});
 				$dt->setValueFunction('values', function ($v) {
+					if ($v == null) {
+						return '';
+					}
 					return "<pre>" . \json_encode($v, (\count($v) > 3) ? JSON_PRETTY_PRINT : null) . "</pre>";
 				});
 				$dt->setValueFunction('defaultValue', function ($v) {
