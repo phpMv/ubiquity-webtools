@@ -30,7 +30,7 @@ trait MaintenanceTrait {
 
 	abstract public function _getFiles();
 
-	abstract public function loadView($viewName, $pData = NULL, $asString = false);
+	abstract public function loadView(string $viewName, $pData = NULL, bool $asString = false);
 
 	abstract protected function _showConfMessage($content, $type, $title, $icon, $url, $responseElement, $data, $attributes = NULL): HtmlMessage;
 

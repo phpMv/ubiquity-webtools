@@ -28,7 +28,7 @@ trait GitTrait {
 
 	abstract public function _getFiles();
 
-	abstract public function loadView($viewName, $pData = NULL, $asString = false);
+	abstract public function loadView(string $viewName, $pData = NULL, bool $asString = false);
 
 	abstract public function git();
 
