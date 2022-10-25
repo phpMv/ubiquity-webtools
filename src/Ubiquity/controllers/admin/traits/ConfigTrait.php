@@ -3,6 +3,8 @@ namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\collections\HtmlMessage;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\config\ConfigCache;
 use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\http\URequest;
@@ -36,7 +38,7 @@ trait ConfigTrait {
 	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function _formConfig($hasHeader = true) {
-		$config = include ROOT . 'config/config.php';
+		$config = ConfigCache::loadConfigWithoutEval('config');
 		if ($hasHeader === true) {
 			$this->getHeader("config");
 		}
@@ -69,7 +71,7 @@ trait ConfigTrait {
 
 	public function _submitConfig($partial = true) {
 		$originalConfig = Startup::$config;
-		$result = include ROOT . 'config/config.php';
+		$result = ConfigCache::loadConfigWithoutEval('config');
 		$postValues = $_POST;
 		if ($partial !== true) {
 			if (isset($result['database']['dbName'])) {

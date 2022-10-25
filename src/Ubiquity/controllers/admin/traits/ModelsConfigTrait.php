@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ubiquity\config\ConfigCache;
 use Ubiquity\utils\http\URequest;
 use Ajax\semantic\html\collections\menus\HtmlMenu;
 use Ajax\semantic\html\modules\HtmlDropdown;
@@ -317,7 +318,7 @@ trait ModelsConfigTrait {
 	public function _addDbConnection() {
 		if (URequest::isPost()) {
 			$originalConfig = Startup::$config;
-			$result = include ROOT . 'config/config.php';
+			$result = ConfigCache::loadConfigWithoutEval('config');
 			$postValues = $_POST;
 			$this->checkConfigDatabaseCache($postValues);
 			if (isset($result['database']['dbName'])) {
