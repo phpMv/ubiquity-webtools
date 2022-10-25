@@ -4,7 +4,7 @@ namespace Ubiquity\controllers\admin\traits;
 use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ubiquity\cache\CacheManager;
-use Ubiquity\config\ConfigCache;
+use Ubiquity\config\Configuration;
 use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\http\URequest;
@@ -38,7 +38,7 @@ trait ConfigTrait {
 	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
 	public function _formConfig($hasHeader = true) {
-		$config = ConfigCache::loadConfigWithoutEval('config');
+		$config = Configuration::loadConfigWithoutEval('config');
 		if ($hasHeader === true) {
 			$this->getHeader("config");
 		}
@@ -71,7 +71,7 @@ trait ConfigTrait {
 
 	public function _submitConfig($partial = true) {
 		$originalConfig = Startup::$config;
-		$result = ConfigCache::loadConfigWithoutEval('config');
+		$result = Configuration::loadConfigWithoutEval('config');
 		$postValues = $_POST;
 		if ($partial !== true) {
 			if (isset($result['database']['dbName'])) {
@@ -219,7 +219,7 @@ trait ConfigTrait {
 		if ($co != null) {
 			$n = $co . '-';
 		}
-		ConfigCache::loadActiveEnv();
+		Configuration::loadActiveEnv();
 		$postValues = array_map(function($elm){
 			if(UString::startswith($elm,'getenv(')){
 				return eval("return $elm;");
