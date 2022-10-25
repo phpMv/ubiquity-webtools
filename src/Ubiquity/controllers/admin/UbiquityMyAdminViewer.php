@@ -1595,10 +1595,11 @@ class UbiquityMyAdminViewer {
 		]);
 
 		$dbDe->fieldAsInput("password", [
-			"inputType" => "password",
+			"inputType" => (UString::startswith($v->password,'getenv('))?"text":"password",
 			"name" => "database-" . $n . "password",
 			"data-name" => "password"
-		]);
+			]);
+
 		$dbDe->fieldAsInput("port", [
 			"name" => "database-" . $n . "port",
 			"inputType" => "number",
@@ -1674,9 +1675,9 @@ class UbiquityMyAdminViewer {
 
 		$de->setDefaultValueFunction(function ($name, $value) use ($config) {
 			$val = $config[$name];
-			if (\is_array($val))
+			if (\is_array($val)) {
 				$value = UArray::asPhpArray($val, "array");
-			elseif (! \is_string($val) && \is_callable($val)) {
+			} elseif (! \is_string($val) && \is_callable($val)) {
 				$input = new HtmlFormTextarea($name);
 				$df = $input->getDataField();
 				$df->setProperty("rows", "3");
@@ -1693,6 +1694,7 @@ class UbiquityMyAdminViewer {
 
 		$de->setFields($keys);
 		$de->setCaptions($keys);
+
 		$de->setCaptionCallback(function (&$captions, $instance) use ($keys) {
 			$dbBt = $this->getCaptionToggleButton("database-bt", "Database...");
 			$dbBt->on("toggled", 'if(!event.active) {
@@ -1836,12 +1838,16 @@ class UbiquityMyAdminViewer {
 			$input->setValue($value);
 			return $input;
 		});
-		$de->fieldAsCheckbox("test", [
-			"class" => "ui checkbox slider"
-		]);
-		$de->fieldAsCheckbox("debug", [
-			"class" => "ui checkbox slider"
-		]);
+		if(!UString::startswith($config['test'],'getenv(')){
+			$de->fieldAsCheckbox("test", [
+				"class" => "ui checkbox slider"
+			]);
+		}
+		if(!UString::startswith($config['debug'],'getenv(')){
+			$de->fieldAsCheckbox("debug", [
+				"class" => "ui checkbox slider"
+			]);
+		}
 
 		$this->insertAce();
 
