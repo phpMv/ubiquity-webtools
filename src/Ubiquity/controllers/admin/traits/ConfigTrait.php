@@ -219,7 +219,13 @@ trait ConfigTrait {
 		if ($co != null) {
 			$n = $co . '-';
 		}
-		$postValues = $_POST;
+		ConfigCache::loadActiveEnv();
+		$postValues = array_map(function($elm){
+			if(UString::startswith($elm,'getenv(')){
+				return eval("return $elm;");
+			}
+			return $elm;
+		},$_POST);
 		$connected = false;
 		$db = new Database($postValues["database-" . $n . "wrapper"] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $postValues["database-" . $n . "type"], $postValues["database-" . $n . "dbName"], $postValues["database-" . $n . "serverName"], $postValues["database-" . $n . "port"], $postValues["database-" . $n . "user"], $postValues["database-" . $n . "password"]);
 		try {
