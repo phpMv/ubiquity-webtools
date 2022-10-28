@@ -18,6 +18,7 @@ use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\modules\HtmlDropdown;
 use Ajax\semantic\html\modules\checkbox\HtmlCheckbox;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\config\Configuration;
 use Ubiquity\controllers\Controller;
 use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
@@ -50,6 +51,7 @@ use Ubiquity\controllers\crud\interfaces\HasModelViewerInterface;
 use Ubiquity\controllers\crud\viewers\ModelViewer;
 use Ubiquity\controllers\semantic\InsertJqueryTrait;
 use Ubiquity\controllers\semantic\MessagesTrait;
+use Ubiquity\core\Framework;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\log\LoggerParams;
 use Ubiquity\orm\DAO;
@@ -368,7 +370,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function _checkModelsUpdates(&$config, $onMainPage) {
 		$models = CacheManager::modelsCacheUpdated($config);
 		if (\is_array($models) && \count($models) > 0) {
-			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'inverted', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#models-refresh' : '#main-content');
+			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'warning', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
 
@@ -376,30 +378,24 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$caches = CacheManager::controllerCacheUpdated($config);
 		if (\is_array($caches) && \count($caches) > 0) {
 			if (! $this->hasMaintenance()) {
-				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', '', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
+				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'warning', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#messages' : '#divRoutes');
 			}
 		}
 	}
 
-	protected function _smallUpdateMessageCache($onMainPage, $type, $icon, $message, $messageType, $url, $target) {
-		$js = [];
-		if (! $onMainPage) {
-			$js = [
-				'jsCallback' => '$("#' . $type . '-refresh").html("");'
-			];
+	protected function _checkConfigUpdates($onMainPage){
+		if(Configuration::isConfigUpdated()){
+			$this->_smallUpdateMessageCache($onMainPage, 'config', 'settings', 'Updated configuration files ', 'warning', $onMainPage ? '_initCache/config' : '_initCache/config/config', $onMainPage ? '#messages' : '#main-content');
 		}
-		$bt = $this->jquery->semantic()->htmlButton("bt-mini-init-{$type}-cache", null, 'orange mini ' . $this->style);
-		$bt->setProperty('title', "Re-init {$type} cache");
-		$bt->asIcon('refresh');
-		echo "<div class='ui container' id='{$type}-refresh' style='display:inline;'>";
-		echo $this->_showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
-		echo "&nbsp;</div>";
-		$this->jquery->getOnClick("#bt-mini-init-{$type}-cache", $this->_getFiles()
-			->getAdminBaseRoute() . '/' . $url, $target, [
+	}
+
+	protected function _smallUpdateMessageCache($onMainPage, $type, $icon, $message, $messageType, $url, $target) {
+		$js=$this->jquery->getDeferred($this->_getFiles()->getAdminBaseRoute() . '/' . $url, $target, [
 			'dataType' => 'html',
 			'attr' => '',
-			'hasLoader' => 'internal'
-		] + $js);
+			'hasLoader' => false
+		] );
+		$this->jquery->semantic()->toast('body',['preserveHTML'=>true,'title'=>"<i class='ui $icon icon' ></i> Cache updated",'message'=>$message,'class'=>$this->style.' '.$messageType,'actions'=>[['text'=>"Re-init {$type} cache",'class'=>$this->style.' orange','icon'=>'refresh','click'=>$js]]]);
 	}
 
 	protected function initializeJs() {
@@ -422,7 +418,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			var input = $("#"+elementId +" + input");
 			if(input.length){
 				input.val(editor.getSession().getValue());
-				console.log(input.val());
 				editor.getSession().on("change", function () {
 				input.val(editor.getSession().getValue());
 				});
@@ -439,6 +434,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$config = Startup::getConfig();
 		$this->_checkModelsUpdates($config, true);
 		$this->_checkRouterUpdates($config, true);
+		$this->_checkConfigUpdates(true);
+
 		if ($this->hasMaintenance()) {
 			$this->_smallMaintenanceActive(true, MaintenanceMode::getActiveMaintenance($this->config["maintenance"]));
 		}
@@ -613,7 +610,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			]);
 			echo $menu;
 		}
-
+		$this->_checkConfigUpdates(false);
 		$this->_modelDatabase($hasHeader, false, $activeDb);
 	}
 
@@ -824,14 +821,56 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function config($hasHeader = true) {
 		$config = Startup::getConfig();
-		if ($hasHeader === true)
+		if ($hasHeader === true) {
 			$this->getHeader("config");
-		$this->_getAdminViewer()->getConfigDataElement($config);
-		$this->jquery->getOnClick("#edit-config-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/_formConfig/ajax", "#action-response", [
-			"hasLoader" => "internal",
-			"jsCallback" => '$("#config-div").hide();'
-		]);
+		}
+		$appEnv=Framework::getEnv();
+		$configFiles=Configuration::getTheoreticalLoadedConfigFiles($appEnv);
+		$data=['app.env'=>$appEnv,'env.files'=>Configuration::getEnvFiles()];
+		$fields=\array_keys($data);
+		$deEnvVars=$this->jquery->semantic()->dataElement('deEnv',$data);
+		$deEnvVars->setFields($fields);
+		$deEnvVars->setCaptions(['App.env <span class="ui label">APP_ENV</span>','Env. files']);
+		$deEnvVars->fieldAsLabel('app.env','dot circle',['class'=>'ui green label','jsCallback'=>function($lbl){
+			$lbl->addPopup('Active','APP_ENV value');
+		}]);
+		$deEnvVars->setEdition(true);
+		$callback=function($files) use($configFiles){
+			$result=[];
+			foreach ($files as $file){
+				$bn=basename($file);
+				$type='config';
+				if(\rtrim($bn,'.php')===$bn){
+					$type='env';
+				}
+				$rpFile=\realpath($file);
+				$loadedFile=\array_search($rpFile,$configFiles)!==false;
+				$bt=new HtmlButton($bn,$bn,"mini $type-file ".($loadedFile?'teal':''));
+				$bt->setProperty('data-ajax',rtrim($bn,'.php'));
+				$bt->addIcon('file');
+				$bt->addPopup($loadedFile?'Loaded file':'File',$rpFile);
+				$result[]=$bt;
+			}
+			return $result;
+		};
+		$deEnvVars->setValueFunction('env.files',$callback);
+		$data=['config.files'=>Configuration::getConfigFiles()];
+		$fields=\array_keys($data);
+		$deConfFiles=$this->jquery->semantic()->dataElement('deConf',$data);
+		$deConfFiles->setFields($fields);
+		$deConfFiles->setCaptions(['Config. files']);
+		$deConfFiles->setValueFunction('config.files',$callback);
+
+		$this->_setStyle($deEnvVars);
+		$this->_setStyle($deConfFiles);
+		$baseRoute=$this->_getFiles()->getAdminBaseRoute();
+		$this->jquery->getOnClick('#bt-init-cache',$baseRoute.'/_initCache/config/config','#main-content',['hasLoader'=>'internal']);
+		$this->jquery->getOnClick("#see-active-conf", $baseRoute."/configRead", "#action-response",['jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+
+		$this->jquery->getOnClick(".config-file", $baseRoute."/_formConfig", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+		$this->jquery->getOnClick(".env-file", $baseRoute."/_formEnv", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+
+		$this->_checkConfigUpdates(false);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewConfigIndex(), [
 			'inverted' => $this->style

@@ -1669,7 +1669,7 @@ class UbiquityMyAdminViewer {
 		];
 	}
 
-	public function getConfigDataForm($config, $origin = "all") {
+	public function getConfigDataForm($config, $origin = "all",$filename='config') {
 		$de = $this->jquery->semantic()->dataElement("frmDeConfig", $config);
 		$keys = \array_keys($config);
 
@@ -1706,10 +1706,10 @@ class UbiquityMyAdminViewer {
 												$(event.caption[index]).html($("[name=database-"+dbOffset+"type]",elm).val()+"://"+$("[name=database-"+dbOffset+"user]",elm).val()+":"+$("[name=database-"+dbOffset+"password]",elm).val()+"@"+$("[name=database-"+dbOffset+"serverName]",elm).val()+":"+$("[name=database-"+dbOffset+"port]",elm).val()+"/"+$("[name=database-"+dbOffset+"dbName]",elm).val());
 											});
 										}');
-			$captions[\array_search("database", $keys)] = $dbBt;
-			$captions[\array_search("cache", $keys)] = $this->getCaptionToggleButton("cache-bt", "Cache...");
-			$captions[\array_search("mvcNS", $keys)] = $this->getCaptionToggleButton("ns-bt", "MVC namespaces...");
-			$captions[\array_search("di", $keys)] = $this->getCaptionToggleButton("di-bt", "Dependency injection", "active");
+			$this->setCaptionCallback($captions,'database',$keys,$dbBt);
+			$this->setCaptionCallback($captions,'cache',$keys,$this->getCaptionToggleButton("cache-bt", "Cache..."));
+			$this->setCaptionCallback($captions,'mvcNS',$keys,$this->getCaptionToggleButton("ns-bt", "MVC namespaces..."));
+			$this->setCaptionCallback($captions,'di',$keys,$this->getCaptionToggleButton("di-bt", "Dependency injection", "active"));
 		});
 		$de->setValueFunction("database", function ($v, $instance, $index) use ($config) {
 			if (isset($config['database']['dbName'])) {
@@ -1838,12 +1838,12 @@ class UbiquityMyAdminViewer {
 			$input->setValue($value);
 			return $input;
 		});
-		if(!UString::startswith($config['test'],'getenv(')){
+		if(!UString::startswith($config['test']??'','getenv(')){
 			$de->fieldAsCheckbox("test", [
 				"class" => "ui checkbox slider"
 			]);
 		}
-		if(!UString::startswith($config['debug'],'getenv(')){
+		if(!UString::startswith($config['debug']??'','getenv(')){
 			$de->fieldAsCheckbox("debug", [
 				"class" => "ui checkbox slider"
 			]);
@@ -1860,10 +1860,14 @@ class UbiquityMyAdminViewer {
 		if ($origin == "check") {
 			$responseElement = "#main-content";
 		}
-		$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $this->controller->_getFiles()
+
+		$btSubmit=$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $this->controller->_getFiles()
 			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement, [
-			'hasLoader' => 'internal'
+			'hasLoader' => 'internal',
+			'params'=>'$("#config-filename").val()'
 		]);
+		$btSubmit->setProperty('class','ui action input item');
+		$btSubmit->wrapContent('<input name="config-filename" id="config-filename" type="text" value="'.$filename.'" style="width: fit-content">');
 		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition", $this->style)->onClick('$("#config-div").show();$("#action-response").html("");');
 		$de->getToolbar()
 			->setSecondary()
@@ -1898,6 +1902,12 @@ class UbiquityMyAdminViewer {
 			->getAdminBaseRoute() . "/_checkClass", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
 		$this->setStyle($de);
 		return $de->asForm();
+	}
+
+	private function setCaptionCallback(array &$captions,string $key,array $keys,$value){
+		if(($index=\array_search($key, $keys))!==false) {
+			$captions[$index] = $value;
+		}
 	}
 
 	public function insertAce() {
