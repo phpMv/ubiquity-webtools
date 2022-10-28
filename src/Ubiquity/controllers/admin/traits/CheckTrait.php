@@ -314,10 +314,10 @@ trait CheckTrait {
 					'hasLoader' => 'internal'
 				])
 					->addIcon("settings");
-				$buttons->addItem("Edit config file")
+				$buttons->addItem("Config files and variables")
 					->addClass($this->style)
-					->addClass("orange")
-					->getOnClick($baseRoute . "/_formConfig/check", "#action-response", [
+					->addClass("teal")
+					->getOnClick($baseRoute . "/config", "#main-content", [
 					'hasLoader' => 'internal'
 				])
 					->addIcon("edit");

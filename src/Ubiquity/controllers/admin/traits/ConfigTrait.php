@@ -5,6 +5,7 @@ use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\config\Configuration;
+use Ubiquity\config\EnvFile;
 use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\utils\http\URequest;
@@ -37,15 +38,22 @@ trait ConfigTrait {
 
 	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function _formConfig($hasHeader = true) {
-		$config = Configuration::loadConfigWithoutEval('config');
-		if ($hasHeader === true) {
-			$this->getHeader("config");
-		}
-		$this->_getAdminViewer()->getConfigDataForm($config, $hasHeader);
+	public function _formConfig(string $filename='config') {
+		$config = Configuration::loadConfigWithoutEval($filename);
+		$df=$this->_getAdminViewer()->getConfigDataForm($config, 'all',$filename);
 		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
-		$this->jquery->renderView($this->_getFiles()
-			->getViewConfigForm());
+		$this->jquery->renderView($this->_getFiles()->getViewConfigForm());
+	}
+
+	public function _formEnv(string $filename='.env'){
+		$content=EnvFile::loadContent(EnvFile::$ENV_ROOT,$filename);
+		$frm=$this->jquery->semantic()->htmlForm('frm-env');
+		$this->_setStyle($frm);
+		$frm->addTextarea('content','',$content);
+		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content');
+		$this->jquery->click('#validate-btn','$("#frm-env").form("submit");');
+		$this->jquery->click('#cancel-btn','$("#config-div").show();$("#action-response").html("");');
+		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename]);
 	}
 
 	public function _config() {
@@ -71,9 +79,13 @@ trait ConfigTrait {
 
 	public function _submitConfig($partial = true) {
 		$originalConfig = Startup::$config;
-		$result = Configuration::loadConfigWithoutEval('config');
+		$filename=URequest::post('config-filename','config');
+		$result = Configuration::loadConfigWithoutEval($filename);
 		$postValues = $_POST;
-		if ($partial !== true) {
+		unset($postValues['config-filename']);
+		unset($postValues[$filename]);
+
+		if ($partial !== true && $filename==='config') {
 			if (isset($result['database']['dbName'])) {
 				$this->checkConfigDatabaseCache($postValues);
 			} else {
@@ -101,14 +113,15 @@ trait ConfigTrait {
 				$v = $value;
 			}
 		}
+
 		try {
-			if (Startup::saveConfig($result)) {
-				$this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "check square", null, "msgConfig");
+			if (Startup::saveConfig($result,$filename)) {
+				$this->_showSimpleMessage("The configuration file <b>$filename</b> has been successfully modified!", "positive", "check square", null, "msgConfig");
 			} else {
-				$this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "warning circle", null, "msgConfig");
+				$this->_showSimpleMessage("Impossible to write the configuration file <b>$filename</b>.", "negative", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
+			$this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file <b>$filename</b> has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
 		}
 
 		$config = $this->reloadConfig($originalConfig);
@@ -120,6 +133,13 @@ trait ConfigTrait {
 		} else {
 			$this->config(false);
 		}
+	}
+
+	public function _submitEnv(string $filename){
+		$content=URequest::post('content','');
+		EnvFile::saveText($content,EnvFile::$ENV_ROOT,$filename);
+		$this->toast("$filename updated",'Env file updated','info',true);
+		$this->config(true);
 	}
 
 	protected function _checkCondition($callback) {
@@ -310,5 +330,15 @@ trait ConfigTrait {
 			$result["result"] = (\array_search($domain, $domains) === false);
 			echo \json_encode($result);
 		}
+	}
+
+	public function configRead() {
+		$config = Startup::getConfig();
+		$this->_getAdminViewer()->getConfigDataElement($config);
+		$this->jquery->click('#close-button','$("#configRead-div").hide();$("#config-div").show();');
+		$this->jquery->renderView($this->_getFiles()
+			->getViewConfigRead(), [
+			'inverted' => $this->style
+		]);
 	}
 }

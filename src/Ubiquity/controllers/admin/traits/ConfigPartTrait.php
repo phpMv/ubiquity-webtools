@@ -109,17 +109,20 @@ trait ConfigPartTrait {
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->execOn("click", "#bt-Canceledition", $callbacks['cancel']);
+		$this->sourcePartBehavior($ids,$urls,'frmConfig','frm-source');
+	}
 
+	private function sourcePartBehavior($ids,$urls,$frmConfig='frmConfig',$frmSource='frm-source'){
 		$this->jquery->execAtLast("$('._tabConfig .item').tab();");
 		$this->jquery->execAtLast("$('._tabConfig .item').tab({'onVisible':function(value){
 			if(value=='source'){
 			" . $this->jquery->postFormDeferred($urls['source'], 'frmConfig', '#tab-source', [
-			'hasLoader' => false
-		]) . "}else{
+				'hasLoader' => false
+			]) . "}else{
 			" . $this->jquery->postFormDeferred($urls['form'], 'frm-source', $ids['form'], [
-			'hasLoader' => false,
-			'jqueryDone' => 'replaceWith'
-		]) . "
+				'hasLoader' => false,
+				'jqueryDone' => 'replaceWith'
+			]) . "
 		}
 		}});");
 	}
@@ -136,7 +139,7 @@ trait ConfigPartTrait {
 	}
 
 	private function getConfigSourcePart($original, $title, $icon) {
-		$toDelete = URequest::post('_toDelete');
+		$toDelete = URequest::post('_toDelete','');
 		$toRemove = \explode(',', $toDelete);
 		$update = $this->getConfigPartFromPost($original);
 		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);
