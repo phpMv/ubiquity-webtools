@@ -824,18 +824,19 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		if ($hasHeader === true) {
 			$this->getHeader("config");
 		}
+		$style=$this->style;
 		$appEnv=Framework::getEnv();
 		$configFiles=Configuration::getTheoreticalLoadedConfigFiles($appEnv);
 		$data=['app.env'=>$appEnv,'env.files'=>Configuration::getEnvFiles()];
 		$fields=\array_keys($data);
 		$deEnvVars=$this->jquery->semantic()->dataElement('deEnv',$data);
 		$deEnvVars->setFields($fields);
-		$deEnvVars->setCaptions(['App.env <span class="ui label">APP_ENV</span>','Env. files']);
-		$deEnvVars->fieldAsLabel('app.env','dot circle',['class'=>'ui green label','jsCallback'=>function($lbl){
+		$deEnvVars->setCaptions(['App.env <span class="ui label '.$style.'">APP_ENV</span>','Env. files']);
+		$deEnvVars->fieldAsLabel('app.env','dot circle',['class'=>"ui green label $style",'jsCallback'=>function($lbl){
 			$lbl->addPopup('Active','APP_ENV value');
 		}]);
 		$deEnvVars->setEdition(true);
-		$callback=function($files) use($configFiles){
+		$callback=function($files) use($configFiles,$style){
 			$result=[];
 			foreach ($files as $file){
 				$bn=basename($file);
@@ -845,7 +846,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				}
 				$rpFile=\realpath($file);
 				$loadedFile=\array_search($rpFile,$configFiles)!==false;
-				$bt=new HtmlButton($bn,$bn,"mini $type-file ".($loadedFile?'teal':''));
+				$bt=new HtmlButton($bn,$bn,"$style mini $type-file ".($loadedFile?'teal':''));
 				$bt->setProperty('data-ajax',rtrim($bn,'.php'));
 				$bt->addIcon('file');
 				$bt->addPopup($loadedFile?'Loaded file':'File',$rpFile);

@@ -1672,6 +1672,7 @@ class UbiquityMyAdminViewer {
 	public function getConfigDataForm($config, $origin = "all",$filename='config') {
 		$de = $this->jquery->semantic()->dataElement("frmDeConfig", $config);
 		$keys = \array_keys($config);
+		$baseRoute=$this->controller->_getFiles()->getAdminBaseRoute();
 
 		$de->setDefaultValueFunction(function ($name, $value) use ($config) {
 			$val = $config[$name];
@@ -1861,8 +1862,7 @@ class UbiquityMyAdminViewer {
 			$responseElement = "#main-content";
 		}
 
-		$btSubmit=$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_submitConfig/" . $origin, $responseElement, [
+		$btSubmit=$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $baseRoute . "/_submitConfig/" . $origin, $responseElement, [
 			'hasLoader' => 'internal',
 			'params'=>'$("#config-filename").val()'
 		]);
@@ -1875,10 +1875,9 @@ class UbiquityMyAdminViewer {
 		$de->setAttached();
 
 		$form->addExtraFieldRules("siteUrl", [
-			"empty",
-			"url"
+			"empty"
 		]);
-		$form->addExtraFieldRule("siteUrl", "regExp", "siteUrl must ends with /", "/^.*?\/$/");
+		$form->addExtraFieldRule("siteUrl", "checkUrl", "siteUrl must be a valid url and ends with /");
 		$form->addExtraFieldRule("database-options", "regExp", "Expression must be an array", "/^array\(.*?\)$/");
 		$form->addExtraFieldRule("database-options", "checkArray", "Expression is not a valid php array");
 		$form->addExtraFieldRule("database-cache", "checkClass[Ubiquity\\cache\\database\\DbCache]", "Class {value} does not exists or is not a subclass of {ruleValue}");
@@ -1894,14 +1893,33 @@ class UbiquityMyAdminViewer {
 		$controllersNS = \trim(Startup::getNS(), '\\');
 		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", $controllersNS . "/{value} directory does not exists");
 
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkArray", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_checkArray", "{_value:value}", "result=data.result;", "post"), true);
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkDirectory", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_checkDirectory", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkClass", $this->controller->_getFiles()
-			->getAdminBaseRoute() . "/_checkClass", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkArray", $baseRoute . "/_checkArray", "{_value:value}", "result=data.result;", "post"), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkDirectory", $baseRoute . "/_checkDirectory", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkClass", $baseRoute . "/_checkClass", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
+		$this->jquery->exec(Rule::ajax($this->jquery, "checkUrl", $baseRoute . "/_checkStringUrl", "{_value:value}", "result=data.result;", "post"), true);
 		$this->setStyle($de);
 		return $de->asForm();
+	}
+	
+	public function addConfigToolbar(&$de,$baseRoute,$filename){
+		$form = $de->getForm();
+		$form->setValidationParams([
+			"inline" => true,
+			"on" => "blur"
+		]);
+		$responseElement = "#action-response";
+
+		$btSubmit=$de->addSubmitInToolbar("save-config-btn", "<i class='icon check circle'></i>Save configuration", "positive " . $this->style, $baseRoute . "/_submitConfig/" , $responseElement, [
+			'hasLoader' => 'internal',
+			'params'=>'$("#config-filename").val()'
+		]);
+		$btSubmit->setProperty('class','ui action input item');
+		$btSubmit->wrapContent('<input name="config-filename" id="config-filename" type="text" value="'.$filename.'" style="width: fit-content">');
+		$de->addButtonInToolbar("<i class='icon remove circle outline'></i>Cancel edition", $this->style)->onClick('$("#config-div").show();$("#action-response").html("");');
+		$de->getToolbar()
+			->setSecondary()
+			->wrap('<div class="ui ' . $this->style . ' top attached segment">', '</div>');
+		$de->setAttached();
 	}
 
 	private function setCaptionCallback(array &$captions,string $key,array $keys,$value){
@@ -1941,7 +1959,7 @@ class UbiquityMyAdminViewer {
 		$this->jquery->exec($js, true);
 	}
 
-	public function getConfigPartDataForm($config, $identifier = 'frmMailerConfig') {
+	public function getConfigPartDataForm($config, $identifier = 'frmMailerConfig',$asCompo=true) {
 		$fields = [
 			'types' => [
 				'password' => 'password',
@@ -1950,23 +1968,7 @@ class UbiquityMyAdminViewer {
 		];
 		$de = $this->jquery->semantic()->dataElement($identifier, $config);
 		$keys = \array_keys($config);
-
-		$de->setDefaultValueFunction(function ($name, $value) use ($fields) {
-			if (\is_object($value) && $value != null)
-				return $this->getArrayDataForm($name, \json_decode(\json_encode($value), true), $fields);
-			if (UString::isBoolean($value)) {
-				$input = new HtmlFormCheckbox($name, '', '', 'slider');
-				$input->getField()
-					->addClass($this->style);
-				$input->setChecked($value);
-				$input->getField()
-					->forceValue();
-				return $input;
-			}
-			$input = new HtmlFormInput($name, null, $fields['types'][$name] ?? 'text', $value);
-			$input->addClass($this->style);
-			return $this->labeledInput($input, $value);
-		});
+		$this->setDefaultValueFunctionArrayDF($de,$fields,$config);
 		$de->setFields($keys);
 		$de->addField('_toDelete');
 		$de->fieldAsDropDown('_toDelete', [], true, [
@@ -1984,31 +1986,20 @@ class UbiquityMyAdminViewer {
 			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $item . '" style="visibility: hidden;"></i>';
 		});
 		$de->setCaptions($keys);
-		$de->setCaption('_toDelete', '<div class="ui icon button"><i class="remove icon"></i> Cancel deletions</span>');
-		$de->setLibraryId('_compo_');
+		$de->setCaption('_toDelete', '<div class="ui cancel-all icon '.$this->style.' button"><i class="remove icon"></i> Cancel all deletions</span>');
+		if($asCompo) {
+			$de->setLibraryId('_compo_');
+		}
 		$de->setEdition(true);
 		$de->addClass($this->style);
+		$this->insertAce();
 		return $de;
 	}
 
 	private function getArrayDataForm($id, $array, $fields) {
 		$dbDe = new DataElement('de-' . $id, $array);
 		$keys = \array_keys($array);
-
-		$dbDe->setDefaultValueFunction(function ($name, $value) use ($id, $fields) {
-			if (\is_object($value) && $value != null) {
-				return $this->getArrayDataForm($id . '-' . $name, \json_decode(\json_encode($value), true), $fields);
-			}
-			if (UString::isBoolean($value)) {
-				$input = new HtmlFormCheckbox($id . '-' . $name, '', 'true', 'slider');
-				$input->setChecked($value);
-				$input->getField()
-					->forceValue();
-				return $input;
-			}
-			$input = new HtmlFormInput($id . '-' . $name, null, $fields['types'][$name] ?? 'text', $value);
-			return $this->labeledInput($input, $value);
-		});
+		$this->setDefaultValueFunctionArrayDF($dbDe,$fields,$array,$id);
 		$dbDe->setFields($keys);
 		\array_walk($keys, function (&$item) use ($id) {
 			$item = $item . '<i title="Remove this key." class="close link red icon _see _delete" data-name="' . $id . '-' . $item . '" style="visibility: hidden;"></i>';
@@ -2016,6 +2007,34 @@ class UbiquityMyAdminViewer {
 
 		$dbDe->setCaptions($keys);
 		return $dbDe;
+	}
+
+	private function setDefaultValueFunctionArrayDF($dbDe,$fields,$array,$id=null){
+		$dbDe->setDefaultValueFunction(function ($name, $value) use ($id, $fields,$array) {
+			$newId=isset($id)?"$id-$name":$name;
+			$r=$array[$name];
+			if (\is_callable($r)) {
+				$input = new HtmlFormTextarea($newId);
+				$df = $input->getDataField();
+				$df->setProperty("rows", "3");
+				$df->setProperty("data-editor", "true");
+				$value = \htmlentities(UIntrospection::closure_dump($r));
+				$input->setValue($value);
+				return $input;
+			}
+			if (\is_array($r)) {
+				return $this->getArrayDataForm($newId, $r, $fields);
+			}
+			if (UString::isBoolean($value)) {
+				$input = new HtmlFormCheckbox($newId, '', 'true', 'slider');
+				$input->setChecked($value);
+				$input->getField()
+					->forceValue();
+				return $input;
+			}
+			$input = new HtmlFormInput($newId, null, $fields['types'][$name] ?? 'text', $value);
+			return $this->labeledInput($input, $value);
+		});
 	}
 
 	private static function formatBytes($size, $precision = 2) {

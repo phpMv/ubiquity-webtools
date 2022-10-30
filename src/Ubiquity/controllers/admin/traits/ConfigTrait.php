@@ -8,6 +8,7 @@ use Ubiquity\config\Configuration;
 use Ubiquity\config\EnvFile;
 use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
+use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\base\UString;
@@ -40,9 +41,32 @@ trait ConfigTrait {
 
 	public function _formConfig(string $filename='config') {
 		$config = Configuration::loadConfigWithoutEval($filename);
-		$df=$this->_getAdminViewer()->getConfigDataForm($config, 'all',$filename);
-		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
-		$this->jquery->renderView($this->_getFiles()->getViewConfigForm());
+		if($filename==='config') {
+			$df = $this->_getAdminViewer()->getConfigDataForm($config, 'all', $filename);
+			$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
+			$this->jquery->renderView($this->_getFiles()->getViewConfigForm());
+		}else {
+			$baseRoute=$this->_getBaseRoute();
+			$df = $this->_getAdminViewer()->getConfigPartDataForm($config, 'frmDeConfig',false);
+			$this->_getAdminViewer()->addConfigToolbar($df,$baseRoute,$filename);
+			$this->sourcePartBehavior([
+				'form' => '#frmDeConfig'
+			], [
+				'source' => $baseRoute . '/_getConfigSourcePartial/'.$filename,
+				'form' => $baseRoute . '/_refreshConfigFrmPartial/'.$filename
+			],'frm-frmDeConfig','frm-source');
+			$this->addConfigBehavior();
+			$this->jquery->renderView($this->_getFiles()->getViewConfigFormPartial(),['inverted'=>$this->style]);
+		}
+	}
+
+	public function _getConfigSourcePartial($filename) {
+		unset($_POST['config-filename']);
+		$this->getConfigSourcePart(Configuration::loadConfigWithoutEval($filename), 'Configuration', 'cogs');
+	}
+
+	public function _refreshConfigFrmPartial($filename){
+		$this->refreshConfigFrmPart(Configuration::loadConfigWithoutEval($filename), 'frmDeConfig');
 	}
 
 	public function _formEnv(string $filename='.env'){
@@ -50,10 +74,10 @@ trait ConfigTrait {
 		$frm=$this->jquery->semantic()->htmlForm('frm-env');
 		$this->_setStyle($frm);
 		$frm->addTextarea('content','',$content);
-		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content');
+		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content',['hasLoader'=>'internal']);
 		$this->jquery->click('#validate-btn','$("#frm-env").form("submit");');
 		$this->jquery->click('#cancel-btn','$("#config-div").show();$("#action-response").html("");');
-		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename]);
+		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename,'inverted'=>$this->style]);
 	}
 
 	public function _config() {
@@ -77,13 +101,44 @@ trait ConfigTrait {
 		}
 	}
 
+	private function startWithInArray($search, $toDelete){
+		foreach ($toDelete as $toDeleteKey){
+			if($search===$toDeleteKey || UString::startswith($search,"$toDeleteKey-")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function startWithInArray_($search,$toDelete){
+		foreach ($toDelete as $keyTodelete){
+			if($search===$keyTodelete || UString::startswith($keyTodelete,"$search")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function removeDeletedKeys(&$result,$toRemove){
+		foreach ($result as $key=>$_){
+			if($this->startWithInArray_($key,$toRemove)){
+				unset($result[$key]);
+			}
+		}
+	}
+
 	public function _submitConfig($partial = true) {
 		$originalConfig = Startup::$config;
 		$filename=URequest::post('config-filename','config');
 		$result = Configuration::loadConfigWithoutEval($filename);
+		$toDelete = URequest::post('_toDelete','');
+		$toRemove = \explode(',', $toDelete);
+		$this->removeDeletedKeys($result,$toRemove);
+
 		$postValues = $_POST;
 		unset($postValues['config-filename']);
 		unset($postValues[$filename]);
+		unset($postValues['_toDelete']);
 
 		if ($partial !== true && $filename==='config') {
 			if (isset($result['database']['dbName'])) {
@@ -99,18 +154,20 @@ trait ConfigTrait {
 			$postValues["templateEngineOptions-cache"] = isset($postValues["templateEngineOptions-cache"]);
 		}
 		foreach ($postValues as $key => $value) {
-			if (\strpos($key, "-") === false) {
-				$result[$key] = $value;
-			} else {
-				$keys = \explode('-', $key);
-				$v = &$result;
-				foreach ($keys as $k) {
-					if (! isset($v[$k])) {
-						$v[$k] = [];
+			if(!$this->startWithInArray($key,$toRemove)) {
+				if (\strpos($key, "-") === false) {
+					$result[$key] = $value;
+				} else {
+					$keys = \explode('-', $key);
+					$v = &$result;
+					foreach ($keys as $k) {
+						if (!isset($v[$k])) {
+							$v[$k] = [];
+						}
+						$v = &$v[$k];
 					}
-					$v = &$v[$k];
+					$v = $value;
 				}
-				$v = $value;
 			}
 		}
 
@@ -194,7 +251,7 @@ trait ConfigTrait {
 	}
 
 	public function _checkClass() {
-		$parent = URequest::post("_ruleValue");
+		$parent = URequest::post('_ruleValue');
 		$this->_checkCondition(function ($value) use ($parent) {
 			try {
 				$class = new \ReflectionClass($value);
@@ -202,6 +259,15 @@ trait ConfigTrait {
 			} catch (\ReflectionException $e) {
 				return false;
 			}
+		});
+	}
+
+	public function _checkStringUrl(){
+		$this->_checkCondition(function ($value) {
+			if ($value != null && !UString::startswith($value,'getenv(')) {
+				return \filter_var($value, FILTER_VALIDATE_URL) && UString::endswith($value,'/');
+			}
+			return true;
 		});
 	}
 
