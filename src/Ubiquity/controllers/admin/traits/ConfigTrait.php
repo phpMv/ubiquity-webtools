@@ -69,12 +69,23 @@ trait ConfigTrait {
 		$this->refreshConfigFrmPart(Configuration::loadConfigWithoutEval($filename), 'frmDeConfig');
 	}
 
-	public function _formEnv(string $filename='.env'){
-		$content=EnvFile::loadContent(EnvFile::$ENV_ROOT,$filename);
+	public function _formEnv(string $filename=''){
+		$content='#env. variables';
+		$newFile=true;
+		if($filename!='' && \file_exists(EnvFile::$ENV_ROOT.$filename)) {
+			$content = EnvFile::loadContent(EnvFile::$ENV_ROOT, $filename);
+			$newFile=false;
+		}
 		$frm=$this->jquery->semantic()->htmlForm('frm-env');
 		$this->_setStyle($frm);
+		$this->jquery->ajaxValidationRule('notExists',$this->_getBaseRoute().'/_checkEnvFileExists');
+		if($newFile){
+			$input=$frm->addInput('filename','Filename','text',$filename,'Filename');
+			$input->setRules(['empty',['notExists','File {value} already exists!'],['regExp', 'filename must start with .env.', "/^\.env\..*?$/"]]);
+		}
 		$frm->addTextarea('content','',$content);
 		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content',['hasLoader'=>'internal']);
+		$frm->setValidationParams(['on'=>'blur','inline'=>true]);
 		$this->jquery->click('#validate-btn','$("#frm-env").form("submit");');
 		$this->jquery->click('#cancel-btn','$("#config-div").show();$("#action-response").html("");');
 		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename,'inverted'=>$this->style]);
@@ -192,25 +203,25 @@ trait ConfigTrait {
 		}
 	}
 
-	public function _submitEnv(string $filename){
+	public function _submitEnv(string $filename=''){
+		if(URequest::has('filename')){
+			$postedFilename=URequest::post('filename');
+			if(!file_exists(EnvFile::$ENV_ROOT.$postedFilename)) {
+				$filename = $postedFilename;
+			}else{
+				$this->toast("$postedFilename already exists!",'Env file not created','warning',true);
+				$this->config(true);
+				return;
+			}
+		}
 		$content=URequest::post('content','');
 		EnvFile::saveText($content,EnvFile::$ENV_ROOT,$filename);
 		$this->toast("$filename updated",'Env file updated','info',true);
 		$this->config(true);
 	}
 
-	protected function _checkCondition($callback) {
-		if (URequest::isPost()) {
-			$result = [];
-			UResponse::asJSON();
-			$value = $_POST['_value'];
-			$result['result'] = $callback($value);
-			echo \json_encode($result);
-		}
-	}
-
 	public function _checkArray() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			try {
 				$array = eval("return " . $value . ";");
 				return \is_array($array);
@@ -222,7 +233,7 @@ trait ConfigTrait {
 
 	public function _checkDirectory() {
 		$folder = URequest::post("_ruleValue");
-		$this->_checkCondition(function ($value) use ($folder) {
+		$this->jquery->checkValidationRule(function ($value) use ($folder) {
 			if ($value != null) {
 				$base = Startup::getApplicationDir();
 				return \file_exists($base . \DS . $folder . \DS . $value);
@@ -232,7 +243,7 @@ trait ConfigTrait {
 	}
 
 	public function _checkAbsoluteDirectory() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			if ($value != null) {
 				return \file_exists($value);
 			}
@@ -241,7 +252,7 @@ trait ConfigTrait {
 	}
 
 	public function _checkUrl() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			$headers = @get_headers($value);
 			if ($value != null) {
 				return $headers && strpos($headers[0], '200');
@@ -252,7 +263,7 @@ trait ConfigTrait {
 
 	public function _checkClass() {
 		$parent = URequest::post('_ruleValue');
-		$this->_checkCondition(function ($value) use ($parent) {
+		$this->jquery->checkValidationRule(function ($value) use ($parent) {
 			try {
 				$class = new \ReflectionClass($value);
 				return $class->isSubclassOf($parent);
@@ -263,11 +274,17 @@ trait ConfigTrait {
 	}
 
 	public function _checkStringUrl(){
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			if ($value != null && !UString::startswith($value,'getenv(')) {
 				return \filter_var($value, FILTER_VALIDATE_URL) && UString::endswith($value,'/');
 			}
 			return true;
+		});
+	}
+
+	public function _checkEnvFileExists(){
+		$this->jquery->checkValidationRule(function ($value) {
+			return !\file_exists(EnvFile::$ENV_ROOT.$value);
 		});
 	}
 
