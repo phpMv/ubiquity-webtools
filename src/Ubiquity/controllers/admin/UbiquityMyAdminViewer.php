@@ -1893,10 +1893,10 @@ class UbiquityMyAdminViewer {
 		$controllersNS = \trim(Startup::getNS(), '\\');
 		$form->addExtraFieldRule("mvcNS-rest", "checkDirectory[app/" . $controllersNS . "]", $controllersNS . "/{value} directory does not exists");
 
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkArray", $baseRoute . "/_checkArray", "{_value:value}", "result=data.result;", "post"), true);
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkDirectory", $baseRoute . "/_checkDirectory", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkClass", $baseRoute . "/_checkClass", "{_value:value,_ruleValue:ruleValue}", "result=data.result;", "post"), true);
-		$this->jquery->exec(Rule::ajax($this->jquery, "checkUrl", $baseRoute . "/_checkStringUrl", "{_value:value}", "result=data.result;", "post"), true);
+		$this->jquery->ajaxValidationRule('checkArray',$baseRoute . '/_checkArray');
+		$this->jquery->ajaxValidationRule( "checkDirectory", $baseRoute . '/_checkDirectory', '{_value:value,_ruleValue:ruleValue}');
+		$this->jquery->ajaxValidationRule("checkClass", $baseRoute . '/_checkClass', '{_value:value,_ruleValue:ruleValue}');
+		$this->jquery->ajaxValidationRule( "checkUrl", $baseRoute . '/_checkStringUrl');
 		$this->setStyle($de);
 		return $de->asForm();
 	}
@@ -2023,7 +2023,13 @@ class UbiquityMyAdminViewer {
 				return $input;
 			}
 			if (\is_array($r)) {
-				return $this->getArrayDataForm($newId, $r, $fields);
+				if(UArray::isAssociative($r) && count($r)>0) {
+					return $this->getArrayDataForm($newId, $r, $fields);
+				}
+				$input = new HtmlFormTextarea($newId);
+				$value = \htmlentities(UArray::asPhpArray($r,'array'));
+				$input->setValue($value);
+				return $input;
 			}
 			if (UString::isBoolean($value)) {
 				$input = new HtmlFormCheckbox($newId, '', 'true', 'slider');

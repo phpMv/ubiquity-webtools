@@ -147,7 +147,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const version = '2.4.16';
+	public const version = '2.4.16+';
 
 	public $style;
 
@@ -870,6 +870,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 		$this->jquery->getOnClick(".config-file", $baseRoute."/_formConfig", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
 		$this->jquery->getOnClick(".env-file", $baseRoute."/_formEnv", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+		$this->jquery->getOnClick("#add-env-btn", $baseRoute."/_formEnv", "#action-response",['attr'=>'','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
 
 		$this->_checkConfigUpdates(false);
 		$this->jquery->renderView($this->_getFiles()
