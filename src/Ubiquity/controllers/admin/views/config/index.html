@@ -13,8 +13,15 @@
         </div>
     </div>
     <div class="ui top attached  {{ inverted }} teal segment">
-        <i class="ui code icon"></i>
-        Environment variables & files
+        <div class="ui grid">
+            <div class="twelve wide column">
+                <i class="ui code icon"></i>
+                Environment variables & files
+            </div>
+            <div class="four wide right floated right aligned column">
+                <div id="add-env-btn" class="ui {{ inverted }} mini compact button">Add a new env file...</div>
+            </div>
+        </div>
     </div>
     <div class="ui  {{ inverted }} attached segment">
         {{ q['deEnv']|raw }}
