@@ -83,11 +83,12 @@ trait ConfigTrait {
 			$input=$frm->addInput('filename','Filename','text',$filename,'Filename');
 			$input->setRules(['empty',['notExists','File {value} already exists!'],['regExp', 'filename must start with .env.', "/^\.env\..*?$/"]]);
 		}
-		$frm->addTextarea('content','',$content);
-		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content',['hasLoader'=>'internal']);
+		$frm->addTextarea('content','',$content)->getField()->setProperty('data-editor','')->setProperty('data-gutter',true);
 		$frm->setValidationParams(['on'=>'blur','inline'=>true]);
+		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content',['hasLoader'=>'internal']);
 		$this->jquery->click('#validate-btn','$("#frm-env").form("submit");');
 		$this->jquery->click('#cancel-btn','$("#config-div").show();$("#action-response").html("");');
+		$this->_getAdminViewer()->insertAce('properties');
 		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename,'inverted'=>$this->style]);
 	}
 

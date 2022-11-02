@@ -138,12 +138,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			'aceBgColor' => '#fff',
 			'inverted' => true,
 			'tdDefinition' => '#fff',
-			'selectedRow' => 'black'
+			'selectedRow' => 'black',
+			'aceSelection'=>'rgba(125, 125, 125, 0.1)'
 		],
 		'' => [
 			'bgColor' => '#fbfbee',
 			'aceBgColor' => '#002B36',
-			'selectedRow' => 'positive'
+			'selectedRow' => 'positive',
+			'aceSelection'=>'rgba(255, 255, 255, 0.1)'
 		]
 	];
 

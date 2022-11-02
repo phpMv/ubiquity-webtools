@@ -1897,6 +1897,7 @@ class UbiquityMyAdminViewer {
 		$this->jquery->ajaxValidationRule( "checkDirectory", $baseRoute . '/_checkDirectory', '{_value:value,_ruleValue:ruleValue}');
 		$this->jquery->ajaxValidationRule("checkClass", $baseRoute . '/_checkClass', '{_value:value,_ruleValue:ruleValue}');
 		$this->jquery->ajaxValidationRule( "checkUrl", $baseRoute . '/_checkStringUrl');
+
 		$this->setStyle($de);
 		return $de->asForm();
 	}
@@ -1928,7 +1929,7 @@ class UbiquityMyAdminViewer {
 		}
 	}
 
-	public function insertAce() {
+	public function insertAce($language='php') {
 		$js = '
 		$(function() {
 		  $("textarea[data-editor]").each(function() {
@@ -1948,7 +1949,7 @@ class UbiquityMyAdminViewer {
 		    editor.$blockScrolling = Infinity ;
 		    editor.renderer.setShowGutter(textarea.data("gutter"));
 		    editor.getSession().setValue(textarea.val());
-		    editor.getSession().setMode({path:"ace/mode/php", inline:true});
+		    editor.getSession().setMode({path:"ace/mode/'.$language.'", inline:true});
 		    editor.setTheme("ace/theme/solarized_dark");
 		    $("textarea[data-editor]").closest("form").on("ajaxSubmit",function() {
 		      textarea.val(editor.getSession().getValue());
