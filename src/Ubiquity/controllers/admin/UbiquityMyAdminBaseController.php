@@ -132,20 +132,57 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected string $nonce;
 
+	private $ace_themes=[
+		'automatic'=>'Automatic',
+		'chrome' => 'Chrome',
+		'clouds' => 'Clouds',
+		'crimson_editor' => 'Crimson Editor',
+		'dawn' => 'Dawn',
+		'dreamweaver' => 'Dreamweaver',
+		'eclipse' => 'Eclipse',
+		'github' => 'GitHub',
+		'iplastic' => 'IPlastic',
+		'katzenmilch' => 'KatzenMilch',
+		'kuroir' => 'Kuroir',
+		'solarized_light' => 'Solarized Light',
+		'sqlserver' => 'SQL Server',
+		'textmate' => 'TextMate',
+		'tomorrow' => 'Tomorrow',
+		'xcode' => 'XCode',
+		'ambiance' => 'Ambiance',
+		'chaos' => 'Chaos',
+		'clouds_midnight' => 'Clouds Midnight',
+		'cobalt' => 'Cobalt',
+		'dracula' => 'Dracula',
+		'gob' => 'Greeon on Black',
+		'gruvbox' => 'Gruvbox',
+		'idle_fingers' => 'idle Fingers',
+		'kr_theme' => 'krTheme',
+		'merbivore' => 'Merbivore',
+		'merbivore_soft' => 'Merbivore Soft',
+		'mono_industrial' => 'Mono Industrial',
+		'monokai' => 'Monokai',
+		'pastel_on_dark' => 'Pastel on Dark',
+		'solarized_dark' => 'Solarized Dark',
+		'terminal' => 'Terminal',
+		'tomorrow_night' => 'Tomorrow Night',
+		'tomorrow_night_blue' => 'Tomorrow Night Blue',
+		'tomorrow_night_bright' => 'Tomorrow Night Bright',
+		'tomorrow_night_eighties' => 'Tomorrow Night 80s',
+		'twilight' => 'Twilight',
+		'vibrant_ink' => 'Vibrant Ink'
+	];
+
 	protected $styles = [
 		'inverted' => [
 			'bgColor' => '#303030',
-			'aceBgColor' => '#fff',
 			'inverted' => true,
 			'tdDefinition' => '#fff',
-			'selectedRow' => 'black',
-			'aceSelection'=>'rgba(125, 125, 125, 0.1)'
+			'selectedRow' => 'black'
 		],
 		'' => [
 			'bgColor' => '#fbfbee',
-			'aceBgColor' => '#002B36',
 			'selectedRow' => 'positive',
-			'aceSelection'=>'rgba(255, 255, 255, 0.1)'
 		]
 	];
 
@@ -166,6 +203,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $this->styles[$this->style][$part] ?? '';
 	}
 
+	public function _getAceTheme(){
+		$theme=$this->config['ace-theme']??'automatic';
+		if($theme=='automatic'){
+			$theme=($this->style=='inverted')?'tomorrow_night':'github';
+		}
+		return $theme;
+	}
+
 	public static function _getConfigFile() {
 		$defaultConfig = [
 			'devtools-path' => 'Ubiquity',
@@ -174,6 +219,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'controllers',
 				'models'
 			],
+			'ace-theme'=>'automatic',
 			'first-use' => true,
 			'maintenance' => [
 				'on' => false,
@@ -336,9 +382,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function finalize() {
 		if (! URequest::isAjax()) {
-			$data = [
-				'js' => $this->initializeJs()
-			];
+			$data = [];
 			if (isset($this->nonce)) {
 				$data['nonce'] = $this->nonce;
 			}
@@ -400,34 +444,6 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->jquery->semantic()->toast('body',['preserveHTML'=>true,'title'=>"<i class='ui $icon icon' ></i> Cache updated",'message'=>$message,'class'=>$this->style.' '.$messageType,'actions'=>[['text'=>"Re-init {$type} cache",'class'=>$this->style.' orange','icon'=>'refresh','click'=>$js]]]);
 	}
 
-	protected function initializeJs() {
-		$js = 'var setAceEditor=function(elementId,readOnly,mode,maxLines){
-			mode=mode || "sql";readOnly=readOnly || false;maxLines=maxLines || 100;
-			var editor = ace.edit(elementId);
-			editor.setTheme("ace/theme/solarized_dark");
-			editor.getSession().setMode({path:"ace/mode/"+mode, inline:true});
-			editor.setOptions({
-				maxLines: maxLines,
-				minLines: 2,
-				showInvisibles: true,
-				showGutter: !readOnly,
-				showPrintMargin: false,
-				readOnly: readOnly,
-				showLineNumbers: !readOnly,
-				highlightActiveLine: !readOnly,
-				highlightGutterLine: !readOnly
-				});
-			var input = $("#"+elementId +" + input");
-			if(input.length){
-				input.val(editor.getSession().getValue());
-				editor.getSession().on("change", function () {
-				input.val(editor.getSession().getValue());
-				});
-			}
-		};';
-		return $this->jquery->inline($js);
-	}
-
 	public function index() {
 		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
 		$array = $this->_getAdminViewer()->getMainMenuElements();
@@ -452,8 +468,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->trigger('#bt-customize', 'click', true);
 		}
 		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
-			->getViewIndex());
+		$this->loadView($this->_getFiles()->getViewIndex());
 	}
 
 	public function _closeMessage($type) {
@@ -509,6 +524,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$dd1->setOnRemove($dd2->jsAddItem("removedText", "removedText"));
 		$dd2->setOnAdd("$('#" . $dd1->getIdentifier() . " .item[data-value='+addedText+']').remove();");
 		$dd2->setOnRemove($dd1->jsAddItem("removedText", "removedText"));
+
+		$dd3=$this->jquery->semantic()->htmlDropdown('dd-ace',$this->config['ace-theme']??'automatic',$this->ace_themes);
+		$dd3->asSearch('ace-theme');
+		$dd3->addClass('fluid '.$this->style);
+
 		$this->jquery->click('#cancel-btn', '$("#dialog").html("");$("#admin-elements").show();$("#bt-customize").removeClass("active");');
 		$this->jquery->getOnClick("#reset-conf-btn", $baseRoute . "/_resetConfigParams", 'body', [
 			'hasLoader' => 'internal'
@@ -546,6 +566,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$part2Str = URequest::post('t-part2', []);
 		$this->config['part1'] = explode(',', $part1Str);
 		$this->config['part2'] = explode(',', $part2Str);
+		$this->config['ace-theme']=URequest::post('ace-theme','automatic');
 		$ckTheme = URequest::filled('ck-theme');
 		if ($ckTheme) {
 			$this->config['style'] = 'inverted';

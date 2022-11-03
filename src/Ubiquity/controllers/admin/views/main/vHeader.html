@@ -13,13 +13,6 @@
 	body{
 		background: {{bgColor}};
 	}
-	.ace-solarized-dark{
-		background: {{aceBgColor}};
-	}
-
-	.ace-solarized-dark .ace_marker-layer .ace_active-line, .ace-solarized-dark .ace_marker-layer .ace_selection {
-		background: {{ aceSelection }};
-	}
 
 	.ui.definition.inverted.table>tbody>tr>td:first-child:not(.ignored){
 		color: {{tdDefinition}}!important;
@@ -64,6 +57,7 @@
 	.ui.inverted.dimmer {
 		background-color: rgba(200,200,200,.85)!important;
 	}
+
 	{%endif%}
 	</style>
 	<link nonce="{{ nonce }}" rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/diff2html/2.3.3/diff2html.min.css">

@@ -1930,6 +1930,7 @@ class UbiquityMyAdminViewer {
 	}
 
 	public function insertAce($language='php') {
+		$theme=$this->controller->_getAceTheme();
 		$js = '
 		$(function() {
 		  $("textarea[data-editor]").each(function() {
@@ -1950,7 +1951,7 @@ class UbiquityMyAdminViewer {
 		    editor.renderer.setShowGutter(textarea.data("gutter"));
 		    editor.getSession().setValue(textarea.val());
 		    editor.getSession().setMode({path:"ace/mode/'.$language.'", inline:true});
-		    editor.setTheme("ace/theme/solarized_dark");
+		    editor.setTheme("ace/theme/'.$theme.'");
 		    $("textarea[data-editor]").closest("form").on("ajaxSubmit",function() {
 		      textarea.val(editor.getSession().getValue());
 		    });
