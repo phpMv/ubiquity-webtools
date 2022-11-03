@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ubiquity\config\Configuration;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\base\UArray;
 
@@ -142,7 +143,9 @@ trait ConfigPartTrait {
 
 	private function evalPostArray($post):array{
 		$filename=\ROOT.'cache/config/tmp.cache.php';
-		\file_put_contents($filename,"<?php return $post;");
+		$result = \preg_replace('/getenv\(\'(.*?)\'\)/', '"getenv(\'$1\')"', $post);
+		$result = \preg_replace('/getenv\(\"(.*?)\"\)/', "'getenv(\"\$1\")'", $result);
+		\file_put_contents($filename,"<?php return $result;");
 		return include $filename;
 	}
 

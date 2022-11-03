@@ -2033,7 +2033,7 @@ class UbiquityMyAdminViewer {
 				$input->setValue($value);
 				return $input;
 			}
-			if (UString::isBoolean($value)) {
+			if (UString::isBoolean($value) && !UString::startswith($value,'getenv(')) {
 				$input = new HtmlFormCheckbox($newId, '', 'true', 'slider');
 				$input->setChecked($value);
 				$input->getField()
