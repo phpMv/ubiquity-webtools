@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ajax\semantic\html\base\constants\State;
 use Ajax\semantic\html\collections\form\HtmlForm;
 use Ubiquity\cache\CacheFile;
 use Ubiquity\cache\CacheManager;
@@ -154,11 +155,16 @@ trait CacheTrait {
 			}
 		}
 		\ob_end_clean();
+
 		if (isset($redirect)) {
+			Startup::reloadConfig();
+			$this->startTemplateEngine();
 			if ($type == 'models') {
 				DAO::start();
 			}
 			$this->$redirect();
 		}
+		$this->jquery->semantic()->toast('body',['title'=>'Cache updated','message'=>"The <b>$type</b> cache has been updated",'class'=>'info']);
+		echo $this->jquery->compile();
 	}
 }

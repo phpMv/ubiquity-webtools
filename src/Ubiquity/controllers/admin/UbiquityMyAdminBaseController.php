@@ -18,6 +18,7 @@ use Ajax\semantic\html\elements\HtmlSegment;
 use Ajax\semantic\html\modules\HtmlDropdown;
 use Ajax\semantic\html\modules\checkbox\HtmlCheckbox;
 use Ubiquity\cache\CacheManager;
+use Ubiquity\config\Configuration;
 use Ubiquity\controllers\Controller;
 use Ubiquity\controllers\Router;
 use Ubiquity\controllers\Startup;
@@ -50,6 +51,7 @@ use Ubiquity\controllers\crud\interfaces\HasModelViewerInterface;
 use Ubiquity\controllers\crud\viewers\ModelViewer;
 use Ubiquity\controllers\semantic\InsertJqueryTrait;
 use Ubiquity\controllers\semantic\MessagesTrait;
+use Ubiquity\core\Framework;
 use Ubiquity\domains\DDDManager;
 use Ubiquity\log\LoggerParams;
 use Ubiquity\orm\DAO;
@@ -130,22 +132,61 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	protected string $nonce;
 
+	private $ace_themes=[
+		'automatic'=>'Automatic',
+		'chrome' => 'Chrome',
+		'clouds' => 'Clouds',
+		'crimson_editor' => 'Crimson Editor',
+		'dawn' => 'Dawn',
+		'dreamweaver' => 'Dreamweaver',
+		'eclipse' => 'Eclipse',
+		'github' => 'GitHub',
+		'iplastic' => 'IPlastic',
+		'katzenmilch' => 'KatzenMilch',
+		'kuroir' => 'Kuroir',
+		'solarized_light' => 'Solarized Light',
+		'sqlserver' => 'SQL Server',
+		'textmate' => 'TextMate',
+		'tomorrow' => 'Tomorrow',
+		'xcode' => 'XCode',
+		'ambiance' => 'Ambiance',
+		'chaos' => 'Chaos',
+		'clouds_midnight' => 'Clouds Midnight',
+		'cobalt' => 'Cobalt',
+		'dracula' => 'Dracula',
+		'gob' => 'Greeon on Black',
+		'gruvbox' => 'Gruvbox',
+		'idle_fingers' => 'idle Fingers',
+		'kr_theme' => 'krTheme',
+		'merbivore' => 'Merbivore',
+		'merbivore_soft' => 'Merbivore Soft',
+		'mono_industrial' => 'Mono Industrial',
+		'monokai' => 'Monokai',
+		'pastel_on_dark' => 'Pastel on Dark',
+		'solarized_dark' => 'Solarized Dark',
+		'terminal' => 'Terminal',
+		'tomorrow_night' => 'Tomorrow Night',
+		'tomorrow_night_blue' => 'Tomorrow Night Blue',
+		'tomorrow_night_bright' => 'Tomorrow Night Bright',
+		'tomorrow_night_eighties' => 'Tomorrow Night 80s',
+		'twilight' => 'Twilight',
+		'vibrant_ink' => 'Vibrant Ink'
+	];
+
 	protected $styles = [
 		'inverted' => [
 			'bgColor' => '#303030',
-			'aceBgColor' => '#fff',
 			'inverted' => true,
 			'tdDefinition' => '#fff',
 			'selectedRow' => 'black'
 		],
 		'' => [
 			'bgColor' => '#fbfbee',
-			'aceBgColor' => '#002B36',
-			'selectedRow' => 'positive'
+			'selectedRow' => 'positive',
 		]
 	];
 
-	public const version = '2.4.16';
+	public const VERSION = '2.5.0';
 
 	public $style;
 
@@ -162,6 +203,14 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		return $this->styles[$this->style][$part] ?? '';
 	}
 
+	public function _getAceTheme(){
+		$theme=$this->config['ace-theme']??'automatic';
+		if($theme=='automatic'){
+			$theme=($this->style=='inverted')?'tomorrow_night':'github';
+		}
+		return $theme;
+	}
+
 	public static function _getConfigFile() {
 		$defaultConfig = [
 			'devtools-path' => 'Ubiquity',
@@ -170,6 +219,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				'controllers',
 				'models'
 			],
+			'ace-theme'=>'automatic',
 			'first-use' => true,
 			'maintenance' => [
 				'on' => false,
@@ -332,9 +382,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function finalize() {
 		if (! URequest::isAjax()) {
-			$data = [
-				'js' => $this->initializeJs()
-			];
+			$data = [];
 			if (isset($this->nonce)) {
 				$data['nonce'] = $this->nonce;
 			}
@@ -368,7 +416,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function _checkModelsUpdates(&$config, $onMainPage) {
 		$models = CacheManager::modelsCacheUpdated($config);
 		if (\is_array($models) && \count($models) > 0) {
-			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'inverted', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#models-refresh' : '#main-content');
+			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'warning', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
 
@@ -376,59 +424,24 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$caches = CacheManager::controllerCacheUpdated($config);
 		if (\is_array($caches) && \count($caches) > 0) {
 			if (! $this->hasMaintenance()) {
-				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', '', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#router-refresh' : '#divRoutes');
+				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'warning', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#messages' : '#divRoutes');
 			}
+		}
+	}
+
+	protected function _checkConfigUpdates($onMainPage){
+		if(Configuration::isConfigUpdated()){
+			$this->_smallUpdateMessageCache($onMainPage, 'config', 'settings', 'Updated configuration files ', 'warning', $onMainPage ? '_initCache/config' : '_initCache/config/config', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
 
 	protected function _smallUpdateMessageCache($onMainPage, $type, $icon, $message, $messageType, $url, $target) {
-		$js = [];
-		if (! $onMainPage) {
-			$js = [
-				'jsCallback' => '$("#' . $type . '-refresh").html("");'
-			];
-		}
-		$bt = $this->jquery->semantic()->htmlButton("bt-mini-init-{$type}-cache", null, 'orange mini ' . $this->style);
-		$bt->setProperty('title', "Re-init {$type} cache");
-		$bt->asIcon('refresh');
-		echo "<div class='ui container' id='{$type}-refresh' style='display:inline;'>";
-		echo $this->_showSimpleMessage('<i class="ui icon ' . $icon . '"></i>&nbsp;' . $message . "&nbsp;" . $bt, $messageType . ' icon mini', null, null, '');
-		echo "&nbsp;</div>";
-		$this->jquery->getOnClick("#bt-mini-init-{$type}-cache", $this->_getFiles()
-			->getAdminBaseRoute() . '/' . $url, $target, [
+		$js=$this->jquery->getDeferred($this->_getFiles()->getAdminBaseRoute() . '/' . $url, $target, [
 			'dataType' => 'html',
 			'attr' => '',
-			'hasLoader' => 'internal'
-		] + $js);
-	}
-
-	protected function initializeJs() {
-		$js = 'var setAceEditor=function(elementId,readOnly,mode,maxLines){
-			mode=mode || "sql";readOnly=readOnly || false;maxLines=maxLines || 100;
-			var editor = ace.edit(elementId);
-			editor.setTheme("ace/theme/solarized_dark");
-			editor.getSession().setMode({path:"ace/mode/"+mode, inline:true});
-			editor.setOptions({
-				maxLines: maxLines,
-				minLines: 2,
-				showInvisibles: true,
-				showGutter: !readOnly,
-				showPrintMargin: false,
-				readOnly: readOnly,
-				showLineNumbers: !readOnly,
-				highlightActiveLine: !readOnly,
-				highlightGutterLine: !readOnly
-				});
-			var input = $("#"+elementId +" + input");
-			if(input.length){
-				input.val(editor.getSession().getValue());
-				console.log(input.val());
-				editor.getSession().on("change", function () {
-				input.val(editor.getSession().getValue());
-				});
-			}
-		};';
-		return $this->jquery->inline($js);
+			'hasLoader' => false
+		] );
+		$this->jquery->semantic()->toast('body',['preserveHTML'=>true,'title'=>"<i class='ui $icon icon' ></i> Cache updated",'message'=>$message,'class'=>$this->style.' '.$messageType,'actions'=>[['text'=>"Re-init {$type} cache",'class'=>$this->style.' orange','icon'=>'refresh','click'=>$js]]]);
 	}
 
 	public function index() {
@@ -439,6 +452,8 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$config = Startup::getConfig();
 		$this->_checkModelsUpdates($config, true);
 		$this->_checkRouterUpdates($config, true);
+		$this->_checkConfigUpdates(true);
+
 		if ($this->hasMaintenance()) {
 			$this->_smallMaintenanceActive(true, MaintenanceMode::getActiveMaintenance($this->config["maintenance"]));
 		}
@@ -453,8 +468,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			$this->jquery->trigger('#bt-customize', 'click', true);
 		}
 		$this->jquery->compile($this->view);
-		$this->loadView($this->_getFiles()
-			->getViewIndex());
+		$this->loadView($this->_getFiles()->getViewIndex());
 	}
 
 	public function _closeMessage($type) {
@@ -510,6 +524,11 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$dd1->setOnRemove($dd2->jsAddItem("removedText", "removedText"));
 		$dd2->setOnAdd("$('#" . $dd1->getIdentifier() . " .item[data-value='+addedText+']').remove();");
 		$dd2->setOnRemove($dd1->jsAddItem("removedText", "removedText"));
+
+		$dd3=$this->jquery->semantic()->htmlDropdown('dd-ace',$this->config['ace-theme']??'automatic',$this->ace_themes);
+		$dd3->asSearch('ace-theme');
+		$dd3->addClass('fluid '.$this->style);
+
 		$this->jquery->click('#cancel-btn', '$("#dialog").html("");$("#admin-elements").show();$("#bt-customize").removeClass("active");');
 		$this->jquery->getOnClick("#reset-conf-btn", $baseRoute . "/_resetConfigParams", 'body', [
 			'hasLoader' => 'internal'
@@ -547,6 +566,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$part2Str = URequest::post('t-part2', []);
 		$this->config['part1'] = explode(',', $part1Str);
 		$this->config['part2'] = explode(',', $part2Str);
+		$this->config['ace-theme']=URequest::post('ace-theme','automatic');
 		$ckTheme = URequest::filled('ck-theme');
 		if ($ckTheme) {
 			$this->config['style'] = 'inverted';
@@ -613,7 +633,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 			]);
 			echo $menu;
 		}
-
+		$this->_checkConfigUpdates(false);
 		$this->_modelDatabase($hasHeader, false, $activeDb);
 	}
 
@@ -824,14 +844,58 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 
 	public function config($hasHeader = true) {
 		$config = Startup::getConfig();
-		if ($hasHeader === true)
+		if ($hasHeader === true) {
 			$this->getHeader("config");
-		$this->_getAdminViewer()->getConfigDataElement($config);
-		$this->jquery->getOnClick("#edit-config-btn", $this->_getFiles()
-			->getAdminBaseRoute() . "/_formConfig/ajax", "#action-response", [
-			"hasLoader" => "internal",
-			"jsCallback" => '$("#config-div").hide();'
-		]);
+		}
+		$style=$this->style;
+		$appEnv=Framework::getEnv();
+		$configFiles=Configuration::getTheoreticalLoadedConfigFiles($appEnv);
+		$data=['app.env'=>$appEnv,'env.files'=>Configuration::getEnvFiles()];
+		$fields=\array_keys($data);
+		$deEnvVars=$this->jquery->semantic()->dataElement('deEnv',$data);
+		$deEnvVars->setFields($fields);
+		$deEnvVars->setCaptions(['App.env <span class="ui label '.$style.'">APP_ENV</span>','Env. files']);
+		$deEnvVars->fieldAsLabel('app.env','dot circle',['class'=>"ui green label $style",'jsCallback'=>function($lbl){
+			$lbl->addPopup('Active','APP_ENV value');
+		}]);
+		$deEnvVars->setEdition(true);
+		$callback=function($files) use($configFiles,$style){
+			$result=[];
+			foreach ($files as $file){
+				$bn=basename($file);
+				$type='config';
+				if(\rtrim($bn,'.php')===$bn){
+					$type='env';
+				}
+				$rpFile=\realpath($file);
+				$loadedFile=\array_search($rpFile,$configFiles)!==false;
+				$bt=new HtmlButton($bn,$bn,"$style mini $type-file ".($loadedFile?'teal':''));
+				$bt->setProperty('data-ajax',rtrim($bn,'.php'));
+				$bt->addIcon('file');
+				$bt->addPopup($loadedFile?'Loaded file':'File',$rpFile);
+				$result[]=$bt;
+			}
+			return $result;
+		};
+		$deEnvVars->setValueFunction('env.files',$callback);
+		$data=['config.files'=>Configuration::getConfigFiles()];
+		$fields=\array_keys($data);
+		$deConfFiles=$this->jquery->semantic()->dataElement('deConf',$data);
+		$deConfFiles->setFields($fields);
+		$deConfFiles->setCaptions(['Config. files']);
+		$deConfFiles->setValueFunction('config.files',$callback);
+
+		$this->_setStyle($deEnvVars);
+		$this->_setStyle($deConfFiles);
+		$baseRoute=$this->_getFiles()->getAdminBaseRoute();
+		$this->jquery->getOnClick('#bt-init-cache',$baseRoute.'/_initCache/config/config','#main-content',['hasLoader'=>'internal']);
+		$this->jquery->getOnClick("#see-active-conf", $baseRoute."/configRead", "#action-response",['jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+
+		$this->jquery->getOnClick(".config-file", $baseRoute."/_formConfig", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+		$this->jquery->getOnClick(".env-file", $baseRoute."/_formEnv", "#action-response",['attr'=>'data-ajax','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+		$this->jquery->getOnClick("#add-env-btn", $baseRoute."/_formEnv", "#action-response",['attr'=>'','jsCallback'=>'$("#config-div").hide();','hasLoader'=>'internal']);
+
+		$this->_checkConfigUpdates(false);
 		$this->jquery->renderView($this->_getFiles()
 			->getViewConfigIndex(), [
 			'inverted' => $this->style

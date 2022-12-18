@@ -20,10 +20,16 @@
 		</div>
 		</div>
 		<div class="ui divider"></div>
-			<div class="ui compact {{ inverted }} segment">
-				<div class="ui toggle {{ inverted }} checkbox _ckTheme">
-					<input type="checkbox" id="ck-theme" name="ck-theme" {{ inverted ? 'checked="checked"':'' }}>
-					<label>Dark theme</label>
+			<div class="two inline fields">
+				<div class="field">
+					<div class="ui toggle {{ inverted }} checkbox _ckTheme">
+						<input type="checkbox" id="ck-theme" name="ck-theme" {{ inverted ? 'checked="checked"':'' }}>
+						<label>Dark theme</label>
+					</div>
+				</div>
+				<div class="field">
+					<label>ACE Editor theme</label>
+					{{ q['dd-ace']|raw }}
 				</div>
 			</div>
 		<div class='ui divider'></div>

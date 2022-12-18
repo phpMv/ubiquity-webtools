@@ -3,8 +3,12 @@ namespace Ubiquity\controllers\admin\traits;
 
 use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\collections\HtmlMessage;
+use Ubiquity\cache\CacheManager;
+use Ubiquity\config\Configuration;
+use Ubiquity\config\EnvFile;
 use Ubiquity\controllers\Startup;
 use Ubiquity\domains\DDDManager;
+use Ubiquity\utils\base\UArray;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\http\UResponse;
 use Ubiquity\utils\base\UString;
@@ -35,15 +39,57 @@ trait ConfigTrait {
 
 	abstract public function _showSimpleMessage($content, $type, $title = null, $icon = "info", $timeout = NULL, $staticName = null, $closeAction = null, $toast = false): HtmlMessage;
 
-	public function _formConfig($hasHeader = true) {
-		$config = include ROOT . 'config/config.php';
-		if ($hasHeader === true) {
-			$this->getHeader("config");
+	public function _formConfig(string $filename='config') {
+		$config = Configuration::loadConfigWithoutEval($filename);
+		if($filename==='config') {
+			$df = $this->_getAdminViewer()->getConfigDataForm($config, 'all', $filename);
+			$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
+			$this->jquery->renderView($this->_getFiles()->getViewConfigForm());
+		}else {
+			$baseRoute=$this->_getBaseRoute();
+			$df = $this->_getAdminViewer()->getConfigPartDataForm($config, 'frmDeConfig',false);
+			$this->_getAdminViewer()->addConfigToolbar($df,$baseRoute,$filename);
+			$this->sourcePartBehavior([
+				'form' => '#frmDeConfig'
+			], [
+				'source' => $baseRoute . '/_getConfigSourcePartial/'.$filename,
+				'form' => $baseRoute . '/_refreshConfigFrmPartial/'.$filename
+			],'frm-frmDeConfig','frm-source');
+			$this->addConfigBehavior();
+			$this->jquery->renderView($this->_getFiles()->getViewConfigFormPartial(),['inverted'=>$this->style]);
 		}
-		$this->_getAdminViewer()->getConfigDataForm($config, $hasHeader);
-		$this->jquery->execAtLast($this->getAllJsDatabaseTypes('wrappers', Database::getAvailableWrappers()));
-		$this->jquery->renderView($this->_getFiles()
-			->getViewConfigForm());
+	}
+
+	public function _getConfigSourcePartial($filename) {
+		unset($_POST['config-filename']);
+		$this->getConfigSourcePart(Configuration::loadConfigWithoutEval($filename), 'Configuration', 'cogs');
+	}
+
+	public function _refreshConfigFrmPartial($filename){
+		$this->refreshConfigFrmPart(Configuration::loadConfigWithoutEval($filename), 'frmDeConfig');
+	}
+
+	public function _formEnv(string $filename=''){
+		$content='#env. variables';
+		$newFile=true;
+		if($filename!='' && \file_exists(EnvFile::$ENV_ROOT.$filename)) {
+			$content = EnvFile::loadContent(EnvFile::$ENV_ROOT, $filename);
+			$newFile=false;
+		}
+		$frm=$this->jquery->semantic()->htmlForm('frm-env');
+		$this->_setStyle($frm);
+		$this->jquery->ajaxValidationRule('notExists',$this->_getBaseRoute().'/_checkEnvFileExists');
+		if($newFile){
+			$input=$frm->addInput('filename','Filename','text',$filename,'Filename');
+			$input->setRules(['empty',['notExists','File {value} already exists!'],['regExp', 'filename must start with .env.', "/^\.env\..*?$/"]]);
+		}
+		$frm->addTextarea('content','',$content)->getField()->setProperty('data-editor','')->setProperty('data-gutter',true);
+		$frm->setValidationParams(['on'=>'blur','inline'=>true]);
+		$frm->setSubmitParams($this->_getBaseRoute().'/_submitEnv/'.$filename,'#main-content',['hasLoader'=>'internal']);
+		$this->jquery->click('#validate-btn','$("#frm-env").form("submit");');
+		$this->jquery->click('#cancel-btn','$("#config-div").show();$("#action-response").html("");');
+		$this->_getAdminViewer()->insertAce('properties');
+		$this->jquery->renderView($this->_getFiles()->getViewEnvForm(),['filename'=>$filename,'inverted'=>$this->style]);
 	}
 
 	public function _config() {
@@ -67,11 +113,46 @@ trait ConfigTrait {
 		}
 	}
 
+	private function startWithInArray($search, $toDelete){
+		foreach ($toDelete as $toDeleteKey){
+			if($search===$toDeleteKey || UString::startswith($search,"$toDeleteKey-")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function startWithInArray_($search,$toDelete){
+		foreach ($toDelete as $keyTodelete){
+			if($search===$keyTodelete || UString::startswith($keyTodelete,"$search")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function removeDeletedKeys(&$result,$toRemove){
+		foreach ($result as $key=>$_){
+			if($this->startWithInArray_($key,$toRemove)){
+				unset($result[$key]);
+			}
+		}
+	}
+
 	public function _submitConfig($partial = true) {
 		$originalConfig = Startup::$config;
-		$result = include ROOT . 'config/config.php';
+		$filename=URequest::post('config-filename','config');
+		$result = Configuration::loadConfigWithoutEval($filename);
+		$toDelete = URequest::post('_toDelete','');
+		$toRemove = \explode(',', $toDelete);
+		$this->removeDeletedKeys($result,$toRemove);
+
 		$postValues = $_POST;
-		if ($partial !== true) {
+		unset($postValues['config-filename']);
+		unset($postValues[$filename]);
+		unset($postValues['_toDelete']);
+
+		if ($partial !== true && $filename==='config') {
 			if (isset($result['database']['dbName'])) {
 				$this->checkConfigDatabaseCache($postValues);
 			} else {
@@ -85,28 +166,31 @@ trait ConfigTrait {
 			$postValues["templateEngineOptions-cache"] = isset($postValues["templateEngineOptions-cache"]);
 		}
 		foreach ($postValues as $key => $value) {
-			if (\strpos($key, "-") === false) {
-				$result[$key] = $value;
-			} else {
-				$keys = \explode('-', $key);
-				$v = &$result;
-				foreach ($keys as $k) {
-					if (! isset($v[$k])) {
-						$v[$k] = [];
+			if(!$this->startWithInArray($key,$toRemove)) {
+				if (\strpos($key, "-") === false) {
+					$result[$key] = $value;
+				} else {
+					$keys = \explode('-', $key);
+					$v = &$result;
+					foreach ($keys as $k) {
+						if (!isset($v[$k])) {
+							$v[$k] = [];
+						}
+						$v = &$v[$k];
 					}
-					$v = &$v[$k];
+					$v = $value;
 				}
-				$v = $value;
 			}
 		}
+
 		try {
-			if (Startup::saveConfig($result)) {
-				$this->_showSimpleMessage("The configuration file has been successfully modified!", "positive", "check square", null, "msgConfig");
+			if (Startup::saveConfig($result,$filename)) {
+				$this->_showSimpleMessage("The configuration file <b>$filename</b> has been successfully modified!", "positive", "check square", null, "msgConfig");
 			} else {
-				$this->_showSimpleMessage("Impossible to write the configuration file.", "negative", "warning circle", null, "msgConfig");
+				$this->_showSimpleMessage("Impossible to write the configuration file <b>$filename</b>.", "negative", "warning circle", null, "msgConfig");
 			}
 		} catch (\Exception $e) {
-			$this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
+			$this->_showSimpleMessage("Your configuration contains errors.<br>The configuration file <b>$filename</b> has not been saved.<br>" . $e->getMessage(), "negative", "warning circle", null, "msgConfig");
 		}
 
 		$config = $this->reloadConfig($originalConfig);
@@ -120,18 +204,25 @@ trait ConfigTrait {
 		}
 	}
 
-	protected function _checkCondition($callback) {
-		if (URequest::isPost()) {
-			$result = [];
-			UResponse::asJSON();
-			$value = $_POST['_value'];
-			$result['result'] = $callback($value);
-			echo \json_encode($result);
+	public function _submitEnv(string $filename=''){
+		if(URequest::has('filename')){
+			$postedFilename=URequest::post('filename');
+			if(!file_exists(EnvFile::$ENV_ROOT.$postedFilename)) {
+				$filename = $postedFilename;
+			}else{
+				$this->toast("$postedFilename already exists!",'Env file not created','warning',true);
+				$this->config(true);
+				return;
+			}
 		}
+		$content=URequest::post('content','');
+		EnvFile::saveText($content,EnvFile::$ENV_ROOT,$filename);
+		$this->toast("$filename updated",'Env file updated','info',true);
+		$this->config(true);
 	}
 
 	public function _checkArray() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			try {
 				$array = eval("return " . $value . ";");
 				return \is_array($array);
@@ -143,7 +234,7 @@ trait ConfigTrait {
 
 	public function _checkDirectory() {
 		$folder = URequest::post("_ruleValue");
-		$this->_checkCondition(function ($value) use ($folder) {
+		$this->jquery->checkValidationRule(function ($value) use ($folder) {
 			if ($value != null) {
 				$base = Startup::getApplicationDir();
 				return \file_exists($base . \DS . $folder . \DS . $value);
@@ -153,7 +244,7 @@ trait ConfigTrait {
 	}
 
 	public function _checkAbsoluteDirectory() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			if ($value != null) {
 				return \file_exists($value);
 			}
@@ -162,7 +253,7 @@ trait ConfigTrait {
 	}
 
 	public function _checkUrl() {
-		$this->_checkCondition(function ($value) {
+		$this->jquery->checkValidationRule(function ($value) {
 			$headers = @get_headers($value);
 			if ($value != null) {
 				return $headers && strpos($headers[0], '200');
@@ -172,14 +263,29 @@ trait ConfigTrait {
 	}
 
 	public function _checkClass() {
-		$parent = URequest::post("_ruleValue");
-		$this->_checkCondition(function ($value) use ($parent) {
+		$parent = URequest::post('_ruleValue');
+		$this->jquery->checkValidationRule(function ($value) use ($parent) {
 			try {
 				$class = new \ReflectionClass($value);
 				return $class->isSubclassOf($parent);
 			} catch (\ReflectionException $e) {
 				return false;
 			}
+		});
+	}
+
+	public function _checkStringUrl(){
+		$this->jquery->checkValidationRule(function ($value) {
+			if ($value != null && !UString::startswith($value,'getenv(')) {
+				return \filter_var($value, FILTER_VALIDATE_URL) && UString::endswith($value,'/');
+			}
+			return true;
+		});
+	}
+
+	public function _checkEnvFileExists(){
+		$this->jquery->checkValidationRule(function ($value) {
+			return !\file_exists(EnvFile::$ENV_ROOT.$value);
 		});
 	}
 
@@ -217,7 +323,13 @@ trait ConfigTrait {
 		if ($co != null) {
 			$n = $co . '-';
 		}
-		$postValues = $_POST;
+		Configuration::loadActiveEnv();
+		$postValues = array_map(function($elm){
+			if(UString::startswith($elm,'getenv(')){
+				return eval("return $elm;");
+			}
+			return $elm;
+		},$_POST);
 		$connected = false;
 		$db = new Database($postValues["database-" . $n . "wrapper"] ?? \Ubiquity\db\providers\pdo\PDOWrapper::class, $postValues["database-" . $n . "type"], $postValues["database-" . $n . "dbName"], $postValues["database-" . $n . "serverName"], $postValues["database-" . $n . "port"], $postValues["database-" . $n . "user"], $postValues["database-" . $n . "password"]);
 		try {
@@ -302,5 +414,15 @@ trait ConfigTrait {
 			$result["result"] = (\array_search($domain, $domains) === false);
 			echo \json_encode($result);
 		}
+	}
+
+	public function configRead() {
+		$config = Startup::getConfig();
+		$this->_getAdminViewer()->getConfigDataElement($config);
+		$this->jquery->click('#close-button','$("#configRead-div").hide();$("#config-div").show();');
+		$this->jquery->renderView($this->_getFiles()
+			->getViewConfigRead(), [
+			'inverted' => $this->style
+		]);
 	}
 }

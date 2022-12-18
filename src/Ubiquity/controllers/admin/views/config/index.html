@@ -2,8 +2,37 @@
 {{ q["msgConfig"] | raw }}
 <div id="action-response"></div>
 <div id="config-div">
-<button id="edit-config-btn" class="ui {{inverted}} button orange"><i id="icon-" class="icon edit"></i> Edit config file</button><p></p>
-{{ q["deConfig"] | raw }}
+    <div class="ui {{ inverted }} segment">
+        <div id="bt-init-cache" class="ui  {{ inverted }} button orange">
+            <i class="icon refresh"></i>
+            (Re-)Init config cache
+        </div>
+        <div class="ui  {{ inverted }} black button" id="see-active-conf">
+            <i class="ui eye icon"></i>
+            See active configuration
+        </div>
+    </div>
+    <div class="ui top attached  {{ inverted }} teal segment">
+        <div class="ui grid">
+            <div class="twelve wide column">
+                <i class="ui code icon"></i>
+                Environment variables & files
+            </div>
+            <div class="four wide right floated right aligned column">
+                <div id="add-env-btn" class="ui {{ inverted }} mini compact button">Add a new env file...</div>
+            </div>
+        </div>
+    </div>
+    <div class="ui  {{ inverted }} attached segment">
+        {{ q['deEnv']|raw }}
+    </div>
+    <div class="ui top attached  {{ inverted }} teal segment">
+        <i class="ui file code outline icon"></i>
+        Configuration files
+    </div>
+    <div class="ui  {{ inverted }} attached segment">
+        {{ q['deConf']|raw }}
+    </div>
 </div>
 
 

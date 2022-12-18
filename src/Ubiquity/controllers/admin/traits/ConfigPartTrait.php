@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits;
 
+use Ubiquity\config\Configuration;
 use Ubiquity\utils\http\URequest;
 use Ubiquity\utils\base\UArray;
 
@@ -101,6 +102,8 @@ trait ConfigPartTrait {
 		$this->jquery->mouseleave('td', '$(this).find("i._see").css({"visibility":"hidden"});');
 		$this->jquery->mouseenter('td', '$(this).find("i._see").css({"visibility":"visible"});');
 		$this->jquery->click('._delete', 'let tDf=$("[name=_toDelete]");tDf.closest(".ui.dropdown").dropdown("set selected",$(this).attr("data-name"));');
+		$this->jquery->click('.cancel-all','$("[name=_toDelete]").closest(".ui.dropdown").dropdown("clear");');
+		$this->jquery->exec('$("._delete").closest("td").css({"min-width":"200px","width":"1%","white-space": "nowrap"});',true);
 	}
 
 	private function addSubmitConfigBehavior(array $ids, array $urls, array $callbacks) {
@@ -109,24 +112,27 @@ trait ConfigPartTrait {
 			'hasLoader' => 'internal'
 		]);
 		$this->jquery->execOn("click", "#bt-Canceledition", $callbacks['cancel']);
+		$this->sourcePartBehavior($ids,$urls,'frmConfig','frm-source');
+	}
 
+	private function sourcePartBehavior($ids,$urls,$frmConfig='frmConfig',$frmSource='frm-source'){
 		$this->jquery->execAtLast("$('._tabConfig .item').tab();");
 		$this->jquery->execAtLast("$('._tabConfig .item').tab({'onVisible':function(value){
 			if(value=='source'){
-			" . $this->jquery->postFormDeferred($urls['source'], 'frmConfig', '#tab-source', [
-			'hasLoader' => false
-		]) . "}else{
-			" . $this->jquery->postFormDeferred($urls['form'], 'frm-source', $ids['form'], [
-			'hasLoader' => false,
-			'jqueryDone' => 'replaceWith'
-		]) . "
+			" . $this->jquery->postFormDeferred($urls['source'], $frmConfig, '#tab-source', [
+				'hasLoader' => false
+			]) . "}else{
+			" . $this->jquery->postFormDeferred($urls['form'], $frmSource, $ids['form'], [
+				'hasLoader' => false,
+				'jqueryDone' => 'replaceWith'
+			]) . "
 		}
 		}});");
 	}
 
 	private function refreshConfigFrmPart($original, $identifier = 'frmMailerConfig') {
 		$toRemove = [];
-		$update = eval('return ' . URequest::post('src') . ';');
+		$update = $this->evalPostArray($_POST['src']);
 		$this->arrayUpdateRecursive($original, $update, $toRemove);
 		$this->getConfigPartFrmDataForm($original, $identifier);
 		if (\count($toRemove) > 0) {
@@ -135,8 +141,16 @@ trait ConfigPartTrait {
 		$this->jquery->renderView('@framework/main/component.html');
 	}
 
+	private function evalPostArray($post):array{
+		$filename=\ROOT.'cache/config/tmp.cache.php';
+		$result = \preg_replace('/getenv\(\'(.*?)\'\)/', '"getenv(\'$1\')"', $post);
+		$result = \preg_replace('/getenv\(\"(.*?)\"\)/', "'getenv(\"\$1\")'", $result);
+		\file_put_contents($filename,"<?php return $result;");
+		return include $filename;
+	}
+
 	private function getConfigSourcePart($original, $title, $icon) {
-		$toDelete = URequest::post('_toDelete');
+		$toDelete = URequest::post('_toDelete','');
 		$toRemove = \explode(',', $toDelete);
 		$update = $this->getConfigPartFromPost($original);
 		$this->arrayUpdateRecursive($original, $update, $toRemove, '', true);

@@ -68,8 +68,20 @@ class UbiquityMyAdminFiles {
 		return $this->viewBase . "/config/index.html";
 	}
 
+	public function getViewConfigRead() {
+		return $this->viewBase . "/config/configRead.html";
+	}
+	
 	public function getViewConfigForm() {
 		return $this->viewBase . "/config/form.html";
+	}
+
+	public function getViewConfigFormPartial() {
+		return $this->viewBase . "/config/formPartial.html";
+	}
+
+	public function getViewEnvForm() {
+		return $this->viewBase . "/config/formEnv.html";
 	}
 
 	public function getViewFrmNewDbConnection() {

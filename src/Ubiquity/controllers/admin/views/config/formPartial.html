@@ -1,0 +1,10 @@
+<div class="ui top attached tabular {{inverted}} menu _tabConfig">
+    <a class="item" data-tab="config"><i class="cog icon"></i> Configuration</a>
+    <a class="item" data-tab="source"><i class="code icon"></i> PHP source</a>
+</div>
+<div class="ui bottom attached active tab {{inverted}} segment" data-tab="config" id="tab-config">
+    {{ q["frmDeConfig"] | raw }}
+</div>
+<div class="ui bottom attached tab segment" data-tab="source" id="tab-source">
+</div>
+{{ script_foot | raw }}
