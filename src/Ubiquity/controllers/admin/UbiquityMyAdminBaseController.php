@@ -2102,7 +2102,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 				]);
 			} else {}
 		} else {
-			$button = "<div class='ui divider'></div>Or you can do it automatically:<br><div class='ui orange button'><i class='ui icon play'></i>Start AclManager service</div>";
+			$button = "<div class='ui divider'></div>Or you can do it automatically:<br><div id='start-acls-bt' class='ui orange button'><i class='ui icon play'></i>Start AclManager service</div>";
 			$msg = $this->_showSimpleMessage('AclManager is not started. You have to add <div class="ui inverted segment"><pre>AclManager::start(/*providers*/)</pre></div> in <b>app/config/services.php</b>' . $button, 'warning', 'Acls management', 'warning circle');
 			$this->jquery->getOnClick('#start-acls-bt', $baseRoute . '/_startAclService', '#main-content', [
 				'hasLoader' => 'internal'
