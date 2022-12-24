@@ -251,7 +251,7 @@ trait AclsTrait {
 	}
 
 	public function _aclElementAdd() {
-		$this->elementAdd(function(){return $this->_aclElementForm();},'aclElement');
+		$this->elementAdd(function(){return $this->_aclElementForm();},'aclelement');
 	}
 
 	public function _aclElementSubmit() {
