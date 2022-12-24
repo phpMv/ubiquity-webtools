@@ -188,5 +188,119 @@ trait DisplayAcls {
 		]);
 		return $form;
 	}
+
+	public function _roleForm() {
+		$providerClass = AclDAOProvider::class;
+		$provider = AclManager::getProvider($providerClass);
+		$aclClass = $provider->getModelClasses()[Role::class];
+		$role = new $aclClass();
+		$role->title = "Creation";
+		$form = $this->jquery->semantic()->dataForm('frm-role', $role);
+		$form->setFields([
+			"title\n",
+			"name",
+			'parents',
+			'submit',
+			'cancel'
+		]);
+		$form->setCaptions([
+			'Create a new Role',
+			'Name',
+			'Parents',
+			'Create Role',
+			'Cancel'
+		]);
+		$form->addDividerBefore('submit', '');
+		$form->fieldAsMessage(0, [
+			'icon' => 'user'
+		]);
+		$form->fieldAsInput('name',['rules'=>'empty']);
+		$form->fieldAsDataList('parents', AclManager::getAclList()->getElementsNames('roles'), []);
+
+		$form->fieldAsButton('cancel', 'black', [
+			'value' => 'Cancel'
+		]);
+		$form->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		return $form;
+	}
+
+	public function _permissionForm() {
+		$providerClass = AclDAOProvider::class;
+		$provider = AclManager::getProvider($providerClass);
+		$aclClass = $provider->getModelClasses()[Permission::class];
+		$permission = new $aclClass();
+		$permission->title = "Creation";
+		$form = $this->jquery->semantic()->dataForm('frm-permission', $permission);
+		$form->setFields([
+			"title\n",
+			"name",
+			'level',
+			'submit',
+			'cancel'
+		]);
+		$form->setCaptions([
+			'Create a new Permission',
+			'Name',
+			'Level',
+			'Create Permission',
+			'Cancel'
+		]);
+		$form->addDividerBefore('submit', '');
+		$form->fieldAsMessage(0, [
+			'icon' => 'unlock alternate'
+		]);
+		$form->fieldAsInput('name',['rules'=>'empty']);
+
+		$form->fieldAsInput('level',['inputType'=>'number']);
+
+		$form->fieldAsButton('cancel', 'black', [
+			'value' => 'Cancel'
+		]);
+		$form->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		return $form;
+	}
+
+	public function _resourceForm() {
+		$providerClass = AclDAOProvider::class;
+		$provider = AclManager::getProvider($providerClass);
+		$aclClass = $provider->getModelClasses()[Resource::class];
+		$resource = new $aclClass();
+		$resource->title = "Creation";
+		$form = $this->jquery->semantic()->dataForm('frm-resource', $resource);
+		$form->setFields([
+			"title\n",
+			"name",
+			'value',
+			'submit',
+			'cancel'
+		]);
+		$form->setCaptions([
+			'Create a new Resource',
+			'Name',
+			'Value',
+			'Create Resource',
+			'Cancel'
+		]);
+		$form->addDividerBefore('submit', '');
+		$form->fieldAsMessage(0, [
+			'icon' => 'archive'
+		]);
+		$form->fieldAsInput('name',['rules'=>'empty']);
+		
+		$form->fieldAsButton('cancel', 'black', [
+			'value' => 'Cancel'
+		]);
+		$form->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		return $form;
+	}
 }
 

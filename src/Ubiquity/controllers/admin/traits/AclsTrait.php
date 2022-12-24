@@ -221,33 +221,81 @@ trait AclsTrait {
 		}
 	}
 
-	public function _aclElementAdd() {
-		$form = $this->_aclElementForm();
+	private function elementAdd($callbackForm,$caption){
+		$form = $callbackForm();
 		$form->fieldAsSubmit('submit', 'green fluid', $this->_getFiles()
-			->getAdminBaseRoute() . '/_aclElementSubmit', '#form', [
+				->getAdminBaseRoute() . "/_{$caption}Submit", '#form', [
 			'ajax' => [
 				'hasLoader' => 'internal'
 			]
 		]);
-		$this->jquery->click('#frm-aclelement-cancel-0', '$("#form").html("");');
+		$this->jquery->click("#frm-{$caption}-cancel-0", '$("#form").html("");');
 		$this->loadViewCompo($form);
 	}
 
-	public function _aclElementSubmit() {
+	private function elementSubmit($insertCallback,$message,$title) {
 		AclManager::reloadFromSelectedProviders([
 			AclDAOProvider::class
 		]);
 		AclManager::filterProviders(AclDAOProvider::class);
 		extract($_POST);
 		$aclList = AclManager::getAclList();
-		$aclList->addAndAllow($role, $resource, $permission);
-		echo $this->toast("Permission $permission granted to $role on $resource!", 'ACL Creation', 'info', true);
+		$insertCallback($aclList);
+		echo $this->toast($message, $title, 'info', true);
 		$this->jquery->get($this->_getFiles()
-			->getAdminBaseRoute() . '/_refreshAclsFromAjax', '#aclsPart', [
+				->getAdminBaseRoute() . '/_refreshAclsFromAjax', '#aclsPart', [
 			'hasLoader' => false,
 			'jsCallback' => '$("#form").html("");'
 		]);
 		echo $this->jquery->compile($this->view);
+	}
+
+	public function _aclElementAdd() {
+		$this->elementAdd(function(){return $this->_aclElementForm();},'aclElement');
+	}
+
+	public function _aclElementSubmit() {
+		extract($_POST);
+		$this->elementSubmit(function($aclList){
+			extract($_POST);
+			$aclList->addAndAllow($role, $resource, $permission);
+		},"Permission $permission granted to $role on $resource!", 'ACL Creation');
+	}
+
+	public function _roleAdd() {
+		$this->elementAdd(function(){return $this->_roleForm();},'role');
+	}
+
+	public function _roleSubmit() {
+		extract($_POST);
+		$this->elementSubmit(function($aclList){
+			extract($_POST);
+			$aclList->addRole(new Role($name,$parents??''));
+		},"Role $name added!", 'Role Creation');
+	}
+
+	public function _permissionAdd() {
+		$this->elementAdd(function(){return $this->_permissionForm();},'permission');
+	}
+
+	public function _permissionSubmit() {
+		extract($_POST);
+		$this->elementSubmit(function($aclList){
+			extract($_POST);
+			$aclList->addPermission(new Permission($name,$level??0));
+		},"Permission $name added!", 'Permission Creation');
+	}
+
+	public function _resourceAdd() {
+		$this->elementAdd(function(){return $this->_resourceForm();},'resource');
+	}
+
+	public function _resourceSubmit() {
+		extract($_POST);
+		$this->elementSubmit(function($aclList){
+			extract($_POST);
+			$aclList->addResource(new Resource($name,$value??''));
+		},"Resource $name added!", 'Resource Creation');
 	}
 }
 
