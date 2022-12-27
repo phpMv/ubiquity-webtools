@@ -484,8 +484,8 @@ trait CheckTrait {
 		$activeDb = $this->getActiveDb();
 		$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
 		$generator->migrate();
-		
-		$this->jquery->exec("setAceEditor('sqlx');$('#modelsMessages-success,#modelsMessages-info').hide();", true);
+		$this->_getAdminViewer()->insertAce('sql');
+		$this->jquery->exec("$('#modelsMessages-success,#modelsMessages-info').hide();", true);
 		$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 				->getAdminBaseRoute() . "/_migrateDb", "frm-sql-content", "#models-main",['hasLoader'=>'internal']);
 		$this->jquery->renderView($this->_getFiles()

@@ -10,7 +10,6 @@
             Cancel
         </button>
     </div>
-    <pre id="sqlx" class='ui segment editor' style="background-color: rgb(0, 43, 54)">{{sql}}</pre>
-    <input type='hidden' name='sql' id='sql'>
+    <textarea data-editor data-gutter="true" name='sql' id="sql" rows="20">{{sql}}</textarea>
 </form>
 {{ script_foot | raw }}

@@ -53,8 +53,8 @@ trait DatabaseTrait {
 			$generator = new DatabaseReversor(new DbGenerator(), $activeDb);
 			$generator->createDatabase($db);
 			$frm = $this->jquery->semantic()->htmlForm("form-sql");
-			$text = $frm->addElement("sql", $generator->__toString(), "SQL script", "div", "ui segment editor");
-			$text->getField()->setProperty("style", "background-color: #002B36;");
+			$text = $frm->addTextarea("sql", '',$generator->__toString(), "SQL script", 20);
+			$text->getField()->setProperty('data-editor','')->setProperty('data-gutter','true');
 			$bts = $this->jquery->semantic()->htmlButtonGroups("buttons");
 			$bts->addElement("Generate database")->addClass("green");
 			if (isset($actualDb) && $actualDb !== $db) {
@@ -66,7 +66,8 @@ trait DatabaseTrait {
 				]);
 			}
 			$frm->addDivider();
-			$this->jquery->exec("setAceEditor('sql');", true);
+			$frm->setStyle($this->style);
+			$this->_getAdminViewer()->insertAce('sql');
 			$this->jquery->compile($this->view);
 			$this->loadView($this->_getFiles()
 				->getViewDatabaseCreate());
@@ -76,9 +77,10 @@ trait DatabaseTrait {
 	public function _exportDatasScript() {
 		$dbExport = new DbExport();
 		$frm = $this->jquery->semantic()->htmlForm("form-sql-datas");
-		$text = $frm->addElement("datas-sql", $dbExport->exports(), "Datas export script", "div", "ui segment editor");
-		$text->getField()->setProperty("style", "background-color: #002B36;");
-		$this->jquery->exec("setAceEditor('datas-sql');", true);
+		$text = $frm->addTextarea("datas-sql", "Datas export script",$dbExport->exports(), "", 20);
+		$text->getField()->setProperty('data-editor','')->setProperty('data-gutter','true');
+		$this->_getAdminViewer()->insertAce('sql');
+		$frm->setStyle($this->style);
 		$this->jquery->compile($this->view);
 		$this->loadView($this->_getFiles()
 			->getViewDatasExport());

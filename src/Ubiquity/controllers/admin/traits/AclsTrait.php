@@ -131,7 +131,7 @@ trait AclsTrait {
 	public function _refreshAclCache($providerClass) {
 		$config = Startup::$config;
 		CacheManager::start($config);
-		AclManager::initCache($config);
+		AclManager::initCache($config,true);
 		$selectedProviders = $this->config['selected-acl-providers'] ?? AclManager::getAclList()->getProviderClasses();
 		AclManager::reloadFromSelectedProviders($selectedProviders);
 		$this->_refreshAcls();

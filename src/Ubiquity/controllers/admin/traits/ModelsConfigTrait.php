@@ -396,7 +396,7 @@ trait ModelsConfigTrait {
 			$target_file = $target_dir . \basename($_FILES["div-sqlFile-file"]["name"]);
 			if (\move_uploaded_file($_FILES["div-sqlFile-file"]["tmp_name"], $target_file)) {
 				$sql = \file_get_contents($target_file);
-				$this->jquery->exec("setAceEditor('sqlx');", true);
+				$this->_getAdminViewer()->insertAce('sql');
 				\preg_match('/USE\s[`|"|\'](.*?)[`|"|\']/m', $sql, $matches);
 				$this->jquery->postFormOnClick('#validate-btn', $this->_getFiles()
 					->getAdminBaseRoute() . "/_createDbFromSql", "frm-sql-content", "#main-content");
