@@ -142,165 +142,115 @@ trait DisplayAcls {
 		return $dt;
 	}
 
-	public function _aclElementForm() {
+	private function oneAclElementForm(string $type, string $name, string $icon, array $fields, array $captions,$fieldAsCallback) {
 		$providerClass = AclDAOProvider::class;
 		$provider = AclManager::getProvider($providerClass);
-		$aclClass = $provider->getModelClasses()[AclElement::class];
+		$aclClass = $provider->getModelClasses()[$type];
 		$aclElement = new $aclClass();
 		$aclElement->title = "Creation";
-		$form = $this->jquery->semantic()->dataForm('frm-aclelement', $aclElement);
-		$form->setFields([
+		$form = $this->jquery->semantic()->dataForm("frm-$name", $aclElement);
+		$form->setFields($fields);
+		$form->setCaptions($captions);
+		$this->_setStyle($form);
+		$form->addDividerBefore('submit', '');
+		$form->fieldAsMessage(0, [
+			'icon' => $icon,
+			'class'=>'ui icon message '.$this->style
+		]);
+		$fieldAsCallback($form);
+
+		$form->fieldAsButton('cancel', 'black '.$this->style, [
+			'value' => 'Cancel'
+		]);
+		$form->setValidationParams([
+			"on" => "blur",
+			"inline" => true
+		]);
+		return $form;
+	}
+
+	public function _aclElementForm() {
+		return $this->oneAclElementForm(AclElement::class,'aclelement','users',[
 			"title\n",
 			"role",
 			'resource',
 			"permission",
 			'submit',
 			'cancel'
-		]);
-		$form->setCaptions([
+		],[
 			'Create a new ACL element',
 			'Role',
 			'Resource',
 			'Permission',
 			'Create ACL',
 			'Cancel'
-		]);
-		$form->addDividerBefore('submit', '');
-		$form->fieldAsMessage(0, [
-			'icon' => 'users'
-		]);
-		$form->fieldAsDataList('role', AclManager::getAclList()->getElementsNames('roles'), [
-			'rules' => 'empty'
-		]);
-		$form->fieldAsDataList('permission', AclManager::getAclList()->getElementsNames('permissions'), [
-			'rules' => 'empty'
-		]);
-		$form->fieldAsDataList('resource', AclManager::getAclList()->getElementsNames('resources'), [
-			'rules' => 'empty'
-		]);
-
-		$form->fieldAsButton('cancel', 'black', [
-			'value' => 'Cancel'
-		]);
-		$form->setValidationParams([
-			"on" => "blur",
-			"inline" => true
-		]);
-		return $form;
+		], function($form){
+			$form->fieldAsDataList('role', AclManager::getAclList()->getElementsNames('roles'), [
+				'rules' => 'empty'
+			]);
+			$form->fieldAsDataList('permission', AclManager::getAclList()->getElementsNames('permissions'), [
+				'rules' => 'empty'
+			]);
+			$form->fieldAsDataList('resource', AclManager::getAclList()->getElementsNames('resources'), [
+				'rules' => 'empty'
+			]);
+		});
 	}
 
 	public function _roleForm() {
-		$providerClass = AclDAOProvider::class;
-		$provider = AclManager::getProvider($providerClass);
-		$aclClass = $provider->getModelClasses()[Role::class];
-		$role = new $aclClass();
-		$role->title = "Creation";
-		$form = $this->jquery->semantic()->dataForm('frm-role', $role);
-		$form->setFields([
+		return $this->oneAclElementForm(Role::class,'role','user',[
 			"title\n",
 			"name",
 			'parents',
 			'submit',
 			'cancel'
-		]);
-		$form->setCaptions([
+		],[
 			'Create a new Role',
 			'Name',
 			'Parents',
 			'Create Role',
 			'Cancel'
-		]);
-		$form->addDividerBefore('submit', '');
-		$form->fieldAsMessage(0, [
-			'icon' => 'user'
-		]);
-		$form->fieldAsInput('name',['rules'=>'empty']);
-		$form->fieldAsDataList('parents', AclManager::getAclList()->getElementsNames('roles'), []);
-
-		$form->fieldAsButton('cancel', 'black', [
-			'value' => 'Cancel'
-		]);
-		$form->setValidationParams([
-			"on" => "blur",
-			"inline" => true
-		]);
-		return $form;
+		],function($form){
+			$form->fieldAsInput('name',['rules'=>'empty']);
+			$form->fieldAsDataList('parents', AclManager::getAclList()->getElementsNames('roles'), []);
+		});
 	}
 
 	public function _permissionForm() {
-		$providerClass = AclDAOProvider::class;
-		$provider = AclManager::getProvider($providerClass);
-		$aclClass = $provider->getModelClasses()[Permission::class];
-		$permission = new $aclClass();
-		$permission->title = "Creation";
-		$form = $this->jquery->semantic()->dataForm('frm-permission', $permission);
-		$form->setFields([
+		return $this->oneAclElementForm(Permission::class,'permission','unlock alternate',[
 			"title\n",
 			"name",
 			'level',
 			'submit',
 			'cancel'
-		]);
-		$form->setCaptions([
+		],[
 			'Create a new Permission',
 			'Name',
 			'Level',
 			'Create Permission',
 			'Cancel'
-		]);
-		$form->addDividerBefore('submit', '');
-		$form->fieldAsMessage(0, [
-			'icon' => 'unlock alternate'
-		]);
-		$form->fieldAsInput('name',['rules'=>'empty']);
-
-		$form->fieldAsInput('level',['inputType'=>'number']);
-
-		$form->fieldAsButton('cancel', 'black', [
-			'value' => 'Cancel'
-		]);
-		$form->setValidationParams([
-			"on" => "blur",
-			"inline" => true
-		]);
-		return $form;
+		],function($form){
+			$form->fieldAsInput('name',['rules'=>'empty']);
+			$form->fieldAsInput('level',['inputType'=>'number']);
+		});
 	}
 
 	public function _resourceForm() {
-		$providerClass = AclDAOProvider::class;
-		$provider = AclManager::getProvider($providerClass);
-		$aclClass = $provider->getModelClasses()[Resource::class];
-		$resource = new $aclClass();
-		$resource->title = "Creation";
-		$form = $this->jquery->semantic()->dataForm('frm-resource', $resource);
-		$form->setFields([
+		return $this->oneAclElementForm(Resource::class,'resource','archive',[
 			"title\n",
 			"name",
 			'value',
 			'submit',
 			'cancel'
-		]);
-		$form->setCaptions([
+		],[
 			'Create a new Resource',
 			'Name',
 			'Value',
 			'Create Resource',
 			'Cancel'
-		]);
-		$form->addDividerBefore('submit', '');
-		$form->fieldAsMessage(0, [
-			'icon' => 'archive'
-		]);
-		$form->fieldAsInput('name',['rules'=>'empty']);
-		
-		$form->fieldAsButton('cancel', 'black', [
-			'value' => 'Cancel'
-		]);
-		$form->setValidationParams([
-			"on" => "blur",
-			"inline" => true
-		]);
-		return $form;
+		],function ($form){
+			$form->fieldAsInput('name',['rules'=>'empty']);
+		});
 	}
 }
 
