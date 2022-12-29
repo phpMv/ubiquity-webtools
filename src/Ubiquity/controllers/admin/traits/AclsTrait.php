@@ -40,7 +40,44 @@ trait AclsTrait {
 			->getAdminBaseRoute() . '/_removeAcl', '{class: $(event.target).closest("tr").attr("data-class"),id:$(event.target).closest("button").attr("data-ajax")}', '#response', [
 			'hasLoader' => 'internal'
 		]);
+		$this->jquery->postOnClick('._edit', $this->_getFiles()
+				->getAdminBaseRoute() . '/_editAcl', '{class: $(event.target).closest("tr").attr("data-class"),id:$(event.target).closest("button").attr("data-ajax")}', '#form', [
+			'hasLoader' => 'internal'
+		]);
 		return $tab;
+	}
+
+	public function _editAcl() {
+		$baseRoute = $this->_getFiles()->getAdminBaseRoute();
+		if (isset($_POST['id'])) {
+			$class = \urldecode($_POST['class']);
+			$elmId = \urldecode($_POST['id']);
+			if (isset($elmId) && isset($class)) {
+				if (is_subclass_of($class, AclElement::class)|| $class===AclElement::class) {
+					$acl = AclManager::getAclList()->getAclById_($elmId);
+					if ($acl != null) {
+						$this->elementAdd(function() use($acl) {return $this->_aclElementForm($acl);},'aclelement');
+					}
+				} else {
+					if (\is_subclass_of($class, Role::class) || $class===Role::class) {
+						$role=AclManager::getAclList()->getRoleByName($elmId);
+						if ($role!==null) {
+							$this->elementAdd(function() use($role) {return $this->_roleForm($role);},'role');
+						}
+					} elseif (\is_subclass_of($class, Resource::class) || $class===Resource::class) {
+						$resource=AclManager::getAclList()->getResourceByName($elmId);
+						if ($resource!==null) {
+							$this->elementAdd(function() use($resource) {return $this->_resourceForm($resource);},'resource');
+						}
+					} elseif (\is_subclass_of($class, Permission::class) || $class===Permission::class) {
+						$permission=AclManager::getAclList()->getPermissionByName($elmId);
+						if ($permission!=null) {
+							$this->elementAdd(function() use($permission) {return $this->_permissionForm($permission);},'permission');
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public function _removeAcl() {
@@ -50,23 +87,23 @@ trait AclsTrait {
 			$class = $datas['class'] ?? null;
 			$elmId = $datas['id'] ?? null;
 			if (isset($elmId) && isset($class)) {
-				if (is_subclass_of($class, AclElement::class)) {
+				if (is_subclass_of($class, AclElement::class) || $class==AclElement::class) {
 					$acl = AclManager::getAclList()->getAclById_($datas['id']);
 					if ($acl != null) {
 						$permission = $acl->getPermission()->getName();
 						$role = $acl->getRole()->getName();
 						$resource = $acl->getResource()->getName();
 						AclManager::removeAcl($role, $resource, $permission);
-						$msg = $this->toast("Permission $permission removed to $role on $resource!", 'ACL Deletion', 'info', true);
+						$msg = $this->toast("ACL with Permission $permission removed to $role on $resource!", 'ACL Deletion', 'info', true);
 					}
 				} else {
-					if (\is_subclass_of($class, Role::class)) {
+					if (\is_subclass_of($class, Role::class) || $class==Role::class) {
 						AclManager::removeRole($elmId);
 						$msg = $this->toast("Role $elmId removed!", 'Role Deletion', 'info', true);
-					} elseif (\is_subclass_of($class, Resource::class)) {
+					} elseif (\is_subclass_of($class, Resource::class) || $class==Resource::class) {
 						AclManager::removeResource($elmId);
 						$msg = $this->toast("resource $elmId removed!", 'resource Deletion', 'info', true);
-					} elseif (\is_subclass_of($class, Permission::class)) {
+					} elseif (\is_subclass_of($class, Permission::class) || $class==Permission::class) {
 						AclManager::removePermission($elmId);
 						$msg = $this->toast("Permission $elmId removed!", 'Permission Deletion', 'info', true);
 					}
@@ -223,7 +260,7 @@ trait AclsTrait {
 
 	private function elementAdd($callbackForm,$caption){
 		$form = $callbackForm();
-		$form->fieldAsSubmit('submit', 'green fluid', $this->_getFiles()
+		$form->fieldAsSubmit('submit', 'green '.$this->style, $this->_getFiles()
 				->getAdminBaseRoute() . "/_{$caption}Submit", '#form', [
 			'ajax' => [
 				'hasLoader' => 'internal'
@@ -258,8 +295,8 @@ trait AclsTrait {
 		extract($_POST);
 		$this->elementSubmit(function($aclList){
 			extract($_POST);
-			$aclList->addAndAllow($role, $resource, $permission);
-		},"Permission $permission granted to $role on $resource!", 'ACL Creation');
+			$aclList->addAndAllow($role, $resource, $permission,$_POST['id']??null);
+		},"ACL element with Permission $permission granted to $role on $resource!", 'ACL Creation');
 	}
 
 	public function _roleAdd() {
@@ -268,10 +305,24 @@ trait AclsTrait {
 
 	public function _roleSubmit() {
 		extract($_POST);
-		$this->elementSubmit(function($aclList){
+		$isNew=$_POST['id_']!=null;
+		if($isNew){
+			$msg="Role $name added!";
+			$title='Role creation';
+		} else {
+			$msg="Role $name updated!";
+			$title='Role update';
+		}
+		$this->elementSubmit(function($aclList) use ($isNew) {
 			extract($_POST);
-			$aclList->addRole(new Role($name,$parents??''));
-		},"Role $name added!", 'Role Creation');
+			$role=new Role($name, $parents ?? '');
+			if($isNew){
+				$id=$_POST['id_'];
+				$aclList->updateRole($id,$role);
+			}else {
+				$aclList->addRole($role);
+			}
+		},$msg, $title);
 	}
 
 	public function _permissionAdd() {
@@ -280,10 +331,24 @@ trait AclsTrait {
 
 	public function _permissionSubmit() {
 		extract($_POST);
-		$this->elementSubmit(function($aclList){
+		$isNew=$_POST['id_']!=null;
+		if($isNew){
+			$msg="Permission $name added!";
+			$title='Permission creation';
+		} else {
+			$msg="Permission $name updated!";
+			$title='Permission update';
+		}
+		$this->elementSubmit(function($aclList) use ($isNew) {
 			extract($_POST);
-			$aclList->addPermission(new Permission($name,$level??0));
-		},"Permission $name added!", 'Permission Creation');
+			$permission=new Permission($name,$level??0);
+			if($isNew){
+				$id=$_POST['id_'];
+				$aclList->updatePermission($id,$permission);
+			}else {
+				$aclList->addPermission($permission);
+			}
+		},$msg, $title);
 	}
 
 	public function _resourceAdd() {
@@ -292,10 +357,24 @@ trait AclsTrait {
 
 	public function _resourceSubmit() {
 		extract($_POST);
-		$this->elementSubmit(function($aclList){
+		$isNew=$_POST['id_']!=null;
+		if($isNew){
+			$msg="Resource $name added!";
+			$title='Resource creation';
+		} else {
+			$msg="Resource $name updated!";
+			$title='Resource update';
+		}
+		$this->elementSubmit(function($aclList) use ($isNew) {
 			extract($_POST);
-			$aclList->addResource(new Resource($name,$value??''));
-		},"Resource $name added!", 'Resource Creation');
+			$resource=new Resource($name, $value ?? '');
+			if ($isNew) {
+				$id=$_POST['id_'];
+				$aclList->updateResource($id,$resource);
+			}else {
+				$aclList->addResource($resource);
+			}
+		},$msg, $title);
 	}
 }
 

@@ -1,6 +1,7 @@
 <?php
 namespace Ubiquity\controllers\admin\traits\acls;
 
+use Ajax\semantic\widgets\dataform\DataForm;
 use Ubiquity\security\acl\models\Role;
 use Ubiquity\security\acl\models\Permission;
 use Ubiquity\security\acl\models\Resource;
@@ -25,7 +26,11 @@ trait DisplayAcls {
 		$dt->setFields($fields);
 		$dt->setCompact(true);
 		$dt->setEdition();
-		$dt->addDeleteButton();
+		$dt->addEditDeleteButtons ( false, [ 'hasLoader' => 'internal' ], function ($bt) {
+			$bt->addClass ( 'circular ' . $this->style );
+		}, function ($bt) {
+			$bt->addClass ( 'circular ' . $this->style );
+		} );
 		$dt->onPreCompile(function () use (&$dt) {
 			$dt->getHtmlComponent()
 				->colRightFromRight(0);
@@ -33,13 +38,13 @@ trait DisplayAcls {
 		$dt->setIdentifierFunction(function ($index, $elm) {
 			return urlencode($elm->getId_());
 		});
+
 		$dt->onNewRow(function ($row, $object) {
 			$class = \get_class($object);
 			$row->setProperty('data-class', \urlencode(\get_class($object)));
-			if ($class === AclElement::class || $class === Role::class || $class === Resource::class || $class == Permission::class || $class == PermissionMapObject::class) {
+			if ($object->getType()!==AclDAOProvider::class) {
 				$i = $row->getColCount() - 1;
-				$row->getItem($i)
-					->setContent('');
+				$row->getItem($i)->setContent('');
 			}
 		});
 		if($style==='inverted'){
@@ -142,12 +147,12 @@ trait DisplayAcls {
 		return $dt;
 	}
 
-	private function oneAclElementForm(string $type, string $name, string $icon, array $fields, array $captions,$fieldAsCallback) {
+	private function oneAclElementForm(string $type, string $name, string $icon, array $fields, array $captions,$fieldAsCallback,$aclElement=null) {
 		$providerClass = AclDAOProvider::class;
 		$provider = AclManager::getProvider($providerClass);
 		$aclClass = $provider->getModelClasses()[$type];
-		$aclElement = new $aclClass();
-		$aclElement->title = "Creation";
+		$aclElement ??= new $aclClass();
+		$aclElement->title = $type;
 		$form = $this->jquery->semantic()->dataForm("frm-$name", $aclElement);
 		$form->setFields($fields);
 		$form->setCaptions($captions);
@@ -157,6 +162,8 @@ trait DisplayAcls {
 			'icon' => $icon,
 			'class'=>'ui icon message '.$this->style
 		]);
+		$form->fieldAsHidden('id_');
+
 		$fieldAsCallback($form);
 
 		$form->fieldAsButton('cancel', 'black '.$this->style, [
@@ -169,22 +176,32 @@ trait DisplayAcls {
 		return $form;
 	}
 
-	public function _aclElementForm() {
+	public function _aclElementForm($aclElement=null) {
+		$isNew=true;
+		if(isset($aclElement)) {
+			$aclElement->setRole($aclElement->getRole()->getName());
+			$aclElement->setPermission($aclElement->getPermission()->getName());
+			$aclElement->setResource($aclElement->getResource()->getName());
+			$isNew=false;
+		}
 		return $this->oneAclElementForm(AclElement::class,'aclelement','users',[
 			"title\n",
 			"role",
 			'resource',
 			"permission",
+			"id",
 			'submit',
 			'cancel'
 		],[
-			'Create a new ACL element',
+			$isNew?'Create a new ACL element':'Update an existing ACL element',
 			'Role',
 			'Resource',
 			'Permission',
-			'Create ACL',
+			'',
+			'Okay',
 			'Cancel'
-		], function($form){
+		], function(DataForm $form){
+			$form->fieldAsHidden('id');
 			$form->fieldAsDataList('role', AclManager::getAclList()->getElementsNames('roles'), [
 				'rules' => 'empty'
 			]);
@@ -194,63 +211,72 @@ trait DisplayAcls {
 			$form->fieldAsDataList('resource', AclManager::getAclList()->getElementsNames('resources'), [
 				'rules' => 'empty'
 			]);
-		});
+		},$aclElement);
 	}
 
-	public function _roleForm() {
+	public function _roleForm($role=null) {
+		$isNew=$role!==null;
 		return $this->oneAclElementForm(Role::class,'role','user',[
 			"title\n",
 			"name",
 			'parents',
+			'id_',
 			'submit',
 			'cancel'
 		],[
-			'Create a new Role',
+			$isNew?'Create a new Role':'Update an existing role',
 			'Name',
 			'Parents',
-			'Create Role',
+			'id_',
+			'Okay',
 			'Cancel'
 		],function($form){
 			$form->fieldAsInput('name',['rules'=>'empty']);
 			$form->fieldAsDataList('parents', AclManager::getAclList()->getElementsNames('roles'), []);
-		});
+		},$role);
 	}
 
-	public function _permissionForm() {
+	public function _permissionForm($permission=null) {
+		$isNew=$permission!==null;
 		return $this->oneAclElementForm(Permission::class,'permission','unlock alternate',[
 			"title\n",
 			"name",
 			'level',
+			'id_',
 			'submit',
 			'cancel'
 		],[
-			'Create a new Permission',
+			$isNew?'Create a new Permission':'Update an existing permission',
 			'Name',
 			'Level',
-			'Create Permission',
+			'',
+			'Okay',
 			'Cancel'
 		],function($form){
 			$form->fieldAsInput('name',['rules'=>'empty']);
 			$form->fieldAsInput('level',['inputType'=>'number']);
-		});
+		},$permission);
 	}
 
-	public function _resourceForm() {
+	public function _resourceForm($resource=null) {
+		$isNew=$resource!==null;
 		return $this->oneAclElementForm(Resource::class,'resource','archive',[
 			"title\n",
 			"name",
 			'value',
+			'id_',
 			'submit',
 			'cancel'
 		],[
-			'Create a new Resource',
+			$isNew?'Create a new Resource':'Update an existing resource',
 			'Name',
 			'Value',
-			'Create Resource',
+			'',
+			'Okay',
 			'Cancel'
 		],function ($form){
 			$form->fieldAsInput('name',['rules'=>'empty']);
-		});
+		},$resource);
 	}
 }
 
