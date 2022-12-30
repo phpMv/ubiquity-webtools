@@ -160,7 +160,7 @@ trait DisplayAcls {
 		$form->addDividerBefore('submit', '');
 		$form->fieldAsMessage(0, [
 			'icon' => $icon,
-			'class'=>'ui icon message '.$this->style
+			'class'=>'ui olive icon message '.$this->style
 		]);
 		$form->fieldAsHidden('id_');
 

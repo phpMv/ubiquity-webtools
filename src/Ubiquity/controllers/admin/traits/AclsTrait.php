@@ -266,6 +266,7 @@ trait AclsTrait {
 				'hasLoader' => 'internal'
 			]
 		]);
+		$form->wrap("<div class='ui segment ".$this->style."'>",'</div>');
 		$this->jquery->click("#frm-{$caption}-cancel-0", '$("#form").html("");');
 		$this->loadViewCompo($form);
 	}
