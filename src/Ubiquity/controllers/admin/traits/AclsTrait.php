@@ -44,6 +44,7 @@ trait AclsTrait {
 				->getAdminBaseRoute() . '/_editAcl', '{class: $(event.target).closest("tr").attr("data-class"),id:$(event.target).closest("button").attr("data-ajax")}', '#form', [
 			'hasLoader' => 'internal'
 		]);
+		$this->_checkACLUpdates(false);
 		return $tab;
 	}
 

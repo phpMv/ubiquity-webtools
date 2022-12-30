@@ -435,6 +435,15 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		}
 	}
 
+	protected function _checkACLUpdates($onMainPage){
+		if(class_exists(AclManager::class)) {
+			$config=Startup::$config;
+			if (AclManager::checkCache($config)) {
+				$this->_smallUpdateMessageCache($onMainPage, 'acl', 'users', 'Updated ACLs files ', 'warning', $onMainPage ? '_initCache/acls' : '_initCache/acls/acls', $onMainPage ? '#messages' : '#main-content');
+			}
+		}
+	}
+
 	protected function _smallUpdateMessageCache($onMainPage, $type, $icon, $message, $messageType, $url, $target) {
 		$js=$this->jquery->getDeferred($this->_getFiles()->getAdminBaseRoute() . '/' . $url, $target, [
 			'dataType' => 'html',
