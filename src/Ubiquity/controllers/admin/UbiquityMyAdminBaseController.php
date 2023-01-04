@@ -186,7 +186,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		]
 	];
 
-	public const VERSION = '2.5.2';
+	public const VERSION = '2.5.3';
 
 	public $style;
 
@@ -414,32 +414,40 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	}
 
 	protected function _checkModelsUpdates(&$config, $onMainPage) {
+		$msg='Updated models files';
+		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
 		$models = CacheManager::modelsCacheUpdated($config);
 		if (\is_array($models) && \count($models) > 0) {
-			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', 'Updated models files (<b>' . count($models) . '</b>)&nbsp;', 'warning', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#messages' : '#main-content');
+			$this->_smallUpdateMessageCache($onMainPage, 'models', 'sticky note inverted', $msg.' (<b>' . count($models) . '</b>)&nbsp;', 'warning', $onMainPage ? '_initCache/models' : '_initCache/models/models', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
 
 	protected function _checkRouterUpdates(&$config, $onMainPage) {
+		$msg='Updated controller files';
+		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
 		$caches = CacheManager::controllerCacheUpdated($config);
 		if (\is_array($caches) && \count($caches) > 0) {
 			if (! $this->hasMaintenance()) {
-				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', 'Updated controller files ', 'warning', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#messages' : '#divRoutes');
+				$this->_smallUpdateMessageCache($onMainPage, 'router', 'car', $msg, 'warning', $onMainPage ? '_initCache/controllers' : '_initCacheRouter', $onMainPage ? '#messages' : '#divRoutes');
 			}
 		}
 	}
 
 	protected function _checkConfigUpdates($onMainPage){
+		$msg='Updated configuration files';
+		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
 		if(Configuration::isConfigUpdated()){
-			$this->_smallUpdateMessageCache($onMainPage, 'config', 'settings', 'Updated configuration files ', 'warning', $onMainPage ? '_initCache/config' : '_initCache/config/config', $onMainPage ? '#messages' : '#main-content');
+			$this->_smallUpdateMessageCache($onMainPage, 'config', 'settings', $msg, 'warning', $onMainPage ? '_initCache/config' : '_initCache/config/config', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
 
 	protected function _checkACLUpdates($onMainPage){
+		$msg='Updated ACLs files';
+		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
 		if(class_exists(AclManager::class)) {
 			$config=Startup::$config;
 			if (AclManager::checkCache($config)) {
-				$this->_smallUpdateMessageCache($onMainPage, 'acl', 'users', 'Updated ACLs files ', 'warning', $onMainPage ? '_initCache/acls' : '_initCache/acls/acls', $onMainPage ? '#messages' : '#main-content');
+				$this->_smallUpdateMessageCache($onMainPage, 'acl', 'users', $msg, 'warning', $onMainPage ? '_initCache/acls' : '_initCache/acls/acls', $onMainPage ? '#messages' : '#main-content');
 			}
 		}
 	}
