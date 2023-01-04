@@ -470,6 +470,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->_checkModelsUpdates($config, true);
 		$this->_checkRouterUpdates($config, true);
 		$this->_checkConfigUpdates(true);
+		$this->_checkACLUpdates(true);
 
 		if ($this->hasMaintenance()) {
 			$this->_smallMaintenanceActive(true, MaintenanceMode::getActiveMaintenance($this->config["maintenance"]));
