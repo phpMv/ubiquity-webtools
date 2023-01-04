@@ -436,7 +436,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function _checkConfigUpdates($onMainPage){
 		$msg='Updated configuration files';
 		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
-		if(Configuration::isConfigUpdated()){
+		if (Configuration::isConfigUpdated()) {
 			$this->_smallUpdateMessageCache($onMainPage, 'config', 'settings', $msg, 'warning', $onMainPage ? '_initCache/config' : '_initCache/config/config', $onMainPage ? '#messages' : '#main-content');
 		}
 	}
@@ -444,7 +444,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 	protected function _checkACLUpdates($onMainPage){
 		$msg='Updated ACLs files';
 		$this->jquery->exec('$(":contains('.$msg.')").closest(".toast-container").html("");',true);
-		if(class_exists(AclManager::class)) {
+		if (\class_exists(AclManager::class)) {
 			$config=Startup::$config;
 			if (AclManager::checkCache($config)) {
 				$this->_smallUpdateMessageCache($onMainPage, 'acl', 'users', $msg, 'warning', $onMainPage ? '_initCache/acls' : '_initCache/acls/acls', $onMainPage ? '#messages' : '#main-content');
