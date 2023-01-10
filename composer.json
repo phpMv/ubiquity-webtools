@@ -14,7 +14,8 @@
 		"php" : ">=7.4",
 		"phpmv/php-mv-ui": ">2.2.19",
 		"phpmv/ubiquity-dev": "^0.1 | dev-master",
-		"vlucas/phpdotenv": "^5.5"
+		"vlucas/phpdotenv": "^5.5",
+		"twig/twig": "^3.0"
 	},
 	"license" : "Apache-2.0",
 	"authors" : [{
