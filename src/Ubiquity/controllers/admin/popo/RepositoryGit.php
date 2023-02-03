@@ -9,6 +9,7 @@ use Ubiquity\utils\git\GitFile;
 use Ubiquity\utils\git\GitFileStatus;
 use Ubiquity\utils\base\UString;
 
+#[\AllowDynamicProperties()]
 class RepositoryGit {
 
 	public static $GIT_SETTINGS = "git/settings";

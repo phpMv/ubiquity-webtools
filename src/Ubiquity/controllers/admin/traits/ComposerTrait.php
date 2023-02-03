@@ -55,6 +55,18 @@ trait ComposerTrait {
 				'class' => 'Twig\\Environment'
 			],
 			[
+				'name'=>'phpmv/ubiquity-latte',
+				'optional'=>true,
+				'category'=>'templates',
+				'class'=>'Latte\\Engine'
+			],
+			[
+				'name' => 'phpmv/ubiquity-plates',
+				'optional' => true,
+				'category' => 'templates',
+				'class' => 'League\\Plates\\Engine'
+			],
+			[
 				'name' => 'phpmv/ubiquity-reactphp',
 				'optional' => true,
 				'category' => 'servers',
