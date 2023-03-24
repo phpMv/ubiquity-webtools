@@ -244,7 +244,7 @@ trait ModelsTrait {
 	}
 
 	public function _editModel($modal = "no", $ids = "") {
-		$instance = $this->getModelInstance($ids, false);
+		$instance = $this->getModelInstance($ids, DAO::$useTransformers);
 		$instance->_new = false;
 		$this->editInstance_($instance, $modal);
 	}
@@ -285,7 +285,7 @@ trait ModelsTrait {
 		echo $this->jquery->compile($this->view);
 	}
 
-	private function getModelInstance($ids, $transform = true) {
+	protected function getModelInstance($ids, $transform = true) {
 		$model = $_SESSION['model'];
 		$ids = \explode("_", $ids);
 		DAO::$useTransformers = $transform;
@@ -394,7 +394,7 @@ trait ModelsTrait {
 	}
 
 	public function _showModelDetails($ids) {
-		$instance = $this->getModelInstance($ids);
+		$instance = $this->getModelInstance($ids,DAO::$useTransformers);
 		$viewer = $this->_getModelViewer();
 		$hasElements = false;
 		$model = $_SESSION['model'];
@@ -446,7 +446,7 @@ trait ModelsTrait {
 		$ids = URequest::post("id");
 		$td = URequest::post("td");
 		$part = URequest::post("part");
-		$instance = $this->getModelInstance($ids, false);
+		$instance = $this->getModelInstance($ids, DAO::$useTransformers);
 		$_SESSION["instance"] = $instance;
 		$_SESSION["model"] = get_class($instance);
 		$instance->_new = false;
