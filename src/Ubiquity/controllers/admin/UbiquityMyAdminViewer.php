@@ -1264,6 +1264,7 @@ class UbiquityMyAdminViewer {
 					$resources[\strtolower( ClassUtils::getClassSimpleName($model))] = $model;
 				}
 				$dd=$frm->addDropdown('resource',$resources,'Resource', \array_key_first($resources));
+				$this->setStyle($dd);
 			$list->wrap('',['<div class="ui divider"></div>',$frm]);
 			}
 			$list->setHorizontal();
