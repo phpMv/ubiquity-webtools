@@ -78,19 +78,24 @@ trait RestTrait {
 	public function _displayRestFormTester() {
 		$path = $_POST["path"] ?? '';
 		$resource = $_POST["resource"] ?? '';
+		$multiResource = $_POST["multiResource"] ?? '';
+		$resource=($resource=='')?$multiResource:$resource;
+		$method = \current(explode(',',$_POST["methods"] ?? ''));
 		$controller = $_POST["controller"] ?? '';
 		$controller = \urldecode($controller);
 		$action = $_POST["action"] ?? '';
+		$formId = $_POST["formId"] ?? '';
 		$msgHelp = $this->_displayActionDoc($controller, $action);
 		$frm = $this->jquery->semantic()->htmlForm("frmTester-" . $path);
 		$pathId = JString::cleanIdentifier($path);
 		$containerId = "div-tester-" . $pathId;
-		$input = $frm->addInput("path", null, "text", $path);
+		$input = $frm->addInput("path", null, "text", \implode($resource, \explode('(.+?)', $path, 2)));
 		$pathField = $input->getDataField()
 			->setIdentifier("path-" . $path)
 			->addClass("_path");
 		$dd = $input->addDropdown("GET", Constants::REQUEST_METHODS);
-		$methodField = $dd->setIdentifier("dd-method-" . $path)
+		$dd->setValue($method);
+		$methodField = $dd->setIdentifier("dd-method-" . $formId)
 			->getDataField()
 			->setProperty("name", "method");
 		$methodField->setIdentifier("method-" . $path)->addClass("_method");
@@ -108,7 +113,7 @@ trait RestTrait {
 		$frmParameters = new HtmlForm("frm-parameters-" . $path);
 
 		$this->jquery->postOnClick("#" . $btGo->getIdentifier(), $this->_getFiles()
-			->getAdminBaseRoute() . "/_runRestMethod", "{payload:$(\"#ck-payload-" . $pathId . "\").is(':checked'),pathId: '" . $path . "',path: $('#" . $pathField->getIdentifier() . "').val(),method: $('#" . $methodField->getIdentifier() . "').val(),headers:$('#" . $frmHeaders->getIdentifier() . "').serialize(),params:$('#" . $frmParameters->getIdentifier() . "').serialize()}", "#" . $containerId . " ._runRestMethod", [
+			->getAdminBaseRoute() . "/_runRestMethod", "{payload:$(\"#ck-payload-" . $pathId . "\").is(':checked'),formId: '".$formId."', pathId: '" . $path . "',path: $('#" . $pathField->getIdentifier() . "').val(),method: $('#" . $methodField->getIdentifier() . "').val(),headers:$('#" . $frmHeaders->getIdentifier() . "').serialize(),params:$('#" . $frmParameters->getIdentifier() . "').serialize()}", "#" . $containerId . " ._runRestMethod", [
 			"hasLoader" => "internal"
 		]);
 		$this->jquery->postOnClick("#" . $containerId . " ._requestWithParams", $this->_getFiles()
@@ -211,7 +216,7 @@ trait RestTrait {
 			$active = 'inverted';
 		}
 		$this->jquery->click("._toTest", "if(!$(this).hasClass('active')){
-					\$(this).closest('tr').after('<tr class=\"" . $active . "\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">test</td></tr>');
+					\$(this).closest('tr').after('<tr class=\"" . $active . "\"><td id=\"sub-td'+$(this).closest('tr').attr('id')+'\" colspan=\"'+$(this).closest('tr').children('td').length+'\">...</td></tr>');
 					$(this).addClass('active').removeClass('visibleover');}else{
 						$(this).removeClass('active').addClass('visibleover');
 						$(this).closest('tr').find('.ui.icon.help').transition('hide');
@@ -219,7 +224,7 @@ trait RestTrait {
 					}", false, false, true);
 		$this->jquery->click("._showMsgHelp", '$("#"+$(this).attr("data-show")).transition();');
 		$this->jquery->postOnClick("._toTest", $this->_getFiles()
-			->getAdminBaseRoute() . "/_displayRestFormTester", "{resource:$(this).attr('data-resource'),controller:$(this).attr('data-controller'),action:$(this).attr('data-action'),path:$(this).closest('tr').attr('data-ajax')}", "'#sub-td'+$(self).closest('tr').attr('id')", [
+			->getAdminBaseRoute() . "/_displayRestFormTester", "{formId: 'sub-td'+$(this).closest('tr').attr('id'), methods: $(this).attr('data-methods'),resource:$(this).attr('data-resource'),multiResource: $('[name=\"resource\"]').val()??'',controller:$(this).attr('data-controller'),action:$(this).attr('data-action'),path:$(this).attr('data-path')}", "'#sub-td'+$(self).closest('tr').attr('id')", [
 			"ajaxTransition" => "fade left",
 			"stopPropagation" => true,
 			"jsCondition" => "!$(self).hasClass('active')",
@@ -236,13 +241,13 @@ trait RestTrait {
 
 	public function _runRestMethod() {
 		$headers = $this->getRestRequestHeaders();
-		$method = $_POST["method"];
-		$path = $_POST["path"];
-		$payload = UString::isBooleanTrue($_POST["payload"] ?? false);
-		$formId = "sub-tddtRest-tr-" . JString::cleanIdentifier($_POST["pathId"]);
+		$method = $_POST['method'];
+		$path = $_POST['path'];
+		$payload = UString::isBooleanTrue($_POST['payload'] ?? false);
+		$formId = $_POST['formId'];
 		$parameters = [
 			"jsCallback" => "$('#" . $formId . " ._restResponse').html(JSON.stringify(data,null,2))",
-			"complete" => "var status = { 200 : 'green', 401 : 'orange', 403 : 'brown', 404 : 'black', 500 : 'red' };
+			"complete" => "var status = { 200 : 'green', 201: 'green', 401 : 'orange', 403 : 'brown', 404 : 'black', 500 : 'red' };
 							var headers=jqXHR.getAllResponseHeaders();
 							headers=headers.split(/\\r\\n/);
 							var bHeaders=[];
@@ -264,7 +269,8 @@ trait RestTrait {
 						addToken(jqXHR);",
 			"dataType" => "json",
 			"headers" => $headers,
-			"params" => $this->getRestRequestParams()
+			"params" => $this->getRestRequestParams(),
+			'hasLoader' => false
 		];
 		if ($payload === true) {
 			$parameters["contentType"] = "'application/json; charset=utf-8'";

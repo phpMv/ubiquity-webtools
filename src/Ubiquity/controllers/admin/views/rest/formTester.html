@@ -9,7 +9,7 @@
 	  	<div class="ui segment">
 	  		<div class="ui checkbox">
 			  <input id="ck-payload-{{pathId}}" type="checkbox" name="payload">
-			  <label for="ck-payload-{{pathId}}">Use payload</label>
+			  <label for="ck-payload-{{pathId}}">Use JSON payload</label>
 			</div>
 		</div>
 			<div class="ui top attached button _requestWithHeaders">
@@ -37,7 +37,7 @@
 		<div class="ui compact segment _statusSegment"><i class="icon mail"></i> <b>Response status :</b>&nbsp;<span class="_statusText"></span>&nbsp;
 	   		<div class="ui label _status">code</div>
 	 	</div>
-	  	<div class="ui inverted segment"><pre style="word-wrap: break-word;white-space: pre-wrap;" class="_restResponse"></pre></div>
+	  	<div class="ui inverted segment"><pre style="max-width: 600px;overflow-x: auto" class="_restResponse"></pre></div>
 	  </div>
 	</div>
 </div>

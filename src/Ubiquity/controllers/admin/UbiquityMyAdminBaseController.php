@@ -604,7 +604,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 		$this->forward(static::class, 'index', [], true, true);
 	}
 
-	protected function getActiveDb() {
+	public function getActiveDb() {
 		$dbs = DAO::getDatabases();
 		if (DDDManager::hasDomains()) {
 			$domain = $this->getActiveDomain();
@@ -1487,7 +1487,7 @@ class UbiquityMyAdminBaseController extends Controller implements HasModelViewer
 						");
 			}
 			$this->jquery->click("._deleteParameter", "
-								if($('.fields').length>2)
+								if($('#response-with-params .fields').length>2)
 									$(this).parents('.fields').remove();
 					", true, true, true);
 			$this->jquery->click("#clone", "

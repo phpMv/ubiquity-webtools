@@ -4,6 +4,7 @@ namespace Ubiquity\controllers\admin;
 use Ajax\semantic\components\validation\Rule;
 use Ajax\semantic\html\base\HtmlSemDoubleElement;
 use Ajax\semantic\html\base\constants\TextAlignment;
+use Ajax\semantic\html\collections\form\HtmlForm;
 use Ajax\semantic\html\collections\HtmlMessage;
 use Ajax\semantic\html\collections\form\HtmlFormCheckbox;
 use Ajax\semantic\html\collections\form\HtmlFormInput;
@@ -25,6 +26,7 @@ use Ubiquity\annotations\parser\DocParser;
 use Ubiquity\cache\CacheManager;
 use Ubiquity\cache\ClassUtils;
 use Ubiquity\contents\validation\validators\ConstraintViolationViewer;
+use Ubiquity\controllers\rest\HasResourceInterface;
 use Ubiquity\controllers\Startup;
 use Ubiquity\controllers\admin\popo\ControllerAction;
 use Ubiquity\controllers\admin\popo\InstanceViolations;
@@ -1238,6 +1240,10 @@ class UbiquityMyAdminViewer {
 		$this->setStyle($tabs);
 		foreach ($datas as $controller => $restAttributes) {
 			$doc = "";
+			$multiResources=true;
+			if(\is_subclass_of($controller,HasResourceInterface::class)){
+				$multiResources = false;
+			}
 			$list = new HtmlList("attributes", [
 				[
 					"heartbeat",
@@ -1250,6 +1256,16 @@ class UbiquityMyAdminViewer {
 					$restAttributes["restAttributes"]["route"]
 				]
 			]);
+			if($multiResources) {
+				$config=Startup::$config;
+				$frm=new HtmlForm('frmResource');
+				$models = CacheManager::getModels($config, true, $this->controller->getActiveDb());
+				foreach ($models as $model) {
+					$resources[\strtolower( ClassUtils::getClassSimpleName($model))] = $model;
+				}
+				$dd=$frm->addDropdown('resource',$resources,'Resource', \array_key_first($resources));
+			$list->wrap('',['<div class="ui divider"></div>',$frm]);
+			}
 			$list->setHorizontal();
 			$list->addClass($this->style);
 			if (\class_exists($controller)) {
@@ -1280,10 +1296,10 @@ class UbiquityMyAdminViewer {
 			$tab = $tabs->addTab($title, [
 				$doc,
 				$list,
-				$this->_getRestRoutesDataTable($routes, "dtRest", $resource, $restAttributes["restAttributes"]["authorizations"])
+				$this->_getRestRoutesDataTable($routes, "dtRest", $resource, $restAttributes["restAttributes"]["authorizations"],$multiResources)
 			]);
 			$tab->addClass($this->style);
-			if (\sizeof($errors) > 0) {
+			if (\count($errors) > 0) {
 				$tab->menuTab->addLabel("error")
 					->setColor("red")
 					->addIcon("warning sign");
@@ -1296,10 +1312,10 @@ class UbiquityMyAdminViewer {
 		return $tabs;
 	}
 
-	protected function _getRestRoutesDataTable($routes, $dtName, $resource, $authorizations) {
+	protected function _getRestRoutesDataTable($routes, $dtName, $resource, $authorizations,$multiResources=true) {
 		$dt = $this->jquery->semantic()->dataTable($dtName, "Ubiquity\controllers\admin\popo\Route", $routes);
 		$dt->setIdentifierFunction(function ($i, $instance) {
-			return $instance->getPath();
+			return $instance->getPath().'-'.$i;
 		});
 		$dt->setFields([
 			"path",
@@ -1338,7 +1354,9 @@ class UbiquityMyAdminViewer {
 			$bt->addClass("toggle _toTest basic circular " . $this->style)
 				->setProperty("data-resource", ClassUtils::cleanClassname($resource));
 			$bt->setProperty("data-action", $instance->getAction())
-				->setProperty("data-controller", \urlencode($instance->getController()));
+				->setProperty("data-path", $instance->getPath())
+				->setProperty("data-controller", \urlencode($instance->getController()))
+				->setProperty("data-methods", \implode(',',$instance->getMethods()));
 		});
 		$dt->onPreCompile(function ($dTable) {
 			$dTable->setColAlignment(5, TextAlignment::RIGHT);
